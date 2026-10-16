@@ -1,0 +1,20 @@
+.env
+.env.local
+app/config/database.local.php
+app/config/database.production.local.php
+app/config/sql-console.*.local.php
+.idea/
+.vscode/
+*.log
+app/vendor/
+app/services/presence/node_modules/
+storage/presence/
+app/src/presence.config.php
+app/services/presence/server.config.json
+backend/target/
+app/public/assets/extjs/
+
+# Exclude PDF documents and archives
+*.[pP][dD][fF]
+*.[zZ][iI][pP]
+*.[rR][aA][rR]

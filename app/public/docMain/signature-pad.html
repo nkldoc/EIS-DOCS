@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="th">
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="pin-ui.css?v=20261006-1">
+        <title>เอกสารข้อตกลง — เซ็นและบันทึก</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+        <style>
+            :root{
+                --paper:#E9EBE3;
+                --paper-2:#F4F5EF;
+                --ink:#1B2A3D;
+                --ink-soft:#3B4A5C;
+                --rule:#B9B2A0;
+                --seal:#A23B2E;
+                --seal-dark:#7E2E24;
+                --stamp-green:#2F5233;
+                --muted:#6B6558;
+            }
+            *{
+                box-sizing:border-box;
+            }
+            html,body{
+                margin:0;
+                padding:0;
+            }
+            body{
+                background:
+                    repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(107,101,88,0.05) 28px),
+                    var(--paper);
+                min-height:100vh;
+                font-family:'IBM Plex Sans', sans-serif;
+                color:var(--ink);
+                display:flex;
+                justify-content:center;
+                padding:40px 16px 60px;
+            }
+            .sheet{
+                width:100%;
+                max-width:1180px;
+                background:var(--paper-2);
+                border:1px solid var(--rule);
+                box-shadow: 0 1px 0 rgba(27,42,61,0.04), 0 12px 30px -18px rgba(27,42,61,0.35);
+                position:relative;
+            }
+            .sheet::before{
+                content:"";
+                position:absolute;
+                inset:10px;
+                border:1px solid rgba(107,101,88,0.28);
+                pointer-events:none;
+            }
+            .letterhead{
+                padding:36px 40px 20px;
+                border-bottom:1px solid var(--rule);
+            }
+            .eyebrow{
+                font-family:'IBM Plex Mono', monospace;
+                font-size:11px;
+                letter-spacing:0.14em;
+                text-transform:uppercase;
+                color:var(--muted);
+                display:flex;
+                justify-content:space-between;
+            }
+            h1{
+                font-family:'Source Serif 4', serif;
+                font-weight:600;
+                font-size:30px;
+                margin:10px 0 6px;
+                letter-spacing:-0.01em;
+            }
+            .sub{
+                font-size:14px;
+                color:var(--ink-soft);
+                margin:0;
+            }
+            .fields{
+                padding:26px 40px 6px;
+                display:grid;
+                grid-template-columns:1fr 1fr;
+                gap:18px 24px;
+            }
+            .field{
+                grid-column: span 1;
+            }
+            .field.wide{
+                grid-column: 1 / -1;
+            }
+            label{
+                display:block;
+                font-family:'IBM Plex Mono', monospace;
+                font-size:10.5px;
+                letter-spacing:0.1em;
+                text-transform:uppercase;
+                color:var(--muted);
+                margin-bottom:6px;
+            }
+            input[type=text]{
+                width:100%;
+                border:none;
+                border-bottom:1px solid var(--rule);
+                background:transparent;
+                font-family:'Source Serif 4', serif;
+                font-size:17px;
+                color:var(--ink);
+                padding:2px 0 8px;
+                outline:none;
+                transition:border-color .15s ease;
+            }
+            input[type=text]:focus{
+                border-bottom-color:var(--seal);
+            }
+            select{
+                width:100%;
+                border:none;
+                border-bottom:1px solid var(--rule);
+                background:transparent;
+                font-family:'IBM Plex Sans', sans-serif;
+                font-size:14px;
+                color:var(--ink);
+                padding:4px 0 8px;
+                outline:none;
+                transition:border-color .15s ease;
+            }
+            select:focus{
+                border-bottom-color:var(--seal);
+            }
+            .template-row{
+                display:flex;
+                align-items:flex-end;
+                gap:10px;
+            }
+            .template-row select{
+                flex:1;
+            }
+            .template-row button{
+                flex-shrink:0;
+                margin-bottom:1px;
+            }
+            .template-note{
+                font-size:11.5px;
+                color:var(--muted);
+                font-style:italic;
+                margin-top:6px;
+                display:block;
+            }
+
+            .signblock{
+                padding:30px 40px 8px;
+            }
+            .pad-label-row{
+                display:flex;
+                align-items:baseline;
+                justify-content:space-between;
+                margin-bottom:10px;
+            }
+            .pad-label-row label{
+                margin-bottom:0;
+            }
+            .hint{
+                font-size:12px;
+                color:var(--muted);
+                font-style:italic;
+            }
+            .pad-wrap{
+                position:relative;
+                border:1.5px dashed var(--rule);
+                background:
+                    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(107,101,88,0.06) 40px),
+                    #fdfdfb;
+            }
+            canvas{
+                display:block;
+                width:100%;
+                height:200px;
+                touch-action:none;
+                cursor:crosshair;
+            }
+            .pad-baseline{
+                position:absolute;
+                left:24px;
+                right:24px;
+                bottom:34px;
+                height:0;
+                border-top:1px solid rgba(107,101,88,0.4);
+                pointer-events:none;
+            }
+            .placeholder{
+                position:absolute;
+                left:24px;
+                bottom:38px;
+                font-family:'IBM Plex Mono', monospace;
+                font-size:11px;
+                letter-spacing:0.08em;
+                color:#B7B1A0;
+                pointer-events:none;
+                transition:opacity .15s ease;
+            }
+
+            .pen-sizes{
+                display:flex;
+                align-items:center;
+                gap:8px;
+                margin-right:6px;
+            }
+            .pen-sizes span.pen-label{
+                font-family:'IBM Plex Mono', monospace;
+                font-size:10.5px;
+                letter-spacing:0.08em;
+                text-transform:uppercase;
+                color:var(--muted);
+                margin-right:2px;
+            }
+            .pen-dot{
+                width:32px;
+                height:32px;
+                border:1px solid var(--rule);
+                background:var(--paper-2);
+                border-radius:2px;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                cursor:pointer;
+                padding:0;
+            }
+            .pen-dot:hover{
+                background:#fff;
+            }
+            .pen-dot.active{
+                border-color:var(--seal);
+                background:#fff;
+                box-shadow:0 0 0 1px var(--seal);
+            }
+            .pen-dot .dotmark{
+                border-radius:50%;
+                background:var(--ink);
+            }
+            .pen-dot .color-swatch{
+                width:16px;
+                height:16px;
+                border-radius:50%;
+                border:1px solid rgba(27,42,61,0.2);
+            }
+            .pad-actions{
+                display:flex;
+                align-items:center;
+                gap:10px;
+                margin-top:14px;
+                flex-wrap:wrap;
+            }
+            button{
+                font-family:'IBM Plex Sans', sans-serif;
+                font-size:13px;
+                font-weight:500;
+                border-radius:2px;
+                padding:9px 16px;
+                cursor:pointer;
+                border:1px solid var(--rule);
+                background:var(--paper-2);
+                color:var(--ink);
+                transition:transform .12s ease, background .15s ease, box-shadow .15s ease;
+            }
+            button:hover{
+                background:#fff;
+            }
+            button:active{
+                transform:translateY(1px);
+            }
+            button.ghost{
+                background:transparent;
+            }
+            button.seal{
+                background:var(--seal);
+                border-color:var(--seal-dark);
+                color:#F7F1E6;
+                margin-left:auto;
+                position:relative;
+                overflow:hidden;
+            }
+            button.seal:hover{
+                background:var(--seal-dark);
+            }
+            button.seal:disabled{
+                background:#C9C2B2;
+                border-color:#C9C2B2;
+                color:#8A8371;
+                cursor:not-allowed;
+            }
+            .review-actions{display:none;flex-direction:column;align-items:stretch;gap:10px;padding:16px 0 8px}
+            .review-mode .review-actions,.workflow-actions .review-actions{display:flex}
+            .review-mode #submitBtn{display:none}
+            .review-only-mode .pad-label-row,.review-only-mode .pad-wrap,.review-only-mode .pad-actions:not(.review-actions){display:none}
+            .review-action-buttons{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+            .reject-reason{width:100%;min-height:74px;resize:vertical;padding:10px 12px;border:1px solid #c9c2b2;border-radius:8px;font:15px inherit;box-sizing:border-box}
+            .reject-reason:focus{outline:2px solid rgba(163,58,50,.18);border-color:#a33a32}
+            .review-pass{background:#2f7d4a;color:#fff}
+            .review-reject{background:#a33a32;color:#fff}
+            .review-document{margin:24px 40px 0;padding:16px;border:1px solid var(--rule);background:#fff;border-radius:8px}
+            .review-document h2{font-size:18px;margin:0 0 4px}
+            body[data-review-view="review"] .fields,body[data-review-view="review"] .signblock,body[data-review-view="review"] .status{display:none}
+            body[data-review-view="sign"] .review-document{display:none}
+            body[data-review-view="review"] .letterhead{display:none}
+            body[data-review-view="review"] .sheet{display:flex;flex-direction:column;min-height:calc(100vh - 100px)}
+            body[data-review-view="review"] .review-document{flex:1;display:flex;flex-direction:column;margin-top:0}
+            body[data-review-view="review"] .review-workspace{flex:1;min-height:0}
+            body[data-review-view="review"] .review-pdf{height:100%;min-height:400px}
+            body[data-review-view="review"] .review-sidebar{overflow:auto}
+            .review-document-note{font-size:12px;color:var(--muted);margin:0 0 14px}
+            .review-workspace{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:14px}
+            .review-pdf{width:100%;height:650px;border:1px solid #d8d3c7;background:#eee}
+            .review-sidebar{display:flex;flex-direction:column;gap:14px}
+            .review-panel{border:1px solid #ddd6c7;border-radius:7px;padding:12px;background:var(--paper-2)}
+            .review-panel h3{font-size:14px;margin:0 0 10px}
+            .bookmark-list,.review-mark-list{display:flex;flex-direction:column;gap:7px;max-height:250px;overflow:auto}
+            .bookmark-btn{display:flex;justify-content:space-between;width:100%;padding:8px 10px;text-align:left}
+            .mark-fields{display:grid;grid-template-columns:70px 1fr;gap:8px}
+            .mark-fields input,.mark-fields textarea{width:100%;padding:8px;border:1px solid var(--rule);border-radius:5px;font:13px inherit}
+            .mark-fields textarea{grid-column:1/-1;min-height:78px;resize:vertical}
+            .mark-add{grid-column:1/-1;background:#b7863f;color:#fff;border-color:#9a702f}
+            .ai-review-panel textarea{width:100%;min-height:90px;resize:vertical;padding:8px;border:1px solid var(--rule);border-radius:5px;font:13px inherit;box-sizing:border-box;margin-bottom:8px}
+            .ai-review-panel button{width:100%;background:#3a5a9c;color:#fff;border-color:#2e4880}
+            .ai-review-panel button:hover{background:#2e4880}
+            .ai-review-panel button:disabled{background:#b8bfcc;border-color:#b8bfcc;color:#eef0f4;cursor:not-allowed}
+            .ai-review-status{font-size:12px;color:var(--muted);margin-top:8px;min-height:14px}
+            .ai-review-result{margin-top:10px;font-size:13px;line-height:1.6;white-space:pre-wrap;background:#fff;border:1px solid #ddd6c7;border-radius:6px;padding:10px;max-height:320px;overflow:auto;display:none}
+            .ai-review-result.visible{display:block}
+            .review-mark{position:relative;padding:9px 30px 9px 10px;border-left:3px solid var(--seal);background:#fff;border-radius:4px;font-size:12px}
+            .review-mark strong{display:block;margin-bottom:3px}
+            .review-mark button{position:absolute;right:5px;top:5px;padding:2px 7px;color:var(--seal)}
+            .empty-review{font-size:12px;color:var(--muted);margin:0}
+            #fileInput{
+                display:none;
+            }
+
+            .status{
+                padding:16px 40px 34px;
+                font-family:'IBM Plex Mono', monospace;
+                font-size:11.5px;
+                color:var(--muted);
+                display:flex;
+                align-items:center;
+                gap:8px;
+                min-height:20px;
+            }
+            .dot{
+                width:6px;
+                height:6px;
+                border-radius:50%;
+                background:var(--rule);
+                transition:background .2s ease;
+            }
+            .dot.ready{
+                background:var(--stamp-green);
+            }
+
+            @media (max-width:480px){
+                .fields{
+                    grid-template-columns:1fr;
+                }
+                .letterhead, .fields, .signblock{
+                    padding-left:24px;
+                    padding-right:24px;
+                }
+                .status{
+                    padding-left:24px;
+                    padding-right:24px;
+                }
+            }
+            @media (max-width:850px){.review-workspace{grid-template-columns:1fr}.review-pdf{height:520px}.review-document{margin-left:24px;margin-right:24px}}
+        </style><link rel="stylesheet" href="signature-theme.css?v=20261008-iphone-ink">
+    <script src="reload-sync.js?v=20261008-1"></script>
+</head>
+    <body>
+        <div class="sheet">
+            <div class="letterhead">
+                <div class="eyebrow"><span>เอกสารข้อตกลง</span><span id="docDate"></span></div>
+                <h1>บันทึกลายเซ็น</h1>
+                <p class="sub">ตรวจสอบรายละเอียดด้านล่าง จากนั้นเซ็นชื่อในช่องเพื่อยืนยันข้อตกลง</p>
+            </div>
+
+            <div class="fields">
+                <div class="field wide" hidden>
+                    <label for="templateSelect">Template ผังที่บันทึกไว้ (จาก layout.html)</label>
+                    <div class="template-row">
+                        <select id="templateSelect"><option value="">— เลือก Template —</option></select>
+                        <button type="button" class="ghost" id="templateLoadBtn">📂 โหลด</button>
+                    </div>
+                    <span class="template-note" id="templateInfo">Template อ่านจาก localStorage ของเบราว์เซอร์นี้ (ต้องเปิดจากเครื่อง/โดเมนเดียวกับ layout.html และเคยกด "บันทึกเป็น Template" ไว้ก่อน)</span>
+                </div>
+                <div class="field wide">
+                    <label for="participantSelect">เลือกผู้ลงนาม (จาก Template)</label>
+                    <select id="participantSelect" disabled><option value="">— โหลด Template ก่อน —</option></select>
+                </div>
+                <div class="field wide">
+                    <label for="docIdInput">Document ID / Path บนเซิร์ฟเวอร์</label>
+                    <input id="docIdInput" type="text" placeholder="เช่น procure/2026/PO-00123">
+                </div>
+                <div class="field">
+                    <label for="userIdInput">user_id ผู้ลงนาม</label>
+                    <input id="userIdInput" type="text" inputmode="numeric" placeholder="เช่น 00003">
+                </div>
+                <div class="field">
+                    <label for="fName">ชื่อ</label>
+                    <input id="fName" type="text" placeholder="ชื่อผู้ลงนาม">
+                </div>
+                <div class="field" hidden>
+                    <label for="fRole">ตำแหน่ง</label>
+                    <input id="fRole" type="text" placeholder="ตำแหน่งผู้ลงนาม">
+                </div>
+                <div class="field wide" hidden>
+                    <label for="fOrg">องค์กร/หน่วยงาน</label>
+                    <input id="fOrg" type="text" placeholder="ชื่อหน่วยงาน">
+                </div>
+            </div>
+
+            <section class="review-document" aria-labelledby="reviewDocumentTitle">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px"><h2 id="reviewDocumentTitle">เอกสารที่ต้องตรวจสอบ</h2><button type="button" class="seal" id="reviewReadyToSign">✓ ตรวจสอบเรียบร้อย — ไปหน้าเซ็นเอกสาร</button></div>
+                <p class="review-document-note">คลิกหรือเลื่อนดู PDF เพื่อเลือกหน้า และระบุคำอธิบายเมื่อพบจุดที่ต้องแก้ไข</p>
+                <div class="review-workspace">
+                    <iframe class="review-pdf" id="reviewPdfFrame" title="เอกสาร PDF ที่ต้องตรวจสอบ"></iframe>
+                    <aside class="review-sidebar">
+                        <div id="reviewBookmarkList" hidden></div>
+                        <div class="review-panel ai-review-panel">
+                            <h3>ตรวจสอบความถูกต้องด้วย AI (Gemini)</h3>
+                            <label for="aiPromptInput" style="display:block;font-family:'IBM Plex Mono', monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">คำสั่ง (Prompt) สำหรับ AI</label>
+                            <textarea id="aiPromptInput" maxlength="2000" placeholder="ระบุสิ่งที่ต้องการให้ AI ตรวจสอบ">ช่วยตรวจสอบความถูกต้องของเอกสารฉบับนี้ ได้แก่ การสะกดคำ ตัวเลข วันที่ ชื่อบุคคล/หน่วยงาน และความสอดคล้องของข้อมูลระหว่างหน้าต่าง ๆ หากพบจุดที่ควรแก้ไข โปรดระบุเลขหน้าและคำอธิบายสั้น ๆ เป็นภาษาไทย</textarea>
+                            <button type="button" id="aiCheckBtn">🤖 ตรวจสอบเอกสารด้วย AI</button>
+                            <div class="ai-review-status" id="aiCheckStatus" role="status"></div>
+                            <div class="ai-review-result" id="aiCheckResult"></div>
+                        </div>
+                        <div class="review-panel">
+                            <h3>ทำเครื่องหมายหน้าที่ต้องแก้ไข</h3>
+                            <div class="mark-fields">
+                                <div style="display:flex; gap:8px; grid-column:1/-1;">
+                                    <input id="reviewMarkPage" type="number" min="1" value="1" style="width:70px;" aria-label="หน้าที่ต้องแก้ไข">
+                                    <button type="button" id="annotatePage" style="flex:1;">✏️ Mark บนหน้าที่เลือก</button>
+                                </div>
+                                <select id="reviewMarkBookmark" aria-label="Bookmark" style="grid-column:1/-1;">
+                                    <option value="">ไม่ระบุ Bookmark</option>
+                                </select>
+                                <textarea id="reviewMarkDescription" maxlength="500" placeholder="คำอธิบายสิ่งที่ต้องแก้ไข"></textarea>
+                                <span id="annotationState" role="status"></span>
+                                <button type="button" class="mark-add" id="reviewMarkAdd">+ เพิ่มรายการแก้ไขพร้อมรูป</button>
+                            </div>
+                            <div class="review-mark-list" id="reviewMarkList" style="margin-top:10px"><p class="empty-review">ยังไม่มีหน้าที่ทำเครื่องหมาย</p></div>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
+            <div class="signblock" id="signBlock">
+                <div class="pad-label-row">
+                    <label>ลายเซ็น</label>
+                    <span class="hint">ลากเซ็นด้วยเมาส์หรือปลายนิ้ว หรือแนบไฟล์ลายเซ็นที่บันทึกไว้</span>
+                </div>
+                <div class="pad-wrap">
+                    <canvas id="pad"></canvas>
+                    <div class="pad-baseline"></div>
+                    <div class="placeholder" id="placeholder">เซ็นเหนือเส้น</div>
+                </div>
+                <div class="ink-tool-tray" role="group" aria-label="หัวปากกา">
+                    <button type="button" class="ink-tool style-dot" data-style="brush" aria-pressed="false" title="ปากกาพู่กัน"><span class="ink-nib brush-nib" aria-hidden="true"></span><span>พู่กัน</span></button>
+                    <button type="button" class="ink-tool style-dot active" data-style="ballpoint" aria-pressed="true" title="ปากกาลูกลื่น"><span class="ink-nib pen-nib" aria-hidden="true"></span><span>ปากกา</span></button>
+                    <button type="button" class="ink-tool style-dot" data-style="fountain" aria-pressed="false" title="ปากกาหมึกซึม"><span class="ink-nib fountain-nib" aria-hidden="true"></span><span>หมึกซึม</span></button>
+                </div>
+                <div class="pad-actions">
+                    <div class="pen-sizes">
+                        <span class="pen-label">ขนาดปากกา</span>
+                        <button type="button" class="pen-dot size-dot" data-size="1.8" title="บางที่สุด" aria-label="ขนาดปากกา 1.8"><span class="dotmark" style="width:2px;height:2px;"></span></button>
+                        <button type="button" class="pen-dot size-dot active" data-size="3.6" title="บาง (ค่าเริ่มต้น)" aria-label="ขนาดปากกา 3.6"><span class="dotmark" style="width:3px;height:3px;"></span></button>
+                        <button type="button" class="pen-dot size-dot" data-size="5.4" title="เล็ก"><span class="dotmark" style="width:4px;height:4px;"></span></button>
+                        <button type="button" class="pen-dot size-dot" data-size="7.2" title="กลาง"><span class="dotmark" style="width:7px;height:7px;"></span></button>
+                        <button type="button" class="pen-dot size-dot" data-size="9" title="ใหญ่"><span class="dotmark" style="width:11px;height:11px;"></span></button>
+                    </div>
+                    <div class="pen-sizes">
+                        <span class="pen-label">สีปากกา</span>
+                        <button type="button" class="pen-dot color-dot" data-color="#1B1B1B" title="สีดำ" aria-label="สีดำ"><span class="color-swatch" style="background:#1B1B1B;"></span></button>
+                        <button type="button" class="pen-dot color-dot active" data-color="#0B3D91" title="สีน้ำเงิน" aria-label="สีน้ำเงิน"><span class="color-swatch" style="background:#0B3D91;"></span></button>
+                    </div>
+                    <button class="ghost" id="clearBtn">ล้าง</button>
+                    <button class="ghost" id="browseBtn">เลือกไฟล์…</button>
+                    <input type="file" id="fileInput" accept="image/png,image/jpeg">
+                    <button class="ghost" id="saveBtn" disabled>บันทึกเป็น PNG</button>
+                </div>
+                <div class="pad-actions review-actions">
+                    <label for="rejectReason">เหตุผลที่ไม่ผ่าน <span class="hint">(บังคับกรอกเมื่อเลือกไม่ผ่าน)</span></label>
+                    <textarea class="reject-reason" id="rejectReason" maxlength="1000" placeholder="ระบุข้อผิดพลาดหรือสิ่งที่ต้องแก้ไขก่อนส่งกลับ WF1"></textarea>
+                    <div class="review-action-buttons">
+                        <button class="seal review-pass" id="reviewPassBtn" disabled>✓ ผ่าน และลงนาม</button>
+                        <button class="seal review-reject" id="reviewRejectBtn" disabled>✕ ไม่ผ่าน — ส่งกลับ WF1</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status">
+                <span class="dot" id="statusDot"></span>
+                <span id="statusText">รอลายเซ็น</span>
+                <a id="statusLink" href="#" target="_blank" rel="noopener"
+                   style="display:none;color:var(--seal);text-decoration:underline;">เปิดดูไฟล์</a>
+            </div>
+        </div>
+
+        <dialog id="annotationDialog" style="width:min(95vw,950px);max-height:95vh;overflow:auto">
+            <p>ลากเพื่อวงหรือขีดเขียนจุดที่ต้องแก้ไขบนหน้านี้</p>
+            <button type="button" id="annotationClear">ล้างเส้นที่วาด</button>
+            <button type="button" id="annotationSave">เก็บรูปหน้านี้</button>
+            <button type="button" id="annotationCancel">ยกเลิก</button>
+            <canvas id="annotationCanvas" style="width:100%;height:auto;touch-action:none"></canvas>
+        </dialog>
+        <script src="../js/pdf.min.js"></script>
+        <script src="signature-image.js?v=20261008-1"></script>
+        <script src="review-annotation.js?v=20261008-clear"></script>
+        <script>
+            const canvas = document.getElementById('pad');
+            const ctx = canvas.getContext('2d');
+            const placeholder = document.getElementById('placeholder');
+            const saveBtn = document.getElementById('saveBtn');
+            const submitBtn = document.createElement('button');
+            submitBtn.id = 'submitBtn';
+            submitBtn.className = 'seal';
+            submitBtn.disabled = true;
+            const clearBtn = document.getElementById('clearBtn');
+            const browseBtn = document.getElementById('browseBtn');
+            const fileInput = document.getElementById('fileInput');
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            const statusLink = document.getElementById('statusLink');
+
+            function setStatusLink(url, label) {
+                if (!url) {
+                    statusLink.style.display = 'none';
+                    statusLink.removeAttribute('href');
+                    return;
+                }
+                statusLink.href = url;
+                statusLink.textContent = label || 'เปิดดูไฟล์';
+                statusLink.style.display = 'inline';
+            }
+
+            function signedDocumentUrl(docId) {
+                const url = new URL('../pdf/view', window.location.href);
+                url.searchParams.set('docId', docId);
+                return url.href;
+            }
+            const docIdInput = document.getElementById('docIdInput');
+            const userIdInput = document.getElementById('userIdInput');
+            const templateSelect = document.getElementById('templateSelect');
+            const templateLoadBtn = document.getElementById('templateLoadBtn');
+            const templateInfo = document.getElementById('templateInfo');
+            const participantSelect = document.getElementById('participantSelect');
+            const signBlock = document.getElementById('signBlock');
+            const reviewPassBtn = document.getElementById('reviewPassBtn');
+            const reviewRejectBtn = document.getElementById('reviewRejectBtn');
+            const rejectReasonInput = document.getElementById('rejectReason');
+            const reviewMarks = [];
+            let workflowCompleted = false;
+            function publishReviewMarks() {
+                if (parent !== window) parent.postMessage({type:'EIS_DOCS_REVIEW_MARKS', docsId:new URLSearchParams(location.search).get('docs_id'), marks:reviewMarks},location.origin);
+            }
+            window.addEventListener('message', event => {
+                if (event.origin !== location.origin || event.source !== parent || event.data?.type !== 'EIS_DOCS_REVIEW_MARKS') return;
+                if (String(event.data.docsId) !== new URLSearchParams(location.search).get('docs_id') || !Array.isArray(event.data.marks)) return;
+                reviewMarks.splice(0,reviewMarks.length,...event.data.marks);
+                renderReviewMarks();
+            });
+            const markPage = document.getElementById('reviewMarkPage');
+            const markBookmark = document.getElementById('reviewMarkBookmark');
+            const markDescription = document.getElementById('reviewMarkDescription');
+            function setReviewView(view) {
+                document.body.dataset.reviewView = view === 'sign' ? 'sign' : 'review';
+                updateActionMode();
+                window.dispatchEvent(new Event('resize'));
+            }
+            window.addEventListener('message', event => {
+                if (event.origin === location.origin && event.source === parent && event.data?.type === 'EIS_DOCS_REVIEW_VIEW') setReviewView(event.data.view);
+            });
+            document.getElementById('reviewReadyToSign').addEventListener('click', () => {
+                if (parent !== window) {
+                    parent.postMessage({type:'EIS_DOCS_REVIEW_READY_TO_SIGN'}, location.origin);
+                } else {
+                    setReviewView('sign');
+                    window.scrollTo({top:0, behavior:'smooth'});
+                }
+            });
+            let reviewDocumentUrl = '';
+            function syncReviewPage(page) {
+                const pageNumber = Number(page);
+                if (!Number.isInteger(pageNumber) || pageNumber < 1) return;
+                markPage.value = pageNumber;
+                document.querySelectorAll('#reviewBookmarkList .bookmark-btn').forEach(button => {
+                    const selected = Number(button.dataset.page) === pageNumber;
+                    button.setAttribute('aria-current', selected ? 'page' : 'false');
+                    button.style.background = selected ? '#e5efff' : '';
+                    button.style.borderColor = selected ? '#2173d2' : '';
+                });
+                const option = Array.from(markBookmark.options).find(item => Number(item.dataset.page) === pageNumber);
+                markBookmark.value = option?.value || '';
+            }
+            function openReviewPage(page) {
+                const pageNumber = Number(page);
+                if (!Number.isInteger(pageNumber) || pageNumber < 1) return;
+                syncReviewPage(pageNumber);
+                const file = signedDocumentUrl(docIdInput.value.trim());
+                const frame = document.getElementById('reviewPdfFrame');
+                if (reviewDocumentUrl !== file) {
+                    reviewDocumentUrl = file;
+                    const url = new URL('review-pdf-viewer.html', location.href);
+                    url.searchParams.set('file', file);
+                    url.searchParams.set('page', pageNumber);
+                    frame.src = url.href;
+                } else {
+                    frame.contentWindow?.postMessage({type:'EIS_DOCS_REVIEW_GO_TO_PAGE', page:pageNumber}, location.origin);
+                }
+            }
+            window.addEventListener('message', event => {
+                const frame = document.getElementById('reviewPdfFrame');
+                if (event.origin !== location.origin || event.source !== frame.contentWindow || event.data?.type !== 'EIS_DOCS_REVIEW_PAGE_CHANGED') return;
+                syncReviewPage(event.data.page);
+            });
+            function renderReviewBookmarks(data) {
+                const list = document.getElementById('reviewBookmarkList');
+                list.replaceChildren();
+                markBookmark.replaceChildren(new Option('ไม่ระบุ Bookmark', ''));
+                (Array.isArray(data.bookmarks) ? data.bookmarks : []).forEach(bookmark => {
+                    const page = Number(bookmark.page);
+                    if (!Number.isInteger(page) || page < 1) return;
+                    const name = String(bookmark.name || bookmark.title || 'Bookmark');
+                    const button = document.createElement('button');
+                    button.type = 'button'; button.className = 'bookmark-btn';
+                    button.dataset.page = String(page);
+                    button.textContent = `${name} — หน้า ${page}`;
+                    button.onclick = () => {openReviewPage(page); markBookmark.value = name;};
+                    list.append(button);
+                    const option = new Option(name, name); option.dataset.page = page; markBookmark.add(option);
+                });
+                if (!list.children.length) list.textContent = 'ไม่มี Bookmark ในเอกสารนี้';
+            }
+            markBookmark.onchange = () => {const page = Number(markBookmark.selectedOptions[0]?.dataset.page); if (page) openReviewPage(page);};
+            markPage.onchange = () => {if (Number.isInteger(Number(markPage.value)) && Number(markPage.value) > 0) openReviewPage(Number(markPage.value));};
+            function renderReviewMarks() {
+                const list = document.getElementById('reviewMarkList'); list.replaceChildren();
+                reviewMarks.forEach((mark, index) => {
+                    const row = document.createElement('div'); row.className = 'review-mark';
+                    const title = document.createElement('strong'); title.textContent = `หน้า ${mark.page} ${mark.bookmark}`;
+                    title.onclick = () => openReviewPage(mark.page);
+                    const description = document.createElement('span'); description.textContent = mark.description;
+                    const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×';
+                    remove.onclick = () => {reviewMarks.splice(index, 1); renderReviewMarks(); publishReviewMarks();};
+                    row.append(title, description, remove); list.append(row);
+                    if (mark.image) {
+                        const img = document.createElement('img'); img.src = mark.image;
+                        img.alt = `จุดแก้ไขหน้า ${mark.page}`; img.style.width = '100%';
+                        img.onclick = () => window.reviewAnnotation.preview(mark.image);
+                        row.append(img);
+                    }
+                });
+                if (!reviewMarks.length) list.textContent = 'ยังไม่มีหน้าที่ทำเครื่องหมาย';
+            }
+            document.getElementById('reviewMarkAdd').onclick = () => {
+                const page = Number(markPage.value), description = markDescription.value.trim();
+                if (!Number.isInteger(page) || page < 1 || !description) {markDescription.focus(); return;}
+                if (reviewMarks.length >= 100) return;
+                const image = window.reviewAnnotation.take(page);
+                reviewMarks.push({page, bookmark:markBookmark.value, description, image});
+                publishReviewMarks();
+                markDescription.value = ''; renderReviewMarks();
+            };
+            // ต้องตรงกับ TEMPLATE_STORAGE_KEY ใน layout.html เพื่ออ่าน Template เดียวกันจาก localStorage
+            const TEMPLATE_STORAGE_KEY = 'pdfbox-layout-templates';
+            let currentTemplateData = null;
+            // ปรับ path ให้ตรงกับ servlet ฝั่งเซิร์ฟเวอร์ที่รับลายเซ็นจริง (เช่น SignatureServlet คู่กับ PdfManagerServlet)
+            const SIGN_ENDPOINT = 'sign-with-pin.php';
+            // JSON (signatureFields) ที่ layout.html อัปโหลดขึ้นเซิร์ฟเวอร์ไว้คู่กับ docId ตอนกด "สร้าง PDF"
+            const FIELDS_ENDPOINT = '../pdf/fields';
+            // Endpoint ฝั่งเซิร์ฟเวอร์ที่จะรับ docId + prompt แล้วไปเรียก Gemini API ต่อ (ต้อง implement เอง)
+            // สำคัญ: ห้ามเรียก Gemini API โดยตรงจากฝั่ง client เด็ดขาด เพราะจะต้องฝัง API key ไว้ใน HTML/JS
+            // ซึ่งใครก็ตามที่เปิดหน้านี้จะเห็น/ขโมย key ไปใช้ได้ทันที ต้อง proxy ผ่าน backend เสมอ
+            const AI_REVIEW_ENDPOINT = '../pdf/ai-review';
+
+            const aiPromptInput = document.getElementById('aiPromptInput');
+            const aiCheckBtn = document.getElementById('aiCheckBtn');
+            const aiCheckStatus = document.getElementById('aiCheckStatus');
+            const aiCheckResult = document.getElementById('aiCheckResult');
+
+            async function runAiDocumentCheck() {
+                const docId = docIdInput.value.trim();
+                const prompt = aiPromptInput.value.trim();
+                if (!docId) {
+                    aiCheckStatus.textContent = 'กรุณากรอก Document ID / Path ก่อนตรวจสอบด้วย AI';
+                    docIdInput.focus();
+                    return;
+                }
+                if (!prompt) {
+                    aiCheckStatus.textContent = 'กรุณาระบุคำสั่ง (prompt) ให้ AI ก่อน';
+                    aiPromptInput.focus();
+                    return;
+                }
+                aiCheckBtn.disabled = true;
+                aiCheckResult.classList.remove('visible');
+                aiCheckStatus.textContent = 'กำลังส่งเอกสารให้ AI ตรวจสอบ...';
+                try {
+                    const response = await fetch(AI_REVIEW_ENDPOINT, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({docId, prompt})
+                    });
+                    const contentType = response.headers.get('content-type') || '';
+                    const result = contentType.includes('application/json')
+                        ? await response.json().catch(() => ({}))
+                        : {message: await response.text().catch(() => '')};
+                    if (!response.ok) {
+                        throw new Error(result.message || `เซิร์ฟเวอร์ตอบกลับ ${response.status}`);
+                    }
+                    const answer = result.answer || result.text || result.message || 'AI ไม่ได้ส่งผลลัพธ์กลับมา';
+                    aiCheckResult.textContent = answer;
+                    aiCheckResult.classList.add('visible');
+                    aiCheckStatus.textContent = 'ตรวจสอบเสร็จสิ้น';
+                } catch (error) {
+                    aiCheckStatus.textContent = `ตรวจสอบด้วย AI ไม่สำเร็จ: ${error.message}`;
+                } finally {
+                    aiCheckBtn.disabled = false;
+                }
+            }
+            aiCheckBtn.addEventListener('click', runAiDocumentCheck);
+
+            // ดึง signatureFields จากเซิร์ฟเวอร์ตาม docId — ใช้เมื่อเปิดหน้านี้จากคนละเครื่อง/เบราว์เซอร์
+            // ที่ไม่มี Template อยู่ใน localStorage (ต่างจาก layout.html ที่ใช้เครื่องเดียวกัน)
+            async function loadFieldsFromServer(docId) {
+                if (!docId)
+                    return false;
+                try {
+                    const response = await fetch(`${FIELDS_ENDPOINT}?docId=${encodeURIComponent(docId)}`);
+                    if (!response.ok)
+                        return false;
+                    const data = await response.json();
+                    renderReviewBookmarks(data || {});
+                    if (!data || !Array.isArray(data.signatureFields) || !data.signatureFields.length)
+                        return false;
+                    currentTemplateData = data;
+                    renderParticipantSelect(data);
+                    templateInfo.textContent = `โหลดข้อมูลผู้ลงนามจากเซิร์ฟเวอร์สำหรับเอกสาร "${docId}" แล้ว`;
+                    updateSubmitAvailability();
+                    return true;
+                } catch (error) {
+                    console.warn('ดึง signatureFields จากเซิร์ฟเวอร์ไม่สำเร็จ', error);
+                    return false;
+                }
+            }
+
+            function loadTemplateStore() {
+                try {
+                    const raw = localStorage.getItem(TEMPLATE_STORAGE_KEY);
+                    const parsed = raw ? JSON.parse(raw) : {};
+                    return parsed && typeof parsed === 'object' ? parsed : {};
+                } catch (error) {
+                    console.warn('อ่านรายการ template ไม่สำเร็จ', error);
+                    return {};
+                }
+            }
+
+            function renderTemplateSelect() {
+                const store = loadTemplateStore();
+                const names = Object.keys(store).sort((a, b) => a.localeCompare(b, 'th'));
+                templateSelect.innerHTML = '<option value="">— เลือก Template —</option>' +
+                   names.map(name => `<option value="${name.replace(/"/g, '&quot;')}">${name}</option>`).join('');
+                if (!names.length)
+                    templateInfo.textContent = 'ยังไม่พบ Template ในเบราว์เซอร์นี้ — ต้องบันทึก Template จาก layout.html บนเครื่อง/โดเมนเดียวกันก่อน';
+            }
+            renderTemplateSelect();
+
+            function renderParticipantSelect(data) {
+                const fields = Array.isArray(data.signatureFields) ? data.signatureFields : [];
+                if (!fields.length) {
+                    participantSelect.innerHTML = '<option value="">— ไม่พบผู้ลงนามใน Template นี้ —</option>';
+                    participantSelect.disabled = true;
+                    return;
+                }
+
+                // A signer can own more than one signature field. Show the person once,
+                // while keeping all of their fields available through selectedUserFields().
+                const participants = new Map();
+                fields.forEach(field => {
+                    const uid = String(field.user_id || field.assigneeId || '').trim();
+                    const name = String(field.assigneeName || field.signerName || 'ไม่ระบุชื่อ').trim();
+                    const role = String(field.roleName || '').trim();
+                    const key = uid ? `user:${uid}` : `name:${name.toLocaleLowerCase('th-TH')}`;
+
+                    if (!participants.has(key)) {
+                        participants.set(key, { uid, name, roles: new Set() });
+                    }
+                    if (role) participants.get(key).roles.add(role);
+                });
+
+                participantSelect.replaceChildren(new Option('— เลือกผู้ลงนาม —', ''));
+                participants.forEach(participant => {
+                    const roles = Array.from(participant.roles).join(', ');
+                    const detail = roles ? ` — ${roles}` : '';
+                    const userId = participant.uid ? ` (user_id: ${participant.uid})` : ' (ไม่พบ user_id)';
+                    const option = new Option(`${participant.name}${detail}${userId}`, participant.uid);
+                    option.disabled = !participant.uid;
+                    participantSelect.add(option);
+                });
+                participantSelect.disabled = false;
+            }
+
+            // ลำดับ role มาตรฐาน 8 ขั้นตอนของ WF (ใช้ order จาก data.roles ถ้ามี ไม่งั้น fallback มาที่ลำดับนี้)
+            const STATIC_ROLE_ORDER = [
+                'PROCUREMENT_OFFICER', 'PROCUREMENT_LINE_HEAD', 'ASSISTANT_PROCUREMENT_HEAD_SECRETARY',
+                'PROCUREMENT_HEAD', 'ASSISTANT_DEPUTY_DEAN_SECRETARY', 'DEPUTY_DEAN',
+                'ASSISTANT_DEAN_SECRETARY', 'DEAN'
+            ];
+
+            // แสดงลำดับผู้เกี่ยวข้องทั้ง 8 ขั้นตอนของ WF นี้ พร้อมระบุว่าแต่ละคนมีสิทธิ์แค่ "ตรวจสอบอย่างเดียว"
+            // หรือ "ทั้งตรวจสอบและลงนาม" (ดูจาก reviewAction/signAction ที่ layout.html กำหนดไว้ต่อบล็อก)
+
+            templateLoadBtn.addEventListener('click', () => {
+                const name = templateSelect.value;
+                if (!name) {
+                    templateInfo.textContent = 'กรุณาเลือก Template ที่ต้องการโหลดก่อน';
+                    return;
+                }
+                const store = loadTemplateStore();
+                const data = store[name];
+                if (!data) {
+                    templateInfo.textContent = `ไม่พบ Template "${name}"`;
+                    return;
+                }
+                currentTemplateData = data;
+                renderParticipantSelect(data);
+                if (!docIdInput.value.trim()) {
+                    docIdInput.value = data.docId || data.fileName || name;
+                }
+                templateInfo.textContent = `โหลด Template "${name}" แล้ว — เลือกผู้ลงนามด้านล่างเพื่อกรอกข้อมูลอัตโนมัติ`;
+                updateSubmitAvailability();
+            });
+
+            participantSelect.addEventListener('change', () => {
+                if (!currentTemplateData)
+                    return;
+                const uid = participantSelect.value;
+                if (!uid)
+                    return;
+                const fields = Array.isArray(currentTemplateData.signatureFields) ? currentTemplateData.signatureFields : [];
+                const field = fields.find(item => String(item.user_id || item.assigneeId || '') === uid);
+                if (!field)
+                    return;
+                userIdInput.value = uid;
+                const rawName = field.assigneeName || (field.signerName || '').replace(/^\(|\)$/g, '');
+                if (rawName)
+                    document.getElementById('fName').value = rawName;
+                if (field.position)
+                    document.getElementById('fRole').value = field.position;
+                if (field.organization)
+                    document.getElementById('fOrg').value = field.organization;
+                updateActionMode();
+            });
+
+            // เติมค่าอัตโนมัติจากลิงก์ เช่น signature-pad.html?docId=procure/2026/PO-00123&user_id=00003
+            const urlParams = new URLSearchParams(window.location.search);
+            // Fragment data stays in the browser and does not hit IIS query limits.
+            new URLSearchParams(window.location.hash.slice(1)).forEach((value, key) => urlParams.set(key, value));
+            document.body.dataset.reviewView = urlParams.get('view') === 'sign' ? 'sign' : 'review';
+            const workflowDocsId = urlParams.get('docs_id');
+            const workflowCsrf = urlParams.get('csrf') || '';
+            const bulkDocuments = (() => {
+                try {
+                    const items = JSON.parse(urlParams.get('bulk_docs') || '[]');
+                    return Array.isArray(items) ? items.filter(item => item && item.docsId && item.docId) : [];
+                } catch (_) {
+                    return [];
+                }
+            })();
+            const isBulkSigning = bulkDocuments.length > 0;
+            const bulkSelected = new Set(bulkDocuments.map(item => String(item.docsId)));
+            let bulkBusy = false;
+            let bulkPanel = null;
+            function selectedBulkDocuments() {
+                return bulkDocuments.filter(item => bulkSelected.has(String(item.docsId)));
+            }
+            function renderBulkSelection() {
+                if (!bulkPanel) return;
+                bulkPanel.replaceChildren();
+                bulkPanel.disabled = bulkBusy || workflowCompleted;
+                const title = document.createElement('legend'); title.textContent = 'เลือกรายการที่จะลงนาม';
+                const count = document.createElement('p'); count.textContent = 'เลือก ' + selectedBulkDocuments().length + ' / ' + bulkDocuments.length + ' รายการ';
+                const all = document.createElement('button'); all.type = 'button'; all.textContent = 'เลือกทั้งหมด';
+                all.onclick = () => {bulkDocuments.forEach(item => bulkSelected.add(String(item.docsId))); renderBulkSelection(); updateSubmitAvailability();};
+                const none = document.createElement('button'); none.type = 'button'; none.textContent = 'ยกเลิกการเลือกทั้งหมด';
+                none.onclick = () => {bulkSelected.clear(); renderBulkSelection(); updateSubmitAvailability();};
+                const list = document.createElement('div'); list.className = 'bulk-document-table-wrap';
+                const table = document.createElement('table'); table.className = 'bulk-document-table';
+                const head = table.createTHead().insertRow();
+                ['เลือก','เลขที่เอกสาร','ชื่อเอกสาร','ชื่อเจ้าหน้าที่ F1'].forEach(text => {
+                    const th = document.createElement('th'); th.scope = 'col'; th.textContent = text; head.append(th);
+                });
+                const body = table.createTBody();
+                bulkDocuments.forEach(item => {
+                    const row = body.insertRow();
+                    const input = document.createElement('input'); input.type = 'checkbox'; input.checked = bulkSelected.has(String(item.docsId));
+                    input.setAttribute('aria-label', 'เลือก ' + (item.no || item.docId));
+                    input.onchange = () => {if(input.checked)bulkSelected.add(String(item.docsId));else bulkSelected.delete(String(item.docsId)); renderBulkSelection(); updateSubmitAvailability();};
+                    row.insertCell().append(input);
+                    [item.no || item.docId, item.documentName || '—', item.wf1Name || '—'].forEach(value => {row.insertCell().textContent = value;});
+                });
+                list.append(table);
+                const previewFirst = document.createElement('button'); previewFirst.type = 'button'; previewFirst.textContent = '👁 พรีวิวกล่องแรกของเอกสารแรก';
+                previewFirst.onclick = () => window.previewFirstSignatureBox?.();
+                bulkPanel.append(title,count,all,none,previewFirst,list);
+                submitBtn.textContent = 'ลงนาม ' + selectedBulkDocuments().length + ' รายการ';
+            }
+
+            if (isBulkSigning) {
+                bulkPanel = document.createElement('fieldset');
+                bulkPanel.style.cssText = 'margin:0 0 24px;padding:16px;border:1px solid #dfe6ef;border-radius:12px';
+                signBlock.prepend(bulkPanel);
+                renderBulkSelection();
+                submitBtn.textContent = `ลงนาม ${bulkDocuments.length} รายการ`;
+                saveBtn.after(submitBtn);
+                statusText.textContent = `เตรียมลงนาม ${bulkDocuments.length} รายการด้วยลายเซ็นเดียว`;
+            }
+            if (urlParams.get('docId')) {
+                docIdInput.value = urlParams.get('docId');
+                docIdInput.readOnly = true;
+                openReviewPage(1);
+                // ลองดึง signatureFields จากเซิร์ฟเวอร์ก่อน (กรณีเปิดจากลิงก์ที่ layout.html ส่งมาให้คนละเครื่อง)
+                // ถ้าไม่พบ (เช่น docId พิมพ์เอง ไม่ได้มาจาก layout.html) จะยังเลือก Template จาก localStorage ได้ตามปกติ
+                loadFieldsFromServer(urlParams.get('docId')).then(loaded => {
+                    if (loaded && urlParams.get('user_id')) {
+                        participantSelect.value = urlParams.get('user_id');
+                        participantSelect.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
+            if (urlParams.get('user_id')) {
+                userIdInput.value = urlParams.get('user_id');
+                userIdInput.readOnly = true;
+            }
+            if (urlParams.get('name'))
+                document.getElementById('fName').value = urlParams.get('name');
+            if (urlParams.get('role'))
+                document.getElementById('fRole').value = urlParams.get('role');
+            if (urlParams.get('org'))
+                document.getElementById('fOrg').value = urlParams.get('org');
+
+            let hasContent = false;
+            let drawing = false;
+            let last = null;
+            let lastTime = 0;
+            let penBase = 3.6;
+            let penStyle = 'ballpoint';
+            let penColor = '#0B3D91';
+
+            const sizeButtons = document.querySelectorAll('.size-dot');
+            sizeButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sizeButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    penBase = parseFloat(btn.dataset.size);
+                });
+            });
+
+            const styleButtons = document.querySelectorAll('.style-dot');
+            styleButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    styleButtons.forEach(b => {b.classList.remove('active'); b.setAttribute('aria-pressed','false');});
+                    btn.classList.add('active');
+                    penStyle = btn.dataset.style;
+                    btn.setAttribute('aria-pressed','true');
+                });
+            });
+
+            const colorButtons = document.querySelectorAll('.color-dot');
+            colorButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    colorButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    penColor = btn.dataset.color;
+                    ctx.strokeStyle = penColor;
+                });
+            });
+
+            function resizeCanvas() {
+                const rect = canvas.getBoundingClientRect();
+                if (!rect.width || !rect.height) return;
+                const ratio = Math.max(window.devicePixelRatio || 1, 2);
+                const prev = hasContent ? canvas.toDataURL() : null;
+                canvas.width = rect.width * ratio;
+                canvas.height = rect.height * ratio;
+                ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = penColor;
+                if (prev) {
+                    const img = new Image();
+                    img.onload = () => ctx.drawImage(img, 0, 0, rect.width, rect.height);
+                    img.src = prev;
+                }
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            function updateSubmitAvailability() {
+                if (workflowCompleted) { submitBtn.disabled = reviewPassBtn.disabled = reviewRejectBtn.disabled = true; return; }
+                const hasTemplateFields = !!(currentTemplateData
+                    && Array.isArray(currentTemplateData.signatureFields)
+                    && currentTemplateData.signatureFields.length);
+                const isWorkflowUser = selectedUserFields().length > 0;
+                submitBtn.disabled = bulkBusy || !isWorkflowUser || !(hasContent && hasTemplateFields) || (isBulkSigning && !selectedBulkDocuments().length);
+                const reviewOnly = isSelectedUserReviewOnly();
+                reviewPassBtn.disabled = bulkBusy || !isWorkflowUser || !hasTemplateFields || (!reviewOnly && !hasContent) || (isBulkSigning && !selectedBulkDocuments().length);
+                reviewRejectBtn.disabled = bulkBusy || !isWorkflowUser || !hasTemplateFields || (isBulkSigning && !selectedBulkDocuments().length);
+            }
+
+            function selectedUserFields() {
+                const uid = userIdInput.value.trim();
+                const fields = currentTemplateData && Array.isArray(currentTemplateData.signatureFields)
+                   ? currentTemplateData.signatureFields : [];
+                return fields.filter(field => String(field.user_id || field.assigneeId || '') === uid);
+            }
+
+            function isSelectedUserReviewOnly() {
+                const fields = selectedUserFields();
+                return fields.length > 0 && fields.every(field => {
+                    const actions = field.actions || {};
+                    const canReview = field.reviewAction !== false && actions.review !== false;
+                    const canSign = field.signAction !== false && actions.sign !== false;
+                    const canApprove = field.approveAction !== false && actions.approve !== false;
+                    return canReview && !canSign && !canApprove;
+                });
+            }
+
+            function updateActionMode() {
+                const isWorkflowUser = selectedUserFields().length > 0;
+                const reviewOnly = isSelectedUserReviewOnly();
+                const isReviewView = document.body.dataset.reviewView !== 'sign';
+                signBlock.classList.toggle('review-mode', isWorkflowUser && isReviewView);
+                signBlock.classList.toggle('review-only-mode', reviewOnly);
+                signBlock.classList.toggle('workflow-actions', isWorkflowUser);
+                if (isBulkSigning) submitBtn.style.display = 'none';
+                reviewPassBtn.textContent = isBulkSigning ? '✓ ผ่าน และลงนามรายการที่เลือก' : (reviewOnly ? '✓ ผ่าน' : '✓ ผ่าน และลงนาม');
+                reviewRejectBtn.textContent = isBulkSigning ? '✕ ไม่ผ่าน — ส่งคืนทักท้วงรายการที่เลือก' : '✕ ไม่ผ่าน — ส่งกลับ WF1';
+                statusDot.classList.remove('ready');
+                statusText.textContent = reviewOnly
+                   ? 'ผู้ตรวจสอบอย่างเดียว: เลือก “ผ่าน” หรือระบุเหตุผลแล้วเลือก “ไม่ผ่าน”'
+                   : isWorkflowUser
+                   ? 'ผู้ดำเนินการ WF: หากผ่าน กรุณาลงลายเซ็น หรือระบุเหตุผลเมื่อไม่ผ่านเพื่อส่งกลับ WF1'
+                   : (hasContent ? 'บันทึกลายเซ็นแล้ว — พร้อมบันทึกไฟล์' : 'รอลายเซ็น');
+                updateSubmitAvailability();
+            }
+
+            userIdInput.addEventListener('input', updateActionMode);
+
+            function setStatus(ready) {
+                hasContent = ready;
+                saveBtn.disabled = !ready;
+                updateSubmitAvailability();
+                statusDot.classList.toggle('ready', ready);
+                statusText.textContent = ready ? 'บันทึกลายเซ็นแล้ว — พร้อมบันทึกไฟล์' : 'รอลายเซ็น';
+                placeholder.style.opacity = ready ? '0' : '1';
+                setStatusLink(null);
+                document.dispatchEvent(new Event('eis-signature-changed'));
+            }
+
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                if (e.touches && e.touches.length) {
+                    return {x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top};
+                }
+                return {x: e.clientX - rect.left, y: e.clientY - rect.top};
+            }
+
+            let strokeMidpoint = null;
+            let strokeWidth = 3.6;
+            let strokeMoved = false;
+            let drawingPointer = null;
+            let strokeBase = null, strokePoints = [], strokeDistance = 0;
+            function startDraw(e) {
+                if (drawing || (e.pointerType === 'mouse' && e.button !== 0)) return;
+                e.preventDefault();
+                drawing = true;
+                drawingPointer = e.pointerId;
+                canvas.setPointerCapture(e.pointerId);
+                last = getPos(e);
+                strokeMidpoint = last;
+                lastTime = e.timeStamp;
+                strokeWidth = penBase * .35;
+                strokeBase = ctx.getImageData(0,0,canvas.width,canvas.height);
+                strokeDistance = 0;
+                strokePoints = [{...last,width:strokeWidth,distance:0}];
+                strokeMoved = false;
+                ctx.globalAlpha = 1;
+                ctx.strokeStyle = ctx.fillStyle = penColor;
+                ctx.lineCap = ctx.lineJoin = 'round';
+            }
+            function drawSample(e) {
+                const raw = getPos(e);
+                const pos = {x:last.x + (raw.x-last.x)*.8, y:last.y + (raw.y-last.y)*.8};
+                const distance = Math.hypot(pos.x-last.x,pos.y-last.y);
+                if (distance < .15) return;
+                const speed = distance / Math.max(e.timeStamp-lastTime,1);
+                const pressure = e.pointerType === 'pen' && e.pressure > 0 ? .3 + e.pressure*1.25 : 1;
+                const style = penStyle === 'brush' ? 1.25 : penStyle === 'fountain' ? .95 : 1;
+                strokeDistance += distance;
+                const dynamic = penStyle === 'ballpoint' ? Math.max(.85,1-speed*.06) : Math.max(.35,1.25-speed*.3);
+                const target = penBase * style * pressure * dynamic * Math.min(1,.3+strokeDistance/22);
+                strokeWidth = strokeWidth*.6 + target*.4;
+                strokePoints.push({...pos,width:strokeWidth,distance:strokeDistance});
+                const midpoint = {x:(last.x+pos.x)/2,y:(last.y+pos.y)/2};
+                ctx.lineWidth = strokeWidth;
+                ctx.beginPath();
+                ctx.moveTo(strokeMidpoint.x,strokeMidpoint.y);
+                ctx.quadraticCurveTo(last.x,last.y,midpoint.x,midpoint.y);
+                ctx.stroke();
+                strokeMidpoint = midpoint;
+                last = pos; lastTime = e.timeStamp; strokeMoved = true;
+                if (!hasContent) setStatus(true);
+            }
+            function moveDraw(e) {
+                if (!drawing || e.pointerId !== drawingPointer) return;
+                e.preventDefault();
+                const samples = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : [];
+                (samples.length ? samples : [e]).forEach(drawSample);
+            }
+            function endDraw(e) {
+                if (!drawing || e.pointerId !== drawingPointer) return;
+                if (e.type === 'pointerup') drawSample(e);
+                ctx.putImageData(strokeBase,0,0);
+                if (strokeMoved) {
+                    // Rebuild the final stroke with a tapered tail. Existing strokes
+                    // come from the snapshot, so overlaps remain intact.
+                    let from = strokePoints[0];
+                    const total = strokeDistance;
+                    for (let i=1;i<strokePoints.length;i++) {
+                        const control = strokePoints[i-1], point = strokePoints[i];
+                        const to = i===strokePoints.length-1 ? point : {x:(control.x+point.x)/2,y:(control.y+point.y)/2};
+                        const steps = Math.max(4,Math.ceil(Math.hypot(to.x-from.x,to.y-from.y)/1.5));
+                        for (let j=0;j<=steps;j++) {
+                            const s=j/steps, inv=1-s;
+                            const x=inv*inv*from.x+2*inv*s*control.x+s*s*to.x;
+                            const y=inv*inv*from.y+2*inv*s*control.y+s*s*to.y;
+                            const traveled=control.distance+(point.distance-control.distance)*s;
+                            const tip=penStyle==='ballpoint' ? Math.max(.45,Math.min(1,(total-traveled)/14)) : Math.max(.12,Math.min(1,(total-traveled)/28));
+                            const width=(control.width+(point.width-control.width)*s)*tip;
+                            ctx.beginPath();ctx.arc(x,y,Math.max(.3,width/2),0,Math.PI*2);ctx.fill();
+                        }
+                        from=to;
+                    }
+                } else {
+                    ctx.beginPath();ctx.arc(last.x,last.y,penBase/2,0,Math.PI*2);ctx.fill();
+                }
+                strokeBase=null;strokePoints=[];
+                drawing = false; drawingPointer = null;
+                if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
+                setStatus(true);
+            }
+            canvas.addEventListener('pointerdown', startDraw);
+            canvas.addEventListener('pointermove', moveDraw);
+            canvas.addEventListener('pointerup', endDraw);
+            canvas.addEventListener('pointercancel', endDraw);
+            canvas.addEventListener('lostpointercapture', endDraw);
+
+            clearBtn.addEventListener('click', () => {
+                const rect = canvas.getBoundingClientRect();
+                ctx.clearRect(0, 0, rect.width, rect.height);
+                setStatus(false);
+            });
+
+            browseBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', () => {
+                const file = fileInput.files[0];
+                if (!file)
+                    return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const rect = canvas.getBoundingClientRect();
+                        ctx.clearRect(0, 0, rect.width, rect.height);
+                        // fit image within pad while preserving aspect ratio
+                        const scale = Math.min(rect.width / img.width, rect.height / img.height) * 0.9;
+                        const w = img.width * scale, h = img.height * scale;
+                        const x = (rect.width - w) / 2, y = (rect.height - h) / 2;
+                        ctx.drawImage(img, x, y, w, h);
+                        setStatus(true);
+                    };
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+                fileInput.value = '';
+            });
+
+            saveBtn.addEventListener('click', () => {
+                const name = document.getElementById('fName').value.trim() || 'signature';
+                const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                const link = document.createElement('a');
+                link.download = `${slug || 'signature'}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                statusText.textContent = 'บันทึกไฟล์เรียบร้อยแล้ว';
+            });
+
+            // รูปแบบเดียวกับ thaiDate() ใน layout.html
+            const thaiDate = () => new Intl.DateTimeFormat('th-TH', {dateStyle: 'long'}).format(new Date());
+
+            async function updateWorkflowStatus(userId, decision, rejectionReason = '', docsId = workflowDocsId) {
+                if (!docsId) return;
+                const response = await fetch('documents.php', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-Token': workflowCsrf
+                    },
+                    body: JSON.stringify({
+                        action: 'mark_signed',
+                        docs_id: Number(docsId),
+                        user_id: userId,
+                        decision,
+                        rejection_reason: rejectionReason,
+                        review_marks: decision === 'REJECT' && !isBulkSigning ? reviewMarks : []
+                    })
+                });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || 'ลงนามแล้ว แต่ปรับสถานะรายการเอกสารไม่สำเร็จ');
+                }
+            }
+
+            function clearCompletedWorkflow() {
+                workflowCompleted = true;
+                reviewMarks.splice(0);
+                markDescription.value = '';
+                markBookmark.value = '';
+                rejectReasonInput.value = '';
+                fileInput.value = '';
+                clearBtn.click();
+                window.reviewAnnotation.clear();
+                renderReviewMarks();
+                publishReviewMarks();
+                updateSubmitAvailability();
+            }
+            async function rejectBulkDocuments() {
+                if (workflowCompleted || bulkBusy) return;
+                const documents = selectedBulkDocuments();
+                const reason = rejectReasonInput.value.trim();
+                if (!documents.length) { statusText.textContent = 'กรุณาเลือกเอกสารอย่างน้อย 1 รายการ'; return; }
+                if (!reason) { statusText.textContent = 'กรุณาระบุเหตุผลที่ไม่ผ่าน'; rejectReasonInput.focus(); return; }
+                bulkBusy = true; renderBulkSelection(); updateSubmitAvailability();
+                const completed = [], failed = [];
+                try {
+                    const pin = await requestSigningPin('REJECT');
+                    const userId = userIdInput.value.trim();
+                    for (const item of documents) {
+                        statusText.textContent = 'กำลังส่งคืนทักท้วง: ' + (item.no || item.docsId);
+                        try {
+                            const fields = await loadFieldsForBulkSigning(item.docId, userId);
+                            const data = new FormData();
+                            data.append('pin', pin); data.append('csrf', workflowCsrf);
+                            data.append('docs_id', item.docsId); data.append('docId', item.docId);
+                            data.append('user_id', userId); data.append('reviewDecision', 'REJECT');
+                            data.append('rejectionReason', reason); data.append('signatureFields', JSON.stringify(fields));
+                            const response = await fetch(SIGN_ENDPOINT, {method:'POST', body:data});
+                            const result = await response.json().catch(() => ({}));
+                            if (!response.ok) throw new Error(result.message || ('HTTP ' + response.status));
+                            await updateWorkflowStatus(userId, 'REJECT', reason, item.docsId);
+                            completed.push(item);
+                        } catch(error) { failed.push((item.no || item.docsId) + ': ' + error.message); }
+                    }
+                    const done = new Set(completed.map(item => String(item.docsId)));
+                    const remaining = bulkDocuments.filter(item => !done.has(String(item.docsId)));
+                    bulkDocuments.splice(0,bulkDocuments.length,...remaining);
+                    done.forEach(id => bulkSelected.delete(id));
+                    if (!remaining.length) clearCompletedWorkflow();
+                    statusText.textContent = 'ส่งคืนทักท้วงสำเร็จ ' + completed.length + '/' + documents.length + ' รายการ' + (failed.length ? ' — ไม่สำเร็จ: ' + failed.join(' | ') : '');
+                    if (completed.length && parent !== window) parent.postMessage({type:'EIS_DOCS_WORKFLOW_COMPLETED',docsId:completed.map(item => item.docsId),decision:'REJECT',bulk:true,remaining:remaining.length},location.origin);
+                } catch(error) {statusText.textContent = 'ส่งคืนทักท้วงไม่สำเร็จ: ' + error.message;}
+                finally {bulkBusy = false; renderBulkSelection(); updateSubmitAvailability();}
+            }
+            async function submitReviewDecision(decision) {
+                if (isBulkSigning) { if (decision === 'PASS') submitBtn.click(); else await rejectBulkDocuments(); return; }
+                if (workflowCompleted) return;
+                const docId = docIdInput.value.trim();
+                const userId = userIdInput.value.trim();
+                const templateFields = currentTemplateData && Array.isArray(currentTemplateData.signatureFields)
+                   ? currentTemplateData.signatureFields : null;
+                const rejectionReason = rejectReasonInput.value.trim() || (reviewMarks.length ? 'กรุณาแก้ไขตามรายการหน้าที่ทำเครื่องหมายไว้' : '');
+                if (!docId || !userId || !/^\d+$/.test(userId)) {
+                    statusText.textContent = 'กรุณาระบุ Document ID และ user_id ให้ถูกต้อง';
+                    return;
+                }
+                if (!templateFields || !templateFields.length || !selectedUserFields().length) {
+                    statusText.textContent = 'ไม่พบผู้ใช้นี้ในลำดับ WF ของเอกสาร';
+                    return;
+                }
+                if (decision === 'PASS' && !isSelectedUserReviewOnly() && !hasContent) {
+                    statusText.textContent = 'กรุณาลงลายเซ็นก่อนระบุผลตรวจสอบ “ผ่าน”';
+                    return;
+                }
+                if (decision === 'REJECT') {
+                    if (!rejectionReason) {
+                        statusText.textContent = 'กรุณาระบุเหตุผลที่ไม่ผ่านก่อนส่งกลับ WF1';
+                        rejectReasonInput.focus();
+                        return;
+                    }
+
+                }
+                reviewPassBtn.disabled = true;
+                reviewRejectBtn.disabled = true;
+                statusText.textContent = 'กำลังบันทึกผลตรวจสอบ...';
+                try {
+                    const pin = await requestSigningPin(decision);
+                    const formData = new FormData();
+                    formData.append('pin', pin);
+                    formData.append('csrf', workflowCsrf);
+                    formData.append('docs_id', workflowDocsId);
+                    formData.append('docId', docId);
+                    formData.append('user_id', userId);
+                    formData.append('reviewDecision', decision);
+                    formData.append('rejectionReason', rejectionReason);
+                    formData.append('signatureFields', JSON.stringify(templateFields));
+                    if (decision === 'PASS' && !isSelectedUserReviewOnly()) {
+                        const blob = await new Promise(resolve => window.getSignatureCanvas().toBlob(resolve, 'image/png'));
+                        formData.append('signerName', document.getElementById('fName').value.trim());
+                        formData.append('position', document.getElementById('fRole').value.trim());
+                        formData.append('organization', document.getElementById('fOrg').value.trim());
+                        formData.append('signedDate', thaiDate());
+                        formData.append('signaturePlacement', JSON.stringify(window.getSignaturePlacement?.() || {}));
+                        formData.append('signatureImage', blob, `signature-${userId}.png`);
+                    }
+                    const response = await fetch(SIGN_ENDPOINT, {method: 'POST', body: formData});
+                    const result = await response.json().catch(() => ({}));
+                    if (!response.ok)
+                        throw new Error(result.message || `เซิร์ฟเวอร์ตอบกลับ ${response.status}`);
+                    await updateWorkflowStatus(userId, decision, rejectionReason);
+                    clearCompletedWorkflow();
+                    statusDot.classList.add('ready');
+                    statusText.textContent = decision === 'PASS'
+                       ? `ตรวจสอบผ่านและลงนามแล้ว (user_id: ${userId})`
+                       : `ตรวจสอบไม่ผ่าน — ส่งรายการกลับไป WF1 แล้ว (user_id: ${userId})`;
+                    setStatusLink(signedDocumentUrl(result.docId || docId), '📄 เปิดดูเอกสาร');
+                    if (window.parent !== window) {
+                        window.parent.postMessage({type:'EIS_DOCS_WORKFLOW_COMPLETED', docsId:workflowDocsId, decision}, window.location.origin);
+                    }
+                } catch (error) {
+                    statusText.textContent = `บันทึกผลตรวจสอบไม่สำเร็จ: ${error.message}`;
+                    updateSubmitAvailability();
+                }
+            }
+
+            reviewPassBtn.addEventListener('click', () => submitReviewDecision('PASS'));
+            reviewRejectBtn.addEventListener('click', () => submitReviewDecision('REJECT'));
+
+            async function requestSigningPin(decision = 'SIGNED') {
+                return new Promise((resolve, reject) => {
+                    const dialog = document.createElement('dialog');
+                    dialog.className = 'pin-dialog';
+                    dialog.setAttribute('aria-labelledby', 'signingPinTitle');
+                    dialog.setAttribute('aria-describedby', 'signingPinDescription');
+                    dialog.innerHTML = '<form method="dialog"><span class="pin-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></span><h3 id="signingPinTitle">ยืนยันก่อนลงนาม</h3><p class="pin-dialog-description" id="signingPinDescription">กรอก PIN ความปลอดภัย 6 หลักของคุณ<br>เพื่อยืนยันการดำเนินการกับเอกสารนี้</p><label class="pin-field" for="signingPinInput">รหัส PIN<input id="signingPinInput" class="pin-input" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off" placeholder="••••••" required></label><p class="pin-caption">ลืม PIN? ขอปลดล็อกจากหน้าโปรไฟล์ผู้ใช้</p><div class="pin-form-actions"><button type="button" class="pin-cancel">ยกเลิก</button><button type="submit" class="pin-confirm">ยืนยันการลงนาม</button></div></form>';
+                    const rejecting = decision === 'REJECT';
+                    dialog.querySelector('#signingPinTitle').textContent = rejecting ? 'ยืนยันส่งคืนทักท้วง' : 'ยืนยันการลงนาม';
+                    dialog.querySelector('.pin-confirm').textContent = rejecting ? 'ยืนยันส่งคืนทักท้วง' : 'ยืนยันการลงนาม';
+                    const input = dialog.querySelector('input');
+                    dialog.querySelector('form').addEventListener('submit', event => {event.preventDefault(); const pin=input.value; input.value=''; dialog.close(); dialog.remove(); resolve(pin);});
+                    const cancel = () => {input.value=''; dialog.close(); dialog.remove(); reject(new Error('ยกเลิกการยืนยัน PIN'));};
+                    dialog.querySelector('button[type="button"]').addEventListener('click', cancel);
+                    dialog.addEventListener('cancel', event => {event.preventDefault(); cancel();});
+                    document.body.append(dialog); dialog.showModal(); input.focus();
+                });
+            }
+
+            async function applySignature(docId, userId, templateFields, blob, pin, docsId) {
+                const formData = new FormData();
+                formData.append('pin', pin);
+                formData.append('csrf', workflowCsrf);
+                formData.append('docs_id', docsId);
+                formData.append('docId', docId);
+                formData.append('user_id', userId);
+                formData.append('signerName', document.getElementById('fName').value.trim());
+                formData.append('position', document.getElementById('fRole').value.trim());
+                formData.append('organization', document.getElementById('fOrg').value.trim());
+                formData.append('signedDate', thaiDate());
+                formData.append('signatureFields', JSON.stringify(templateFields));
+                formData.append('forceSignature', '1');
+                formData.append('signaturePlacement', JSON.stringify(window.getSignaturePlacement?.() || {}));
+                        formData.append('signatureImage', blob, `signature-${userId}.png`);
+                const response = await fetch(SIGN_ENDPOINT, { method: 'POST', body: formData });
+                if (!response.ok) {
+                    const result = await response.json().catch(() => ({}));
+                    throw new Error(result.message || `เซิร์ฟเวอร์ตอบกลับ ${response.status}`);
+                }
+                return response.json();
+            }
+
+            async function loadFieldsForBulkSigning(docId, userId) {
+                const response = await fetch(`${FIELDS_ENDPOINT}?docId=${encodeURIComponent(docId)}`);
+                const data = await response.json().catch(() => ({}));
+                const fields = Array.isArray(data.signatureFields) ? data.signatureFields : [];
+                const isCurrentSigner = fields.some(field => String(field.user_id || field.assigneeId || '') === userId);
+                if (!isCurrentSigner) throw new Error('ไม่พบผู้ลงนามปัจจุบันในเอกสารนี้');
+                return fields;
+            }
+
+            submitBtn.addEventListener('click', async () => {
+                if (workflowCompleted || bulkBusy) return;
+                const signingDocuments = isBulkSigning ? selectedBulkDocuments() : [];
+                if (isBulkSigning && !signingDocuments.length) { statusText.textContent = 'กรุณาเลือกเอกสารอย่างน้อย 1 รายการ'; return; }
+                const docId = docIdInput.value.trim();
+                const userId = userIdInput.value.trim();
+                if (!docId) {
+                    statusText.textContent = 'กรุณากรอก Document ID / Path บนเซิร์ฟเวอร์';
+                    docIdInput.focus();
+                    return;
+                }
+                // ห้ามใช้อักขระที่ไม่ถูกต้องสำหรับชื่อไฟล์/โฟลเดอร์บน Windows
+                // (สาเหตุของ "The filename, directory name, or volume label syntax is incorrect")
+                if (/[\\:*?"<>|]/.test(docId)) {
+                    statusText.textContent = 'Document ID มีอักขระที่ไม่อนุญาต (ห้ามใช้ \\ : * ? " < > |) กรุณาแก้ไข เช่น procure/2026/PO-00123';
+                    docIdInput.focus();
+                    return;
+                }
+                if (!userId || !/^\d+$/.test(userId)) {
+                    statusText.textContent = 'กรุณากรอก user_id เป็นตัวเลข';
+                    userIdInput.focus();
+                    return;
+                }
+                if (!hasContent) {
+                    statusText.textContent = 'กรุณาเซ็นชื่อก่อนส่งไปเซิร์ฟเวอร์';
+                    return;
+                }
+                const templateFields = currentTemplateData && Array.isArray(currentTemplateData.signatureFields)
+                   ? currentTemplateData.signatureFields
+                   : null;
+                if (!templateFields || !templateFields.length) {
+                    statusText.textContent = 'กรุณาเลือกและโหลด Template ก่อน (เซิร์ฟเวอร์ต้องใช้ตรวจสอบสิทธิ์และตำแหน่งลงนามของ user_id นี้)';
+                    return;
+                }
+                if (!templateFields.some(field => String(field.user_id || field.assigneeId || '') === userId)) {
+                    statusText.textContent = `ไม่พบช่องลงนามของ user_id ${userId} ใน Template นี้`;
+                    return;
+                }
+                const originalLabel = submitBtn.textContent;
+                bulkBusy = true;
+                updateSubmitAvailability();
+                if (bulkPanel) bulkPanel.disabled = true;
+                submitBtn.disabled = true;
+                saveBtn.disabled = true;
+                submitBtn.textContent = 'กำลังส่งลายเซ็น...';
+                statusText.textContent = 'กำลังส่งลายเซ็นไปยังเซิร์ฟเวอร์...';
+                try {
+                    const pin = await requestSigningPin();
+                    const blob = await new Promise(resolve => window.getSignatureCanvas().toBlob(resolve, 'image/png'));
+                    if (isBulkSigning) {
+                        const completed = [];
+                        const failed = [];
+                        let latestResult = null;
+                        for (let index = 0; index < signingDocuments.length; index += 1) {
+                            const item = signingDocuments[index];
+                            statusText.textContent = `กำลังลงนามรายการ ${index + 1}/${signingDocuments.length}: ${item.no || item.docsId}`;
+                            try {
+                                const fields = await loadFieldsForBulkSigning(item.docId, userId);
+                                latestResult = await applySignature(item.docId, userId, fields, blob, pin, item.docsId);
+                                await updateWorkflowStatus(userId, 'SIGNED', '', item.docsId);
+                                completed.push(item);
+                            } catch (error) {
+                                failed.push(`${item.no || item.docsId}: ${error.message}`);
+                            }
+                        }
+                        if (completed.length && window.parent !== window) {
+                            window.parent.postMessage({type:'EIS_DOCS_WORKFLOW_COMPLETED', docsId: completed.map(item => item.docsId), bulk:true, remaining:bulkDocuments.length - completed.length}, window.location.origin);
+                        }
+                        statusDot.classList.toggle('ready', completed.length > 0);
+                        statusText.textContent = failed.length
+                          ? `ลงนามสำเร็จ ${completed.length}/${signingDocuments.length} รายการ — ไม่สำเร็จ: ${failed.join(' | ')}`
+                          : `ลงนามสำเร็จ ${completed.length} รายการด้วยลายเซ็นเดียวแล้ว`;
+                        if (latestResult) setStatusLink(signedDocumentUrl(latestResult.docId || completed[completed.length - 1].docId), '📄 เปิดดูเอกสารที่ลงนามแล้ว');
+                        const done = new Set(completed.map(item => String(item.docsId)));
+                        const remaining = bulkDocuments.filter(item => !done.has(String(item.docsId)));
+                        bulkDocuments.splice(0, bulkDocuments.length, ...remaining);
+                        done.forEach(id => bulkSelected.delete(id));
+                        if (!remaining.length) clearCompletedWorkflow();
+                        renderBulkSelection();
+                        return;
+                    }
+                    const formData = new FormData();
+                    formData.append('pin', pin);
+                    formData.append('csrf', workflowCsrf);
+                    formData.append('docs_id', workflowDocsId);
+                    formData.append('docId', docId);
+                    formData.append('user_id', userId);
+                    formData.append('signerName', document.getElementById('fName').value.trim());
+                    formData.append('position', document.getElementById('fRole').value.trim());
+                    formData.append('organization', document.getElementById('fOrg').value.trim());
+                    formData.append('signedDate', thaiDate());
+                    formData.append('signatureFields', JSON.stringify(templateFields));
+                    formData.append('signaturePlacement', JSON.stringify(window.getSignaturePlacement?.() || {}));
+                        formData.append('signatureImage', blob, `signature-${userId}.png`);
+                    const response = await fetch(SIGN_ENDPOINT, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (!response.ok) {
+                        let detail = '';
+                        try {
+                            const contentType = response.headers.get('content-type') || '';
+                            detail = contentType.includes('application/json')
+                               ? (await response.json()).message || ''
+                               : await response.text();
+                        } catch (readError) {
+                            // เซิร์ฟเวอร์อาจไม่ส่งรายละเอียดข้อผิดพลาดกลับมา
+                        }
+                        throw new Error(`เซิร์ฟเวอร์ตอบกลับ ${response.status}${detail ? `: ${detail}` : ''}`);
+                    }
+                    const result = await response.json();
+                    await updateWorkflowStatus(userId, 'SIGNED');
+                    clearCompletedWorkflow();
+                    if (window.parent !== window) window.parent.postMessage({type:'EIS_DOCS_WORKFLOW_COMPLETED', docsId:workflowDocsId}, window.location.origin);
+                    statusDot.classList.add('ready');
+                    statusText.textContent = `ลงนามสำเร็จ — บันทึกลงเอกสาร ${result.docId || docId} จำนวน ${result.appliedFields || 1} ช่อง (user_id: ${userId}) แล้ว`;
+                    setStatusLink(signedDocumentUrl(result.docId || docId), '📄 เปิดดูเอกสารที่ลงนามแล้ว');
+                } catch (error) {
+                    statusText.textContent = `ส่งลายเซ็นไม่สำเร็จ: ${error.message}`;
+                } finally {
+                    bulkBusy = false;
+                    renderBulkSelection();
+                    updateSubmitAvailability();
+                    saveBtn.disabled = !hasContent;
+                    submitBtn.textContent = isBulkSigning && !workflowCompleted ? `ลงนาม ${selectedBulkDocuments().length} รายการ` : originalLabel;
+                }
+            });
+
+        // Today's date, formatted plainly (avoids locale calendar quirks)
+            const today = new Date();
+            const months = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+            document.getElementById('docDate').textContent = `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
+        </script>
+    <script src="signature-preview.js?v=20261008-auto-placement"></script>
+</body>
+</html>

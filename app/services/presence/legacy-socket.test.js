@@ -1,0 +1,14 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
+test('NMU-EIS notification script and repeated panel expansion reuse one Socket.IO connection',()=>{
+let created=0;const handlers={},emitted=[],timers=[],html=[];const socket={connected:true,on(type,fn){handlers[type]=fn;},emit(type,data){emitted.push({type,data});},connect(){},disconnect(){}};
+const jq=()=>({ready(fn){fn();},empty(){return this;},html(value){html.push(value);return this;},append(){return this;},text(){return this;}});jq.getJSON=()=>{};
+const ctx={window:{addEventListener(){}},document:{},Ext:{socket_status:1,getInfo:{serverName:'dev-eis.nmu.ac.th',sysUserId:1}},DateTimeNow:()=> '2026-10-13 10:00:00',io:()=>{created++;return socket;},$:jq,setTimeout:fn=>timers.push(fn),showToast(){},console,Date,Math};vm.createContext(ctx);const notification=fs.readFileSync('C:/xampp/htdocs/NMU_EIS/js/notification-socket.js','utf8');vm.runInContext(notification,ctx);vm.runInContext(notification,ctx);assert.equal(created,1);
+const show=fs.readFileSync('C:/xampp/htdocs/NMU_EIS/js/show.js','utf8');const start=show.indexOf('        if (Ext.socket_status == 1)');const end=show.indexOf('      },',start);const expand=show.slice(start,end);for(let i=0;i<50;i++)vm.runInContext(expand,ctx);assert.equal(created,1);assert.equal(emitted.filter(e=>e.type==='NotifyReadtime').length,50);
+handlers.onDataUser({success:true,data:[{status:1,date:'2026-10-13',name:'<img src=x onerror=alert(1)>',costname:'<script>bad</script>',time:'10:00'}]});timers.at(-1)();assert(html.at(-1).includes('&lt;img'));assert(!html.at(-1).includes('<img src=x'));
+});
+
+test('Supplies connect clicks reuse CONNECTING sockets and ignore stale callbacks',()=>{
+const source=fs.readFileSync('D:/EIS-ERP/public/supplies/websocket.js','utf8');const start=source.indexOf('        Ext.btnConnect = (function () {'),end=source.indexOf('        }); // () autorun',start)+'        });'.length;let created=0,toasts=0;const sockets=[];class Socket{static CONNECTING=0;static OPEN=1;static CLOSING=2;constructor(url){this.url=url;this.readyState=0;sockets.push(this);created++;}close(){this.readyState=3;this.onclose?.();}}
+const ctx={window:{},WebSocket:Socket,location:{protocol:'https:',hostname:'dev-eis.nmu.ac.th',host:'dev-eis.nmu.ac.th:8443'},Ext:{Msg:{alert(){}},Toast:{show(){toasts++;}}},uid:1,pathNotif:'/supplies/notify.php',setTimeout(){return 1;},clearTimeout(){},console};vm.createContext(ctx);vm.runInContext(source.slice(start,end),ctx);ctx.Ext.btnConnect();ctx.Ext.btnConnect();assert.equal(created,1);assert(!sockets[0].url.includes(':8443:8443'));const old=sockets[0];old.readyState=3;ctx.Ext.btnConnect();assert.equal(created,2);old.onopen();old.onclose();assert.equal(toasts,0);assert.equal(ctx.window._notifySocket,sockets[1]);
+});

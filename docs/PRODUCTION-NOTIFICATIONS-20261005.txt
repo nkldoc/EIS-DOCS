@@ -1,0 +1,32 @@
+﻿Production document notifications (2026-10-05)
+
+ERP server: https://eis.nmu.ac.th/supplies/
+Deploy these files from D:\EIS-ERP\public\supplies:
+- index.php
+- js\docs-notifications.js
+- docs-notifications.php
+- conf\docs-database.production.local.php (private credentials; do not publish its contents)
+The existing show_nat.js mounts this notification component; no changes are required there.
+
+DOCS server: https://doc-eis.nmu.ac.th/eis-docs/
+Deploy from D:\EIS-DOCS:
+- app\public\docMain\index.php
+- app\public\docMain\notifications.php
+- backend\target\eis-docs.war to the production Tomcat webapps\eis-docs.war
+Use the production Tomcat deployment procedure; do not run Deploy-Local.ps1.
+
+Both PHP runtimes and the DOCS Java runtime must use the same EIS_DOCS_WS_SECRET if it is configured.
+Without that override, the existing secret derivation uses the shared production database password.
+ERP notification SQL uses 192.168.201.3:1433 / EIS_DOCS, matching the DOCS production profile.
+ERP must reach DOCS HTTPS on 443 and production SQL on 1433.
+DOCS IIS must retain its existing /eis-docs/ws/* reverse proxy with WebSocket support.
+
+Verify after deployment with the same user signed in on both sites:
+1. Open the Supplies bell: document links go to doc-eis.nmu.ac.th/eis-docs/docMain/.
+2. DOCS has a Supplies link back to eis.nmu.ac.th/supplies/.
+3. Browser Network shows status 101 for wss://doc-eis.nmu.ac.th/eis-docs/ws/notifications.
+4. A workflow notification updates both sites; marking read on either site updates the other.
+5. Local/dev keeps its existing document links and polling behavior.
+
+Backups: D:\EIS-ERP\storage\config-backups\docs-production-20261005
+These are local source changes. No remote production WAR deployment was performed from this workstation.

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ตรวจสอบ PDF</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Segoe UI,sans-serif;background:#333;color:#fff}body{display:flex;flex-direction:column}header{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#404040}input{width:60px}button,input{padding:5px}#pages{flex:1;overflow:auto;min-height:0;padding:12px}.page{margin:0 auto 12px;background:white;box-shadow:0 2px 8px #111;position:relative}.page canvas{display:block;width:100%;height:100%}#status{font-size:12px}
+</style>
+<script src="../js/pdf.min.js"></script>
+</head>
+<body>
+<header><button id="prev" aria-label="หน้าก่อนหน้า">◀</button><input id="number" type="number" min="1" value="1" aria-label="เลขหน้า"><span id="total"></span><button id="next" aria-label="หน้าถัดไป">▶</button><button id="out" aria-label="ย่อ">−</button><button id="in" aria-label="ขยาย">+</button><span id="status">กำลังโหลด PDF...</span></header>
+<main id="pages"></main>
+<script src="review-pdf-viewer.js?v=20261008-1"></script>
+</body>
+</html>

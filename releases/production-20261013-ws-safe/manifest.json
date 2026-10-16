@@ -1,0 +1,586 @@
+{
+  "release": "production-20261013-ws-safe",
+  "date": "2026-10-13",
+  "runtimeCount": 74,
+  "counts": {
+    "EIS-DOCS": 20,
+    "Supplies": 13,
+    "Procure": 15,
+    "NMU-EIS": 26
+  },
+  "files": [
+    {
+      "path": "ops/CONFIG-MERGE.md",
+      "bytes": 3719,
+      "sha256": "6cfa69747d0bb8f0b94da885d0817ee95cf0b396c09c255210e5ae37e9bea1c6",
+      "generated": true
+    },
+    {
+      "path": "ops/helpers/Repair-ProductionMessengerProxy.ps1",
+      "bytes": 3666,
+      "sha256": "a736ad019ddc4de025648d5efd8efaf8c8ffef6c95b130cbf46e0540c72d6835",
+      "generated": true
+    },
+    {
+      "path": "ops/helpers/Test-ProductionMessenger.ps1",
+      "bytes": 2775,
+      "sha256": "b5a1c1b69b1888efd9bf8bac2e6f204f488ebcad326e6b0fa18bc177dfdd4945",
+      "generated": true
+    },
+    {
+      "path": "ops/New-MessengerKeys.ps1",
+      "bytes": 1220,
+      "sha256": "fc87382b666b92ce9724afefcfb4562e1d2097fdf0440b473084555fae647690",
+      "generated": true
+    },
+    {
+      "path": "ops/presence.config.example.php",
+      "bytes": 160,
+      "sha256": "fca1f619285bad3749d7b13ed2f83d0b3d818a8f9744f501c4d797a2f1fe3cec",
+      "generated": true
+    },
+    {
+      "path": "ops/SHOW-RUN.ps1",
+      "bytes": 11303,
+      "sha256": "e37b34795d261c89b4479acd1f7d7e2d9a698953dedab4f9f20ab76f296b9df0",
+      "generated": true
+    },
+    {
+      "path": "payload/EIS-DOCS/app/public/assets/css/presence-chat.css",
+      "bytes": 4979,
+      "sha256": "d57cbdd67f585ca152082fa5d390cdeaf67178478ff519a52f6e7c9b23c830fa",
+      "source": "D:/EIS-DOCS/app/public/assets/css/presence-chat.css",
+      "sourceSha256": "d57cbdd67f585ca152082fa5d390cdeaf67178478ff519a52f6e7c9b23c830fa"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/public/assets/js/presence-chat.js",
+      "bytes": 25418,
+      "sha256": "8571da3c4d0f79b36ff919bd46f286a66448b22b33e8ab74bf445d053c3331d2",
+      "source": "D:/EIS-DOCS/app/public/assets/js/presence-chat.js",
+      "sourceSha256": "8571da3c4d0f79b36ff919bd46f286a66448b22b33e8ab74bf445d053c3331d2"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/public/assets/js/presence-client.js",
+      "bytes": 8074,
+      "sha256": "1ff5c62eb7ebe54f8a6f09d7838c67f38bbfbcc07f5313f95f4df4392275cb89",
+      "source": "D:/EIS-DOCS/app/public/assets/js/presence-client.js",
+      "sourceSha256": "1ff5c62eb7ebe54f8a6f09d7838c67f38bbfbcc07f5313f95f4df4392275cb89"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/public/assets/js/presence-image-viewer.js",
+      "bytes": 7008,
+      "sha256": "f58cbfa059a3fa07ae7032d0120f83c53140035ab2ae8b9db7f30bb5e48be3a1",
+      "source": "D:/EIS-DOCS/app/public/assets/js/presence-image-viewer.js",
+      "sourceSha256": "f58cbfa059a3fa07ae7032d0120f83c53140035ab2ae8b9db7f30bb5e48be3a1"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/public/docMain/app.js",
+      "bytes": 175300,
+      "sha256": "c586de45e27837221ab75ddd753993d200c6e3ada1560c875676905ae65a9a33",
+      "source": "D:/EIS-DOCS/app/public/docMain/app.js",
+      "sourceSha256": "c586de45e27837221ab75ddd753993d200c6e3ada1560c875676905ae65a9a33"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/public/docMain/index.html",
+      "bytes": 43892,
+      "sha256": "30e5e74f172b70bdfdf7d69f01882821c521eb5f407e32b949d80ba3742b07cc",
+      "source": "D:/EIS-DOCS/app/public/docMain/index.html",
+      "sourceSha256": "30e5e74f172b70bdfdf7d69f01882821c521eb5f407e32b949d80ba3742b07cc"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/public/docMain/message-inbox.js",
+      "bytes": 15703,
+      "sha256": "9e658965afa55fad6947bbdb0cc5abb3774cfb9ea25e5d6f862c94f5c2242e1a",
+      "source": "D:/EIS-DOCS/app/public/docMain/message-inbox.js",
+      "sourceSha256": "9e658965afa55fad6947bbdb0cc5abb3774cfb9ea25e5d6f862c94f5c2242e1a"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/public/docMain/message-inbox.php",
+      "bytes": 6327,
+      "sha256": "dcb2002df293b049765b2b3737b76f4520ce3cf66d32e37800466b8b3837061f",
+      "source": "D:/EIS-DOCS/app/public/docMain/message-inbox.php",
+      "sourceSha256": "dcb2002df293b049765b2b3737b76f4520ce3cf66d32e37800466b8b3837061f"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/public/docMain/user-online.js",
+      "bytes": 9344,
+      "sha256": "e28ccc4c97982774aa40da016ffe1fe26d3d52a7c91df65518c328fa9eb85758",
+      "source": "D:/EIS-DOCS/app/public/docMain/user-online.js",
+      "sourceSha256": "e28ccc4c97982774aa40da016ffe1fe26d3d52a7c91df65518c328fa9eb85758"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/public/docMain/user-online.php",
+      "bytes": 5539,
+      "sha256": "29bbb4039d7f24a5d94ed87d93e1a561146764b424d0ab277fc6713d9564e49c",
+      "source": "D:/EIS-DOCS/app/public/docMain/user-online.php",
+      "sourceSha256": "29bbb4039d7f24a5d94ed87d93e1a561146764b424d0ab277fc6713d9564e49c"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/public/login.php",
+      "bytes": 7767,
+      "sha256": "3f20075967208bc11923731a7ff68facecadc0ef73f7f74b192cc1df10c230a3",
+      "source": "D:/EIS-DOCS/app/public/login.php",
+      "sourceSha256": "3f20075967208bc11923731a7ff68facecadc0ef73f7f74b192cc1df10c230a3"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/services/presence/chat.js",
+      "bytes": 19864,
+      "sha256": "b3f85fa2c419c1304b40f2d26c8cf3e027681a41d31cbd81353d596415843c07",
+      "source": "D:/EIS-DOCS/app/services/presence/chat.js",
+      "sourceSha256": "b3f85fa2c419c1304b40f2d26c8cf3e027681a41d31cbd81353d596415843c07"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/services/presence/package-lock.json",
+      "bytes": 819,
+      "sha256": "23bc0195b7c23a58f0e6e2d92c146a2d05c3cd21226f41e476b78978449bcf0e",
+      "source": "D:/EIS-DOCS/app/services/presence/package-lock.json",
+      "sourceSha256": "23bc0195b7c23a58f0e6e2d92c146a2d05c3cd21226f41e476b78978449bcf0e"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/services/presence/package.json",
+      "bytes": 157,
+      "sha256": "a9c4f0a3965e04fd04737933df239a0a1de954884d8146991bbafa03e9a44e81",
+      "source": "D:/EIS-DOCS/app/services/presence/package.json",
+      "sourceSha256": "f15697589e776c3229316cba60b78a36d43eb8679a940a96ad3b3338e52d8d65"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/services/presence/report.js",
+      "bytes": 3130,
+      "sha256": "0e1f1b6bc04a0ca31c23a27e4ae62afac093f165201f01b78536a95d1dabcf39",
+      "source": "D:/EIS-DOCS/app/services/presence/report.js",
+      "sourceSha256": "0e1f1b6bc04a0ca31c23a27e4ae62afac093f165201f01b78536a95d1dabcf39"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/services/presence/server.js",
+      "bytes": 17505,
+      "sha256": "6f4f0b904d5ae0ad006ac5b8203414e920e25730c1de429b06203716beead39a",
+      "source": "D:/EIS-DOCS/app/services/presence/server.js",
+      "sourceSha256": "6f4f0b904d5ae0ad006ac5b8203414e920e25730c1de429b06203716beead39a"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/services/presence/store.js",
+      "bytes": 7050,
+      "sha256": "069b70f6f6c28091ccb806de415f70555369022f82f26ad1c84887325849892e",
+      "source": "D:/EIS-DOCS/app/services/presence/store.js",
+      "sourceSha256": "069b70f6f6c28091ccb806de415f70555369022f82f26ad1c84887325849892e"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/src/Auth.php",
+      "bytes": 13337,
+      "sha256": "f9d38fb7421dafc77847915c1bc4e8a2fbdfbb2ec3ccf6cd5256e7687f9503c3",
+      "source": "D:/EIS-DOCS/app/src/Auth.php",
+      "sourceSha256": "f9d38fb7421dafc77847915c1bc4e8a2fbdfbb2ec3ccf6cd5256e7687f9503c3"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/src/Presence.php",
+      "bytes": 4569,
+      "sha256": "607ec4931d6d61a696761fdad6b3a2cefc3019b75df1951ebb84e430a76c060e",
+      "source": "D:/EIS-DOCS/app/src/Presence.php",
+      "sourceSha256": "607ec4931d6d61a696761fdad6b3a2cefc3019b75df1951ebb84e430a76c060e"
+    },
+    {
+      "path": "payload/EIS-DOCS/app/src/SingleLogin.php",
+      "bytes": 6377,
+      "sha256": "1e916814959558cd63dca0cf122b6f7b9d1ad911d3c53d6b72ebd7fe7dd69eb0",
+      "source": "D:/EIS-DOCS/app/src/SingleLogin.php",
+      "sourceSha256": "1e916814959558cd63dca0cf122b6f7b9d1ad911d3c53d6b72ebd7fe7dd69eb0"
+    },
+    {
+      "path": "payload/NMU-EIS/access/admin-identity.php",
+      "bytes": 2745,
+      "sha256": "d0a78071ceff4e9078b5b64e0cfbddcf08aed9b725af694fbb92368f19148ed4",
+      "source": "C:/xampp/htdocs/NMU_EIS/access/admin-identity.php",
+      "sourceSha256": "d0a78071ceff4e9078b5b64e0cfbddcf08aed9b725af694fbb92368f19148ed4"
+    },
+    {
+      "path": "payload/NMU-EIS/access/info.php",
+      "bytes": 1744,
+      "sha256": "73368909eac891195529c8879254b1728c54600f22d53b80df3b01023e988f0f",
+      "source": "C:/xampp/htdocs/NMU_EIS/access/info.php",
+      "sourceSha256": "73368909eac891195529c8879254b1728c54600f22d53b80df3b01023e988f0f"
+    },
+    {
+      "path": "payload/NMU-EIS/access/login.php",
+      "bytes": 4578,
+      "sha256": "292552da3d4548944ac21037b0126ce4292af3fd9c7c80a66e67f8421e2406fc",
+      "source": "C:/xampp/htdocs/NMU_EIS/access/login.php",
+      "sourceSha256": "292552da3d4548944ac21037b0126ce4292af3fd9c7c80a66e67f8421e2406fc"
+    },
+    {
+      "path": "payload/NMU-EIS/access/login_1.php",
+      "bytes": 3359,
+      "sha256": "2c636e730c6e1791cd193cb34386000df6feae5912f574ddf5a8ccdfeefbce82",
+      "source": "C:/xampp/htdocs/NMU_EIS/access/login_1.php",
+      "sourceSha256": "2c636e730c6e1791cd193cb34386000df6feae5912f574ddf5a8ccdfeefbce82"
+    },
+    {
+      "path": "payload/NMU-EIS/access/logout.php",
+      "bytes": 342,
+      "sha256": "ecf69509ce65b50f529d3a2e5efc648b6f56a5f1fbb0e1bf3d06e39accf03e31",
+      "source": "C:/xampp/htdocs/NMU_EIS/access/logout.php",
+      "sourceSha256": "ecf69509ce65b50f529d3a2e5efc648b6f56a5f1fbb0e1bf3d06e39accf03e31"
+    },
+    {
+      "path": "payload/NMU-EIS/access/messenger-token.php",
+      "bytes": 1181,
+      "sha256": "0539b983364bb5b880c1ff92ef559de47801cc5d9df952ffc060cea9086342a2",
+      "source": "C:/xampp/htdocs/NMU_EIS/access/messenger-token.php",
+      "sourceSha256": "0539b983364bb5b880c1ff92ef559de47801cc5d9df952ffc060cea9086342a2"
+    },
+    {
+      "path": "payload/NMU-EIS/access/presence_common.php",
+      "bytes": 718,
+      "sha256": "212fc33888eae7531cd3cd3ecaf29e4ac894392df85f9357079c360d4e8511f0",
+      "source": "C:/xampp/htdocs/NMU_EIS/access/presence_common.php",
+      "sourceSha256": "212fc33888eae7531cd3cd3ecaf29e4ac894392df85f9357079c360d4e8511f0"
+    },
+    {
+      "path": "payload/NMU-EIS/access/presence_token.php",
+      "bytes": 1753,
+      "sha256": "edf3c7a17512f236cba1ccbf21053789bfb30e534a3a8c8f8b5d5f9f40f6c3bf",
+      "source": "C:/xampp/htdocs/NMU_EIS/access/presence_token.php",
+      "sourceSha256": "edf3c7a17512f236cba1ccbf21053789bfb30e534a3a8c8f8b5d5f9f40f6c3bf"
+    },
+    {
+      "path": "payload/NMU-EIS/access/re_login.php",
+      "bytes": 6218,
+      "sha256": "923311b4e7f309eeec1618c62aa35fd4ab179461b43bddeca25d3d286a37a3f9",
+      "source": "C:/xampp/htdocs/NMU_EIS/access/re_login.php",
+      "sourceSha256": "923311b4e7f309eeec1618c62aa35fd4ab179461b43bddeca25d3d286a37a3f9"
+    },
+    {
+      "path": "payload/NMU-EIS/access/user_online.php",
+      "bytes": 3871,
+      "sha256": "c9f1e129d2f4cdc6c36773ae2158635a7fc8f1317cad5af335f05ebcdcee9945",
+      "source": "C:/xampp/htdocs/NMU_EIS/access/user_online.php",
+      "sourceSha256": "c9f1e129d2f4cdc6c36773ae2158635a7fc8f1317cad5af335f05ebcdcee9945"
+    },
+    {
+      "path": "payload/NMU-EIS/assets/messenger/css/presence-chat.css",
+      "bytes": 4979,
+      "sha256": "d57cbdd67f585ca152082fa5d390cdeaf67178478ff519a52f6e7c9b23c830fa",
+      "source": "C:/xampp/htdocs/NMU_EIS/assets/messenger/css/presence-chat.css",
+      "sourceSha256": "d57cbdd67f585ca152082fa5d390cdeaf67178478ff519a52f6e7c9b23c830fa"
+    },
+    {
+      "path": "payload/NMU-EIS/assets/messenger/js/presence-chat.js",
+      "bytes": 25490,
+      "sha256": "9134d63500ef9a68409f1e9d34ffc830d98ec666814de43c8f3eeed787c1a9c3",
+      "source": "C:/xampp/htdocs/NMU_EIS/assets/messenger/js/presence-chat.js",
+      "sourceSha256": "9134d63500ef9a68409f1e9d34ffc830d98ec666814de43c8f3eeed787c1a9c3"
+    },
+    {
+      "path": "payload/NMU-EIS/assets/messenger/js/presence-client.js",
+      "bytes": 8110,
+      "sha256": "c4fb89a3d4dcfcd2a653eb7c81e1cacd2cd16d269ed454060f8fe6b858e86bd4",
+      "source": "C:/xampp/htdocs/NMU_EIS/assets/messenger/js/presence-client.js",
+      "sourceSha256": "c4fb89a3d4dcfcd2a653eb7c81e1cacd2cd16d269ed454060f8fe6b858e86bd4"
+    },
+    {
+      "path": "payload/NMU-EIS/assets/messenger/js/presence-image-viewer.js",
+      "bytes": 7026,
+      "sha256": "783e3a132f1dfe9e844ef0ecb5dde64e2337c0a8d3b9ace45b7c9f4d3eb805cc",
+      "source": "C:/xampp/htdocs/NMU_EIS/assets/messenger/js/presence-image-viewer.js",
+      "sourceSha256": "783e3a132f1dfe9e844ef0ecb5dde64e2337c0a8d3b9ace45b7c9f4d3eb805cc"
+    },
+    {
+      "path": "payload/NMU-EIS/conf/messenger/AdminIdentity.php",
+      "bytes": 2042,
+      "sha256": "b0c7d3ff81c048c7b29a26b2e5074b16fe32ad0118269cbc410773e526df09be",
+      "source": "C:/xampp/htdocs/NMU_EIS/conf/messenger/AdminIdentity.php",
+      "sourceSha256": "b0c7d3ff81c048c7b29a26b2e5074b16fe32ad0118269cbc410773e526df09be"
+    },
+    {
+      "path": "payload/NMU-EIS/conf/messenger/Presence.php",
+      "bytes": 4361,
+      "sha256": "db7210b6459e1b3b92832b9df046ab26876f12a782b18dc624afba5ef44d1a2e",
+      "source": "C:/xampp/htdocs/NMU_EIS/conf/messenger/Presence.php",
+      "sourceSha256": "db7210b6459e1b3b92832b9df046ab26876f12a782b18dc624afba5ef44d1a2e"
+    },
+    {
+      "path": "payload/NMU-EIS/css/user-online.css",
+      "bytes": 1619,
+      "sha256": "71a7900aaee30dcc9b7ebb8944e125529d9e5347a829aeb4325c4559eb7e3753",
+      "source": "C:/xampp/htdocs/NMU_EIS/css/user-online.css",
+      "sourceSha256": "71a7900aaee30dcc9b7ebb8944e125529d9e5347a829aeb4325c4559eb7e3753"
+    },
+    {
+      "path": "payload/NMU-EIS/index.php",
+      "bytes": 10209,
+      "sha256": "230c571c3e99a8c907bac82e46199261f33b27c9890960e6445746c5167f0e5c",
+      "source": "C:/xampp/htdocs/NMU_EIS/index.php",
+      "sourceSha256": "230c571c3e99a8c907bac82e46199261f33b27c9890960e6445746c5167f0e5c"
+    },
+    {
+      "path": "payload/NMU-EIS/js/notification-socket.js",
+      "bytes": 10480,
+      "sha256": "1b93a1d61515c3f74a0f7ee3966a868b5ee5fe1059131b5f9d9776b17faae79e",
+      "source": "C:/xampp/htdocs/NMU_EIS/js/notification-socket.js",
+      "sourceSha256": "1b93a1d61515c3f74a0f7ee3966a868b5ee5fe1059131b5f9d9776b17faae79e"
+    },
+    {
+      "path": "payload/NMU-EIS/js/presence-client.js",
+      "bytes": 8074,
+      "sha256": "1ff5c62eb7ebe54f8a6f09d7838c67f38bbfbcc07f5313f95f4df4392275cb89",
+      "source": "C:/xampp/htdocs/NMU_EIS/js/presence-client.js",
+      "sourceSha256": "1ff5c62eb7ebe54f8a6f09d7838c67f38bbfbcc07f5313f95f4df4392275cb89"
+    },
+    {
+      "path": "payload/NMU-EIS/js/show.js",
+      "bytes": 19639,
+      "sha256": "2b6d810478e21be012f2f9d24037d4f9de53e336e2ea15c4a6e1d2e267a909ad",
+      "source": "C:/xampp/htdocs/NMU_EIS/js/show.js",
+      "sourceSha256": "2b6d810478e21be012f2f9d24037d4f9de53e336e2ea15c4a6e1d2e267a909ad"
+    },
+    {
+      "path": "payload/NMU-EIS/js/user-online.js",
+      "bytes": 7362,
+      "sha256": "585904755b8b724631004d10c6e0d6ab3e0087dd3105b59e560d09d9d1dc5415",
+      "source": "C:/xampp/htdocs/NMU_EIS/js/user-online.js",
+      "sourceSha256": "585904755b8b724631004d10c6e0d6ab3e0087dd3105b59e560d09d9d1dc5415"
+    },
+    {
+      "path": "payload/NMU-EIS/services/presence/package-lock.json",
+      "bytes": 799,
+      "sha256": "a92a6062ba1d6be91fb2e6084d11549c5152f7d01a04bcfc716a7ec3440d8ca4",
+      "source": "C:/xampp/htdocs/NMU_EIS/services/presence/package-lock.json",
+      "sourceSha256": "a92a6062ba1d6be91fb2e6084d11549c5152f7d01a04bcfc716a7ec3440d8ca4"
+    },
+    {
+      "path": "payload/NMU-EIS/services/presence/package.json",
+      "bytes": 147,
+      "sha256": "539ba7b647ee17c556437af4e54086f66dde1f115d696481619dfee990550fd6",
+      "source": "C:/xampp/htdocs/NMU_EIS/services/presence/package.json",
+      "sourceSha256": "648568fe99a57198a5eedf44d418aa00ce1b145035723a222de7e6e50399ed92"
+    },
+    {
+      "path": "payload/NMU-EIS/services/presence/server.js",
+      "bytes": 7814,
+      "sha256": "ac118754d8fbfcee1de47da3e3a8932b41cfb8f528d8000983bfec40c5e281b8",
+      "source": "C:/xampp/htdocs/NMU_EIS/services/presence/server.js",
+      "sourceSha256": "ac118754d8fbfcee1de47da3e3a8932b41cfb8f528d8000983bfec40c5e281b8"
+    },
+    {
+      "path": "payload/NMU-EIS/services/presence/store.js",
+      "bytes": 5604,
+      "sha256": "0204f237a9d6b32ef43090ad69d5733a9445617a4f6987dcf3fa3e8efc7f311c",
+      "source": "C:/xampp/htdocs/NMU_EIS/services/presence/store.js",
+      "sourceSha256": "0204f237a9d6b32ef43090ad69d5733a9445617a4f6987dcf3fa3e8efc7f311c"
+    },
+    {
+      "path": "payload/Procure/access/admin-identity.php",
+      "bytes": 2745,
+      "sha256": "db7cbf65deb4d079b315b93aa6436d089076607328ea0039d870a6713687b4d3",
+      "source": "D:/EIS-ERP/public/procure/access/admin-identity.php",
+      "sourceSha256": "db7cbf65deb4d079b315b93aa6436d089076607328ea0039d870a6713687b4d3"
+    },
+    {
+      "path": "payload/Procure/access/login.php",
+      "bytes": 6359,
+      "sha256": "fe922b9b7a7d5d274e0ce259b0ac0feae6bc75a7fee0662678110180036df058",
+      "source": "D:/EIS-ERP/public/procure/access/login.php",
+      "sourceSha256": "fe922b9b7a7d5d274e0ce259b0ac0feae6bc75a7fee0662678110180036df058"
+    },
+    {
+      "path": "payload/Procure/access/login_1.php",
+      "bytes": 9285,
+      "sha256": "984a8030de296e9141ef2b7fc42b95357aa37c32592ec6f6d7f68b35cfd725eb",
+      "source": "D:/EIS-ERP/public/procure/access/login_1.php",
+      "sourceSha256": "984a8030de296e9141ef2b7fc42b95357aa37c32592ec6f6d7f68b35cfd725eb"
+    },
+    {
+      "path": "payload/Procure/access/login_2.php",
+      "bytes": 7162,
+      "sha256": "1ec6ffd2a191247201eedcc2dc8e59ce80c61eadd136b2fbcc8c8f522674a4dd",
+      "source": "D:/EIS-ERP/public/procure/access/login_2.php",
+      "sourceSha256": "1ec6ffd2a191247201eedcc2dc8e59ce80c61eadd136b2fbcc8c8f522674a4dd"
+    },
+    {
+      "path": "payload/Procure/access/login_3.php",
+      "bytes": 6386,
+      "sha256": "d03742b20add652d969c1bf9c5b85f8e9d85479ea05f8b17423d110b3daa692f",
+      "source": "D:/EIS-ERP/public/procure/access/login_3.php",
+      "sourceSha256": "d03742b20add652d969c1bf9c5b85f8e9d85479ea05f8b17423d110b3daa692f"
+    },
+    {
+      "path": "payload/Procure/access/logout.php",
+      "bytes": 748,
+      "sha256": "2c94bc1e96dde81381616e9cb3367ed39223b54ad45e0502988f28048757ae8c",
+      "source": "D:/EIS-ERP/public/procure/access/logout.php",
+      "sourceSha256": "2c94bc1e96dde81381616e9cb3367ed39223b54ad45e0502988f28048757ae8c"
+    },
+    {
+      "path": "payload/Procure/access/presence-token.php",
+      "bytes": 1114,
+      "sha256": "bbd003036233f7c87722aa163488ac6e6bb05152bbea1ac0c0165c4dbe397240",
+      "source": "D:/EIS-ERP/public/procure/access/presence-token.php",
+      "sourceSha256": "bbd003036233f7c87722aa163488ac6e6bb05152bbea1ac0c0165c4dbe397240"
+    },
+    {
+      "path": "payload/Procure/assets/css/presence-chat.css",
+      "bytes": 4979,
+      "sha256": "d57cbdd67f585ca152082fa5d390cdeaf67178478ff519a52f6e7c9b23c830fa",
+      "source": "D:/EIS-ERP/public/procure/assets/css/presence-chat.css",
+      "sourceSha256": "d57cbdd67f585ca152082fa5d390cdeaf67178478ff519a52f6e7c9b23c830fa"
+    },
+    {
+      "path": "payload/Procure/assets/js/presence-chat.js",
+      "bytes": 25418,
+      "sha256": "8571da3c4d0f79b36ff919bd46f286a66448b22b33e8ab74bf445d053c3331d2",
+      "source": "D:/EIS-ERP/public/procure/assets/js/presence-chat.js",
+      "sourceSha256": "8571da3c4d0f79b36ff919bd46f286a66448b22b33e8ab74bf445d053c3331d2"
+    },
+    {
+      "path": "payload/Procure/assets/js/presence-client.js",
+      "bytes": 8074,
+      "sha256": "1ff5c62eb7ebe54f8a6f09d7838c67f38bbfbcc07f5313f95f4df4392275cb89",
+      "source": "D:/EIS-ERP/public/procure/assets/js/presence-client.js",
+      "sourceSha256": "1ff5c62eb7ebe54f8a6f09d7838c67f38bbfbcc07f5313f95f4df4392275cb89"
+    },
+    {
+      "path": "payload/Procure/assets/js/presence-image-viewer.js",
+      "bytes": 7008,
+      "sha256": "f58cbfa059a3fa07ae7032d0120f83c53140035ab2ae8b9db7f30bb5e48be3a1",
+      "source": "D:/EIS-ERP/public/procure/assets/js/presence-image-viewer.js",
+      "sourceSha256": "f58cbfa059a3fa07ae7032d0120f83c53140035ab2ae8b9db7f30bb5e48be3a1"
+    },
+    {
+      "path": "payload/Procure/conf/presence/AdminIdentity.php",
+      "bytes": 1948,
+      "sha256": "4e4a2be22354e7814b14e2b6d124344a439fbe9711f9bcbd3d77355d4da33a03",
+      "source": "D:/EIS-ERP/public/procure/conf/presence/AdminIdentity.php",
+      "sourceSha256": "4e4a2be22354e7814b14e2b6d124344a439fbe9711f9bcbd3d77355d4da33a03"
+    },
+    {
+      "path": "payload/Procure/conf/presence/Presence.php",
+      "bytes": 4262,
+      "sha256": "c101e99efe413894f5ad23f367df97c16d980482cdcd9790872ae89ddf9fd87c",
+      "source": "D:/EIS-ERP/public/procure/conf/presence/Presence.php",
+      "sourceSha256": "c101e99efe413894f5ad23f367df97c16d980482cdcd9790872ae89ddf9fd87c"
+    },
+    {
+      "path": "payload/Procure/index.php",
+      "bytes": 7484,
+      "sha256": "3fe6143afdbd00497f37d6198c59cd3fca0768a360aeea0585482ebcb2e4d32a",
+      "source": "D:/EIS-ERP/public/procure/index.php",
+      "sourceSha256": "3fe6143afdbd00497f37d6198c59cd3fca0768a360aeea0585482ebcb2e4d32a"
+    },
+    {
+      "path": "payload/Procure/js/show_nat.js",
+      "bytes": 186432,
+      "sha256": "09723042f21b7c0b4cf463670e817c18c9df2bdc711df7b95b26a4e670b863bf",
+      "source": "D:/EIS-ERP/public/procure/js/show_nat.js",
+      "sourceSha256": "09723042f21b7c0b4cf463670e817c18c9df2bdc711df7b95b26a4e670b863bf"
+    },
+    {
+      "path": "payload/Supplies/access/confirm-login.php",
+      "bytes": 8223,
+      "sha256": "ee238e037c09bae083d9d6b7881c5150e0a5a9db641d2c7bff28c5eaa4afaa2d",
+      "source": "D:/EIS-ERP/public/supplies/access/confirm-login.php",
+      "sourceSha256": "ee238e037c09bae083d9d6b7881c5150e0a5a9db641d2c7bff28c5eaa4afaa2d"
+    },
+    {
+      "path": "payload/Supplies/access/login_1.php",
+      "bytes": 5871,
+      "sha256": "04cad2722a3a71b72335da9d4ba0ff02a50d5ec6a96c34028a13dad48f7d8063",
+      "source": "D:/EIS-ERP/public/supplies/access/login_1.php",
+      "sourceSha256": "04cad2722a3a71b72335da9d4ba0ff02a50d5ec6a96c34028a13dad48f7d8063"
+    },
+    {
+      "path": "payload/Supplies/access/presence-token.php",
+      "bytes": 1254,
+      "sha256": "1dc0da1fd4781d9169d35967feff73437a98b88398eb707bc46d192d1999e36b",
+      "source": "D:/EIS-ERP/public/supplies/access/presence-token.php",
+      "sourceSha256": "1dc0da1fd4781d9169d35967feff73437a98b88398eb707bc46d192d1999e36b"
+    },
+    {
+      "path": "payload/Supplies/assets/css/presence-chat.css",
+      "bytes": 4979,
+      "sha256": "d57cbdd67f585ca152082fa5d390cdeaf67178478ff519a52f6e7c9b23c830fa",
+      "source": "D:/EIS-ERP/public/supplies/assets/css/presence-chat.css",
+      "sourceSha256": "d57cbdd67f585ca152082fa5d390cdeaf67178478ff519a52f6e7c9b23c830fa"
+    },
+    {
+      "path": "payload/Supplies/assets/js/login-approval.js",
+      "bytes": 3335,
+      "sha256": "c8edd483033dec8382542f435f26ca1e02a2ce5ec34d01d60966ac37dcf2e69d",
+      "source": "D:/EIS-ERP/public/supplies/assets/js/login-approval.js",
+      "sourceSha256": "c8edd483033dec8382542f435f26ca1e02a2ce5ec34d01d60966ac37dcf2e69d"
+    },
+    {
+      "path": "payload/Supplies/assets/js/presence-chat.js",
+      "bytes": 25418,
+      "sha256": "8571da3c4d0f79b36ff919bd46f286a66448b22b33e8ab74bf445d053c3331d2",
+      "source": "D:/EIS-ERP/public/supplies/assets/js/presence-chat.js",
+      "sourceSha256": "8571da3c4d0f79b36ff919bd46f286a66448b22b33e8ab74bf445d053c3331d2"
+    },
+    {
+      "path": "payload/Supplies/assets/js/presence-client.js",
+      "bytes": 8074,
+      "sha256": "1ff5c62eb7ebe54f8a6f09d7838c67f38bbfbcc07f5313f95f4df4392275cb89",
+      "source": "D:/EIS-ERP/public/supplies/assets/js/presence-client.js",
+      "sourceSha256": "1ff5c62eb7ebe54f8a6f09d7838c67f38bbfbcc07f5313f95f4df4392275cb89"
+    },
+    {
+      "path": "payload/Supplies/assets/js/presence-image-viewer.js",
+      "bytes": 7008,
+      "sha256": "f58cbfa059a3fa07ae7032d0120f83c53140035ab2ae8b9db7f30bb5e48be3a1",
+      "source": "D:/EIS-ERP/public/supplies/assets/js/presence-image-viewer.js",
+      "sourceSha256": "f58cbfa059a3fa07ae7032d0120f83c53140035ab2ae8b9db7f30bb5e48be3a1"
+    },
+    {
+      "path": "payload/Supplies/conf/presence/Presence.php",
+      "bytes": 5325,
+      "sha256": "ed9a079aef8b40afd27d59dafcaaca75311510974572e93b22dfeb33be0b62ce",
+      "source": "D:/EIS-ERP/public/supplies/conf/presence/Presence.php",
+      "sourceSha256": "ed9a079aef8b40afd27d59dafcaaca75311510974572e93b22dfeb33be0b62ce"
+    },
+    {
+      "path": "payload/Supplies/conf/presence/SingleLogin.php",
+      "bytes": 9339,
+      "sha256": "e5671139a29c7abac89e8ee3b9fe3dd93c5fe4233e499976a4e8cc99a3f7a1cc",
+      "source": "D:/EIS-ERP/public/supplies/conf/presence/SingleLogin.php",
+      "sourceSha256": "e5671139a29c7abac89e8ee3b9fe3dd93c5fe4233e499976a4e8cc99a3f7a1cc"
+    },
+    {
+      "path": "payload/Supplies/conf/presence/SuppliesLogin.php",
+      "bytes": 11434,
+      "sha256": "a156efec05901bad873702e4f9e5d93733ceb7563c65aae7053196048a4a7f88",
+      "source": "D:/EIS-ERP/public/supplies/conf/presence/SuppliesLogin.php",
+      "sourceSha256": "a156efec05901bad873702e4f9e5d93733ceb7563c65aae7053196048a4a7f88"
+    },
+    {
+      "path": "payload/Supplies/index.php",
+      "bytes": 11295,
+      "sha256": "e4f1e563c6b580e96d502298e5901f5430675032129f110741cc47a3a4c19006",
+      "source": "D:/EIS-ERP/public/supplies/index.php",
+      "sourceSha256": "e4f1e563c6b580e96d502298e5901f5430675032129f110741cc47a3a4c19006"
+    },
+    {
+      "path": "payload/Supplies/websocket.js",
+      "bytes": 13710,
+      "sha256": "2081518a784c9953a51710e9add50c95e9e58bd38e720b28c562142e43dad4f9",
+      "source": "D:/EIS-ERP/public/supplies/websocket.js",
+      "sourceSha256": "2081518a784c9953a51710e9add50c95e9e58bd38e720b28c562142e43dad4f9"
+    },
+    {
+      "path": "README-PRODUCTION.md",
+      "bytes": 6312,
+      "sha256": "ecbcb04e7fcfee014e3345c29133a5bb9d7c8fe68967de8c361380040b9894d2",
+      "generated": true
+    },
+    {
+      "path": "RUN-PRODUCTION.md",
+      "bytes": 3501,
+      "sha256": "cfdb3e50f1806d2d864010d8e28e0dd56c445d5bdaa9fbca0ec312205fc25b50",
+      "generated": true
+    },
+    {
+      "path": "VERIFY.ps1",
+      "bytes": 814,
+      "sha256": "1cc849f096c24acd95bc89d9ddd91701e55a2bca327b6e0c05c096734cbf3986",
+      "generated": true
+    }
+  ],
+  "operationsRevision": "20261013-run-1"
+}

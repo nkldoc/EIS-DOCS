@@ -1,0 +1,8 @@
+{"at":"2026-10-14T16:51:29+07:00","user":"1","action":"backup_start","connection":"local","database":"EIS_DOCS","file":"EIS-DOCS\/local-20261014-165129-265751ca03d5\/EIS-DOC-20261014-165126.bak"}
+{"at":"2026-10-14T16:52:29+07:00","user":"1","action":"backup_start","connection":"local","database":"EIS_DOCS","file":"EIS-DOCS\/local-20261014-165229-4bb30cf841c5\/EIS-DOC-20261014-165225.bak"}
+{"at":"2026-10-14T16:53:39+07:00","user":"1","action":"backup_start","connection":"local","database":"EIS_DOCS","file":"EIS-DOCS\/local-20261014-165339-f204a0924f99\/EIS-DOC-20261014-165339.bak"}
+{"at":"2026-10-14T16:53:57+07:00","user":"1","action":"backup_start","connection":"local","database":"EIS_DOCS","file":"BACK-EIS-DOCS\/local-20261014-165357-4f102a6e1de0\/EIS-DOC-20261014-165357.bak"}
+{"at":"2026-10-14T16:59:40+07:00","user":"1","action":"backup_start","connection":"local","database":"EIS_DOCS","file":"backup-EIS-DOCS\/local-20261014-165940-2966ce6b7f0b\/EIS-DOC-20261014-165940.bak"}
+{"at":"2026-10-14T16:59:41+07:00","user":"1","action":"backup_ready","connection":"local","database":"EIS_DOCS","file":"backup-EIS-DOCS\/local-20261014-165940-2966ce6b7f0b\/EIS-DOC-20261014-165940.zip","bytes":1361635}
+{"at":"2026-10-14T17:52:08+07:00","user":"1","action":"backup_start","connection":"local","database":"EIS_ERP","file":"backup-EIS-ERP\/local-20261014-175208-4c36b7d47c39\/EIS-ERP-20261014-175208.bak"}
+{"at":"2026-10-14T17:52:33+07:00","user":"1","action":"backup_ready","connection":"local","database":"EIS_ERP","file":"backup-EIS-ERP\/local-20261014-175208-4c36b7d47c39\/EIS-ERP-20261014-175208.zip","bytes":52380859}

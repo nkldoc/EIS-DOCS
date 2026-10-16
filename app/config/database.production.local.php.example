@@ -1,0 +1,7 @@
+<?php
+// Copy to database.production.local.php ON PRODUCTION and fill its SQL login.
+// DB_USER and DB_PASSWORD environment variables override these values.
+return [
+    'user' => '',
+    'password' => '',
+];

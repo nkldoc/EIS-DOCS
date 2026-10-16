@@ -1,0 +1,7 @@
+<!-- Insert inside system.webServer/rewrite/rules of the EIS-DOCS application,
+     BEFORE generic friendly URL/PHP rules. Production Node transport must be http.
+     This is a rule fragment, not a replacement web.config. -->
+<rule name="EIS-DOCS Supplies Presence" stopProcessing="true">
+  <match url="^presence$" ignoreCase="true" />
+  <action type="Rewrite" url="http://127.0.0.1:4003/presence" appendQueryString="false" />
+</rule>

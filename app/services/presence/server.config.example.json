@@ -1,0 +1,6 @@
+{
+  "directory": "D:/EIS-Presence/storage",
+  "transport": "http",
+  "port": 4003,
+  "origins": ["https://doc-eis.nmu.ac.th", "https://eis.nmu.ac.th"]
+}

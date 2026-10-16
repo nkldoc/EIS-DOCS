@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <system.webServer>
+    <webSocket enabled="true" />
+    <handlers>
+      <remove name="EIS-DOCS PHP FastCGI" />
+      <add name="EIS-DOCS PHP FastCGI" path="*.php" verb="GET,HEAD,POST" modules="FastCgiModule" scriptProcessor="C:\php\php-cgi.exe" resourceType="File" requireAccess="Script" />
+    </handlers>
+    <defaultDocument>
+      <files>
+        <clear />
+        <add value="index.php" />
+      </files>
+    </defaultDocument>
+    <rewrite>
+      <rules><remove name="EIS-DOCS clean login redirect" /><remove name="EIS-DOCS clean login rewrite" /><rule name="EIS-DOCS clean login redirect" stopProcessing="true"><match url="^login(?:\.php|/)$" ignoreCase="true" /><conditions logicalGrouping="MatchAll"><add input="{REQUEST_METHOD}" pattern="^(GET|HEAD)$" /><add input="{THE_REQUEST}" pattern="\s+/eis-docs/login(?:\.php|/)(?:[?\s])" ignoreCase="true" /></conditions><action type="Redirect" url="/eis-docs/login" redirectType="Found" appendQueryString="true" /></rule><rule name="EIS-DOCS clean login rewrite" stopProcessing="true"><match url="^login/?$" ignoreCase="true" /><action type="Rewrite" url="login.php" appendQueryString="true" /></rule>
+        <!-- Override only this application's inherited rules; retain server policies. -->
+        <remove name="Notification WebSocket" />
+        <remove name="Protect docMain static entry" />
+        <remove name="PDF Manager friendly route" />
+        <remove name="PDF Manager API route" />
+        <remove name="Java API reverse proxy" />
+        <remove name="Block hidden files" />
+        <rule name="Notification WebSocket" stopProcessing="true">
+          <match url="^ws(?:/(.*))?$" ignoreCase="true" />
+          <action type="Rewrite" url="http://127.0.0.1:8080/eis-docs/ws/{R:1}" appendQueryString="true" />
+        </rule>
+        <rule name="Protect docMain static entry" stopProcessing="true">
+          <match url="^docMain/index\.html$" ignoreCase="true" />
+          <action type="Redirect" url="docMain/" redirectType="Found" />
+        </rule>
+        <rule name="PDF Manager friendly route" stopProcessing="true">
+          <match url="^pdf(?:/(.*))?$" ignoreCase="true" />
+          <action type="Rewrite" url="http://127.0.0.1:8080/eis-docs/api/pdf/{R:1}" appendQueryString="true" />
+        </rule>
+        <rule name="PDF Manager API route" stopProcessing="true">
+          <match url="^api/pdf(?:/(.*))?$" ignoreCase="true" />
+          <action type="Rewrite" url="http://127.0.0.1:8080/eis-docs/api/pdf/{R:1}" appendQueryString="true" />
+        </rule>
+        <rule name="Java API reverse proxy" stopProcessing="true">
+          <match url="^api(?:/(.*))?$" />
+          <action type="Rewrite" url="http://127.0.0.1:8080/eis-docs/api/{R:1}" appendQueryString="true" />
+        </rule>
+        <rule name="Block hidden files" stopProcessing="true">
+          <match url="(^|/)\." />
+          <action type="CustomResponse" statusCode="404" />
+        </rule>
+      </rules>
+    </rewrite>
+    <httpProtocol>
+      <customHeaders>
+        <remove name="X-Content-Type-Options" />
+        <remove name="X-Frame-Options" />
+        <remove name="Referrer-Policy" />
+        <add name="X-Content-Type-Options" value="nosniff" />
+        <add name="X-Frame-Options" value="SAMEORIGIN" />
+        <add name="Referrer-Policy" value="strict-origin-when-cross-origin" />
+      </customHeaders>
+    </httpProtocol>
+  </system.webServer>
+</configuration>

@@ -1,0 +1,20 @@
+$loginScript = (string) ($_SERVER['SCRIPT_NAME'] ?? $_SERVER['PHP_SELF'] ?? $_SERVER['SCRIPT_FILENAME'] ?? '');
+$loginEntry = basename(str_replace('\\', '/', $loginScript));
+$isSuppliesLoginEntry = in_array($loginEntry, ['login.php','login_1.php','login_2.php','login_3.php','logout.php','confirm-login.php','impersonate.php'], true);
+// Login/confirmation must be able to recover a replaced session without
+// validating the displaced identity or clearing its pending confirmation.
+if (!$isSuppliesLoginEntry && (!SuppliesLogin::validate() || !empty($_SESSION['login_replaced']))) {
+    $requestPath = (string) parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+    $isMainPage = in_array($requestPath, ['/supplies', '/supplies/', '/supplies/index.php'], true);
+    if ($isMainPage && in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD'], true)) {
+        header('Cache-Control: no-store');
+        session_write_close();
+        header('Location: /NMU_permission/launch.php?system=supplies', true, 303);
+        exit;
+    }
+    {
+        http_response_code(401); header('Content-Type: application/json; charset=utf-8'); header('Cache-Control: no-store');
+        echo json_encode(['success'=>false, 'code'=>'SESSION_REPLACED', 'error'=>'เซสชันนี้ถูกแทนที่จากการเข้าสู่ระบบใหม่'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+}

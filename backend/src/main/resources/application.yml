@@ -1,0 +1,18 @@
+server:
+  port: ${JAVA_API_PORT:8080}
+
+spring:
+  application:
+    name: eis-docs-api
+  datasource:
+    url: jdbc:sqlserver://${DB_HOST:localhost}:${DB_PORT:1433};databaseName=${DB_EIS:NMU_EIS};encrypt=${DB_ENCRYPT:true};trustServerCertificate=${DB_TRUST_SERVER_CERTIFICATE:false}
+    username: ${DB_USER:}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+eis-docs:
+  websocket-secret: ${EIS_DOCS_WS_SECRET:}
+
+logging:
+  level:
+    root: INFO

@@ -1,0 +1,2904 @@
+<!doctype html>
+<html lang="th">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>จัดวางบล็อกผู้เกี่ยวข้องในเอกสารสำหรับ PDFBox</title>
+        <style>
+            @font-face{
+                font-family:"TH Sarabun";
+                src:url("../lib/tcpdf/fonts/THSarabun.ttf") format("truetype");
+                font-weight:400;
+                font-style:normal
+            }
+            @font-face{
+                font-family:"TH Sarabun";
+                src:url("../lib/tcpdf/fonts/THSarabun Bold.ttf") format("truetype");
+                font-weight:700;
+                font-style:normal
+            }
+            :root{
+                --ink:#1b2a41;
+                --paper:#fbf8f2;
+                --panel:#f1ece1;
+                --edge:#e1d9c6;
+                --gold:#a9824c;
+                --danger:#b23a2e
+            }
+            *{
+                box-sizing:border-box
+            }
+            body{
+                margin:0;
+                background:var(--panel);
+                color:#262019;
+                font-family:"Noto Sans Thai","Leelawadee UI",Tahoma,sans-serif
+            }
+            .app{
+                max-width:1100px;
+                margin:auto;
+                padding:16px
+            }
+            .header{
+                display:flex;
+                justify-content:space-between;
+                gap:20px;
+                align-items:center;
+                padding:18px 22px;
+                border-radius:12px;
+                background:var(--ink);
+                color:white
+            }
+            h1{
+                margin:0;
+                font-size:22px
+            }
+            .header p{
+                margin:4px 0 0;
+                color:#c7ceda;
+                font-size:13px
+            }
+            .toolbar{
+                display:flex;
+                gap:8px;
+                flex-wrap:wrap;
+                margin:14px 0
+            }
+            button,.upload{
+                border:1px solid var(--edge);
+                border-radius:8px;
+                padding:9px 13px;
+                background:var(--paper);
+                color:var(--ink);
+                font:600 13px inherit;
+                cursor:pointer
+            }
+            .primary{
+                background:var(--ink);
+                color:white
+            }
+            .danger{
+                color:var(--danger)
+            }
+            .upload input,.sig-upload input{
+                display:none
+            }
+            .workspace{
+                display:grid;
+                grid-template-columns:220px 1fr;
+                gap:16px;
+                align-items:start
+            }
+            .side{
+                padding:16px;
+                border:1px solid var(--edge);
+                border-radius:10px;
+                background:var(--paper)
+            }
+            .side h2{
+                margin:0 0 6px;
+                font-size:17px
+            }
+            .side ol{
+                margin:8px 0 14px;
+                padding-left:24px;
+                color:#4b5a70;
+                font-size:13px;
+                line-height:1.9
+            }
+            .side button{
+                width:100%;
+                background:var(--gold);
+                color:white
+            }
+            .side small{
+                display:block;
+                margin-top:10px;
+                color:#687386;
+                line-height:1.5
+            }
+            .participant-editor{
+                margin:14px 0;
+                padding-top:12px;
+                border-top:1px solid var(--edge)
+            }
+            .participant-editor h3{
+                margin:0 0 7px;
+                font-size:14px
+            }
+            .participant-editor label{
+                display:block;
+                margin:8px 0 4px;
+                color:#4b5a70;
+                font-size:12px;
+                font-weight:700
+            }
+            .participant-editor input,.participant-editor select{
+                width:100%;
+                padding:8px;
+                border:1px solid var(--edge);
+                border-radius:6px;
+                background:white;
+                font:13px inherit
+            }
+            .participant-editor button{
+                margin-top:6px
+            }
+            .document-type-panel #layoutDocumentType{
+                padding:9px 10px;
+                border:1px solid #cddcf2;
+                border-radius:7px;
+                background:#eef5ff;
+                color:#174ea6;
+                font-size:13px;
+                font-weight:700;
+                line-height:1.4
+            }
+            .template-actions{
+                display:flex;
+                gap:6px
+            }
+            .template-actions button{
+                width:auto;
+                flex:1
+            }
+            .template-select-row{
+                display:flex;
+                gap:6px;
+                align-items:center
+            }
+            .template-select-row select{
+                flex:1
+            }
+            .participant-list{
+                margin:7px 0 0;
+                padding-left:0;
+                color:#4b5a70;
+                font-size:12px;
+                list-style:none
+            }
+            .participant-item{
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:8px;
+                padding:6px 8px;
+                margin:0 0 5px;
+                border:1px solid #e7dfd0;
+                border-radius:6px;
+                background:#fff
+            }
+            .participant-item button{
+                flex:0 0 auto;
+                width:22px;
+                height:22px;
+                padding:0;
+                border:1px solid transparent;
+                border-radius:6px;
+                background:#f8eee9;
+                color:var(--danger);
+                font:700 12px/1 sans-serif
+            }
+            .participant-item button:hover{
+                border-color:#e8c8bd;
+                background:#f2ddd5
+            }
+            #participantResetBtn{
+                margin:6px 0
+            }
+            .participant-manual{
+                margin-top:8px
+            }
+            .participant-manual summary{
+                cursor:pointer;
+                font-size:12px;
+                color:#4b5a70;
+                margin-bottom:6px
+            }
+            .bookmark-item{
+                display:grid;
+                grid-template-columns:minmax(0,1fr) auto;
+                align-items:center;
+                gap:8px;
+                list-style:none;
+                margin:0 0 6px;
+                padding:8px 8px 8px 10px;
+                border:1px solid #e7dfd0;
+                border-left:3px solid var(--gold);
+                border-radius:8px;
+                background:#fff;
+                box-shadow:0 1px 3px #1b2a410d;
+                transition:border-color .15s,transform .15s,box-shadow .15s
+            }
+            .bookmark-item:hover{
+                border-color:#cdbb9c;
+                transform:translateY(-1px);
+                box-shadow:0 4px 10px #1b2a4114
+            }
+            .bookmark-link{
+                min-width:0;
+                overflow:hidden;
+                color:var(--ink);
+                font-size:12px;
+                font-weight:600;
+                text-overflow:ellipsis;
+                white-space:nowrap
+            }
+            .bookmark-item button{
+                flex:0 0 auto;
+                width:24px;
+                height:24px;
+                padding:0;
+                border:1px solid transparent;
+                border-radius:6px;
+                background:#f8eee9;
+                color:var(--danger);
+                font:700 14px/1 sans-serif
+            }
+            .bookmark-item button:hover{
+                border-color:#e8c8bd;
+                background:#f2ddd5
+            }
+            #bookmarkList{
+                padding-left:0;
+                margin:10px 0 0;
+                max-height:220px;
+                overflow:auto;
+                scrollbar-width:thin;
+                scrollbar-color:#cdbb9c transparent
+            }
+            .bookmark-panel{
+                padding:12px!important;
+                border:1px solid #dbc9aa!important;
+                border-radius:10px;
+                background:linear-gradient(180deg,#fffdf8 0%,#f8f2e8 100%)
+            }
+            .bookmark-heading{
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:8px;
+                margin-bottom:10px
+            }
+            .bookmark-heading h3{
+                display:flex;
+                align-items:center;
+                gap:6px;
+                margin:0
+            }
+            .bookmark-heading h3::before{
+                content:"🔖";
+                font-size:15px
+            }
+            .bookmark-count{
+                min-width:26px;
+                padding:2px 7px;
+                border-radius:999px;
+                background:var(--ink);
+                color:white;
+                text-align:center;
+                font:700 11px sans-serif
+            }
+            .bookmark-fields{
+                display:grid;
+                grid-template-columns:minmax(0,1fr) 62px;
+                gap:7px
+            }
+            .bookmark-field label{
+                margin-top:0!important
+            }
+            .bookmark-add{
+                width:100%!important;
+                margin-top:8px!important;
+                border-color:var(--gold)!important;
+                background:var(--gold)!important;
+                color:white!important
+            }
+            .bookmark-add:hover{
+                filter:brightness(.94)
+            }
+            .bookmark-clear{
+                width:100%!important;
+                margin-top:6px!important;
+                border-color:#f1b7ae!important;
+                background:#fff5f3!important;
+                color:#922b21!important;
+                font-weight:700
+            }
+            .bookmark-clear:hover{
+                background:#ffe5df!important;
+                border-color:#922b21!important
+            }
+            .bookmark-clear:focus-visible{
+                outline:2px solid #922b21;
+                outline-offset:2px
+            }
+            .bookmark-empty{
+                padding:14px 8px;
+                border:1px dashed #cfbea0;
+                border-radius:8px;
+                color:#7c6e59;
+                text-align:center;
+                font-size:12px;
+                line-height:1.5
+            }
+            .bookmark-help{
+                margin-top:8px!important;
+                padding-top:8px;
+                border-top:1px solid #e7dcc8
+            }
+            .role-checklist{
+                display:grid;
+                gap:4px;
+                max-height:210px;
+                overflow:auto;
+                padding:6px;
+                border:1px solid var(--edge);
+                border-radius:6px;
+                background:white
+            }
+            .role-option{
+                display:grid!important;
+                grid-template-columns:auto 1fr;
+                gap:6px;
+                align-items:start;
+                margin:0!important;
+                padding:4px;
+                color:var(--ink)!important;
+                font-size:12px!important;
+                font-weight:400!important
+            }
+            .role-option input{
+                width:auto!important;
+                margin-top:2px
+            }
+            .action-options{
+                display:grid;
+                grid-template-columns:repeat(3,1fr);
+                gap:5px
+            }
+            .action-options label{
+                display:flex;
+                align-items:center;
+                gap:4px;
+                margin:0;
+                color:var(--ink);
+                font-size:12px;
+                font-weight:400
+            }
+            .action-options input{
+                width:auto
+            }
+            .page-nav{
+                display:flex;
+                align-items:center;
+                gap:8px
+            }
+            .page-nav button:disabled{
+                opacity:.45;
+                cursor:not-allowed
+            }
+            .page-counter{
+                min-width:92px;
+                text-align:center;
+                font-size:13px;
+                font-weight:700;
+                color:var(--ink)
+            }
+            .stage{
+                padding:18px;
+                overflow:auto;
+                border:1px solid var(--edge);
+                border-radius:10px;
+                background:#d9d2c5
+            }
+            .page{
+                position:relative;
+                width:595px;
+                height:842px;
+                margin:auto;
+                overflow:hidden;
+                background:white;
+                box-shadow:0 8px 26px #1b2a4128;
+                touch-action:none
+            }
+            .page::before{
+                content:"";
+                position:absolute;
+                inset:0;
+                background-image:radial-gradient(#ddd6c9 1px,transparent 1px);
+                background-size:29.75px 28.07px;
+                pointer-events:none
+            }
+            .page-label{
+                position:absolute;
+                right:8px;
+                bottom:5px;
+                color:#8a8175;
+                font-size:10px
+            }
+            .pdf-canvas{
+                position:absolute;
+                inset:0;
+                width:100%;
+                height:100%
+            }
+            .block{
+                position:absolute;
+                left:170px;
+                top:145px;
+                width:220px;
+                height:190px;
+                padding:5px 7px;
+                border:1.5px dashed var(--gold);
+                border-radius:5px;
+                background:#fffffff0;
+                display:flex;
+                flex-direction:column;
+                gap:0;
+                cursor:grab;
+                user-select:none;
+                box-shadow:0 2px 8px #1b2a411c
+            }
+            .block.selected{
+                border-style:solid;
+                border-color:var(--danger)
+            }
+            .review-only-name{
+                flex:1;
+                display:grid;
+                place-items:center;
+                padding:8px;
+                color:var(--ink);
+                text-align:center;
+                font-size:var(--block-font-size,16px);
+                font-weight:700;
+                line-height:1.35
+            }
+            .block input{
+                width:100%;
+                height:17px;
+                padding:0;
+                border:0;
+                border-bottom:0;
+                outline:0;
+                background:transparent;
+                color:var(--ink);
+                text-align:center;
+                font-family:"TH Sarabun",sans-serif;
+                font-size:var(--block-font-size,16px);
+                line-height:.8;
+                user-select:text
+            }
+            .block .approval{
+                border-bottom:0;
+                font-weight:700
+            }
+            .text-row{
+                display:flex;
+                align-items:center;
+                gap:1px;
+                min-height:17px;
+                height:17px
+            }
+            .text-row input{
+                min-width:0;
+                flex:1
+            }
+            .delete-row{
+                flex:0 0 15px;
+                width:15px;
+                height:15px;
+                padding:0;
+                border:0;
+                border-radius:50%;
+                background:#eee7dc;
+                color:var(--danger);
+                font:700 10px sans-serif;
+                line-height:15px
+            }
+            .sig-row{
+                display:flex;
+                align-items:flex-end;
+                min-height:42px;
+                height:42px;
+                gap:1px;
+                border-bottom:0
+            }
+            .sig-row .sign-prefix{
+                flex:0 1 42px;
+                border:0
+            }
+            .sig-row .committee-input{
+                flex:0 1 86px;
+                border:0
+            }
+            .sig-row .sig-upload{
+                min-width:45px;
+                align-self:stretch;
+                flex:1
+            }
+            .sig-upload{
+                display:grid;
+                place-items:end center;
+                overflow:hidden;
+                border:0;
+                border-radius:0;
+                color:#8a8175;
+                font:16px "TH Sarabun",sans-serif;
+                cursor:pointer
+            }
+            .sig-upload img{
+                width:100%;
+                height:100%;
+                object-fit:contain
+            }
+            .block-tools{
+                position:absolute;
+                left:4px;
+                top:-28px;
+                display:flex;
+                align-items:center;
+                gap:4px;
+                padding:2px 5px;
+                border:1px solid var(--edge);
+                border-radius:5px;
+                background:var(--paper);
+                font-size:11px
+            }
+            .block-tools input{
+                width:42px!important;
+                border:1px solid var(--edge)!important;
+                border-radius:3px;
+                font:12px sans-serif!important
+            }
+            .block-tools button{
+                padding:2px 5px;
+                font-size:10px
+            }
+            .remove{
+                position:absolute;
+                right:-9px;
+                top:-9px;
+                width:22px;
+                height:22px;
+                padding:0;
+                border:0;
+                border-radius:50%;
+                background:var(--danger);
+                color:white
+            }
+            .resize{
+                position:absolute;
+                right:-6px;
+                bottom:-6px;
+                width:14px;
+                height:14px;
+                border:2px solid white;
+                border-radius:50%;
+                background:var(--danger);
+                cursor:nwse-resize
+            }
+            .coords{
+                margin-top:9px;
+                text-align:center;
+                color:#4b5a70;
+                font-size:11px;
+                font-variant-numeric:tabular-nums
+            }
+            .preview .page::before,.preview .remove,.preview .resize,.preview .block-tools,.preview .delete-row{
+                display:none
+            }
+            .preview .block{
+                border-color:transparent;
+                box-shadow:none
+            }
+            .preview .block.review-only{
+                display:none
+            }
+            dialog{
+                width:min(680px,90vw);
+                border:0;
+                border-radius:10px;
+                padding:18px;
+                box-shadow:0 20px 60px #0004
+            }
+            dialog textarea{
+                width:100%;
+                height:360px;
+                padding:10px;
+                font:12px Consolas,monospace
+            }
+            dialog .actions{
+                text-align:right;
+                margin-top:8px
+            }
+            @media(max-width:850px){
+                .header{
+                    align-items:flex-start;
+                    flex-direction:column
+                }
+                .workspace{
+                    grid-template-columns:1fr
+                }
+                .page{
+                    transform-origin:top left
+                }
+                .stage{
+                    min-height:620px
+                }
+            }
+            [hidden]{display:none!important}
+        </style>
+        <link rel="stylesheet" href="layout-theme.css?v=20261009-auto-height">
+    <script src="reload-sync.js?v=20261008-1"></script>
+</head>
+    <body>
+        <main class="app" id="app">
+            <nav class="toolbar">
+                <label class="upload primary">อัปโหลด PDF ก่อนวาง<input id="pdfInput" type="file" accept="application/pdf"></label>
+                <button class="primary" id="exportBtn" hidden>ส่งออก JSON สำหรับ PDFBox</button>
+                <label class="upload">📥 นำเข้า JSON Template<input id="jsonInput" type="file" accept="application/json,.json" aria-label="นำเข้า JSON Template"></label>
+                <input id="docIdInput" type="text" hidden placeholder="Document ID / Path บนเซิร์ฟเวอร์" style="padding:9px 10px;border:1px solid var(--edge);border-radius:8px;font:13px inherit;min-width:200px">
+                <button class="primary" id="generatePdfBtn" hidden>🖨 สร้าง PDF ด้วยข้อมูลที่บันทึกไว้ (ยืนยันแก้ไข)</button>
+                <button id="previewBtn">ดูตัวอย่างจริง</button>
+                <button class="danger" id="clearBtn">ล้างทั้งหมด</button>
+                <div class="pdf-zoom-controls" role="group" aria-label="ขนาดแสดง PDF"><button type="button" id="pdfZoomOut" aria-label="ย่อ PDF">−</button><span id="pdfZoomValue" aria-live="polite">100%</span><button type="button" id="pdfZoomIn" aria-label="ขยาย PDF">+</button><button type="button" id="pdfFitPage">พอดีทั้งหน้า</button><button type="button" id="pdfFitWidth">พอดีความกว้าง</button></div>
+                <div class="page-nav"><button id="prevPageBtn" disabled>◀ หน้าก่อน</button><form class="page-counter page-jump" id="pageJumpForm"><label for="pageJumpInput">หน้า</label><input id="pageJumpInput" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="go" autocomplete="off" value="0" disabled aria-label="เลขหน้า PDF"><span id="pageCounter">/ 0</span><button type="submit" id="pageJumpBtn" disabled>ไป</button></form><button id="nextPageBtn" disabled>หน้าถัดไป ▶</button></div>
+            </nav>
+            <div id="uploadResult" style="display:none;margin:0 0 14px;padding:12px 14px;border:1px solid var(--edge);border-radius:8px;background:var(--panel);font-size:13px;line-height:1.7"></div>
+            <section class="workspace">
+                <aside class="side">
+                    <div class="participant-editor bookmark-panel"><div class="bookmark-heading"><h3>จุดคั่นหน้า</h3><span class="bookmark-count" id="bookmarkCount">0</span></div><div class="bookmark-fields"><div class="bookmark-field"><label for="bookmarkName">ชื่อ Bookmark</label><input id="bookmarkName" type="text" placeholder="เช่น หน้าลงนามคณบดี"></div><div class="bookmark-field"><label for="bookmarkPage">หน้า</label><input id="bookmarkPage" type="number" min="1" value="1"></div></div><button class="bookmark-add" id="bookmarkAddBtn" type="button">+ เพิ่ม Bookmark</button><button class="bookmark-clear danger" id="bookmarkClearBtn" type="button">ล้าง Bookmark ทั้งหมด</button><button class="bookmark-add" id="bookmarkUpdateBtn" type="button" disabled>อัปเดต Bookmark</button><small id="bookmarkOrderStatus" role="status" aria-live="polite"></small><ol id="bookmarkList"></ol><small class="bookmark-help">Bookmark จาก PDF จะโหลดอัตโนมัติ คลิกชื่อเพื่อไปยังหน้า หรือลบรายการที่ไม่ต้องการได้</small></div>
+                    <!-- <h2>บล็อกผู้เกี่ยวข้อง</h2><ol><li>เลือก WF</li><li>ติ๊กบทบาทที่เกี่ยวข้องในเอกสารชุดนี้</li><li>เลือกบทบาทและคนที่ทำหน้าที่ให้แต่ละบล็อก</li><li>กำหนด action ตรวจสอบ/ลงนาม/อนุมัติ</li></ol>-->
+                    <div class="participant-editor" hidden><h3>โหลดกลุ่มผู้ลงนาม</h3><small>ค้นหาและโหลดสมาชิกจาก EIS_DOCS ตามลำดับเส้นทาง WF ที่กำหนดไว้</small><label for="wfGroupSearch">ค้นหาชื่อกลุ่ม</label><input id="wfGroupSearch" type="search" placeholder="พิมพ์ชื่อกลุ่มผู้ลงนาม" autocomplete="off"><label for="wfGroupSelect">กลุ่มผู้ลงนาม</label><select id="wfGroupSelect" disabled><option value="">— กำลังโหลด —</option></select><button id="wfGroupLoadBtn" type="button" disabled>↻ โหลดกลุ่มมาแสดง</button><small id="wfGroupInfo">กำลังอ่านกลุ่มผู้ลงนาม...</small><ol class="participant-list" id="participantList"></ol></div><div class="participant-editor" hidden><h3>บทบาทที่เกี่ยวข้องในเอกสารชุดนี้</h3><div class="role-checklist" id="documentRoleList"></div><small>ระบบจะ run ตามลำดับ 1-8 ตามรายการที่ติ๊กไว้</small></div>
+
+                    <div class="participant-editor document-type-panel" hidden><h3>ชนิดเอกสาร (Document Type)</h3><div id="layoutDocumentType">ยังไม่ได้เลือกชนิดเอกสาร</div></div><div class="participant-editor"><h3>Template ผัง (บันทึกไว้ใช้ซ้ำ)</h3><label for="templateName">ชื่อ Template</label><input id="templateName" type="text" placeholder="เช่น สัญญา - คณะ ABC"><button id="templateSaveBtn" type="button">💾 บันทึกเป็น Template</button><label for="templateSelect">Template ที่บันทึกไว้</label><div class="template-select-row"><select id="templateSelect"><option value="">— เลือก Template —</option></select></div><div class="template-actions"><button id="templateLoadBtn" type="button">📂 โหลด</button><button id="templateDeleteBtn" type="button" class="danger">🗑 ลบ</button></div><small id="templateInfo">Template เก็บ WF/role/ผู้เกี่ยวข้อง/bookmark/ตำแหน่งบล็อกทั้งหมดไว้ใน browser นี้ (localStorage) เพื่อโหลดมาใช้กับเอกสารชุดใหม่ได้อีก</small></div><div class="participant-editor" hidden><h3>ค่าเริ่มต้นตอนเพิ่มบล็อก</h3><label for="defaultWorkflowSelect">WF</label><select id="defaultWorkflowSelect"></select><label for="defaultRoleSelect">บทบาท (role)</label><select id="defaultRoleSelect"></select><label for="defaultAssigneeSelect">คนที่ทำหน้าที่</label><select id="defaultAssigneeSelect"></select></div><div class="participant-editor" hidden>       <button id="addBtn" disabled>+ เพิ่มบล็อกผู้เกี่ยวข้อง</button><small>ข้อมูล WF และ role จะถูกเก็บใน JSON โดยไม่แสดงบนหน้าจอ</small><h3>แก้บล็อกที่เลือก</h3><label for="selectedWorkflowSelect" hidden>WF</label><select id="selectedWorkflowSelect" disabled hidden></select><label for="selectedRoleSelect" hidden>บทบาท (role)</label><select id="selectedRoleSelect" disabled hidden></select><label for="selectedAssigneeSelect">คนที่ทำหน้าที่</label><select id="selectedAssigneeSelect" disabled></select><label>Action</label><div class="action-options"><label><input id="actionReview" type="checkbox" disabled>ตรวจสอบ</label><label><input id="actionSign" type="checkbox" disabled>ลงนาม</label><label><input id="actionApprove" type="checkbox" disabled>อนุมัติ</label></div><small id="selectedBlockInfo">ยังไม่ได้เลือกบล็อก</small></div><div class="participant-editor"><h3>คัดลอกกลุ่มบล็อกไปหลายหน้า</h3><label for="groupSourcePage">หน้าเทมเพลตกลุ่ม (เช่น กลุ่ม A)</label><input id="groupSourcePage" type="number" min="1" placeholder="ค่าเริ่มต้น = หน้าปัจจุบัน"><label for="groupTargetPages">หน้าที่ต้องการวาง</label><input id="groupTargetPages" type="text" placeholder="เช่น 5-7,11"><button id="groupCopyBtn" type="button">📋 คัดลอกกลุ่มไปยังหน้าที่ระบุ</button>
+                        <small id="groupCopyInfo">พิมพ์ช่วงหน้าคั่นด้วยจุลภาค เช่น "5-7,11" = หน้า 5,6,7 และ 11 — ระบบจะคัดลอกทุกบล็อกจากหน้าเทมเพลตไปวางตำแหน่งเดียวกันในแต่ละหน้าที่ระบุ</small></div>
+                </aside>
+                <div class="stage"><div class="page" id="page"><canvas class="pdf-canvas" id="pdfCanvas"></canvas><span class="page-label" id="pageLabel">ยังไม่ได้อัปโหลด PDF</span></div><div class="coords" id="coords">กรุณาอัปโหลด PDF ก่อนเริ่มวางบล็อก</div></div>
+            </section>
+        </main>
+        <dialog id="jsonDialog"><h2>JSON สำหรับ Java / PDFBox</h2><textarea id="jsonOutput" readonly></textarea><div class="actions"><button id="downloadBtn">ดาวน์โหลด JSON</button> <button id="closeBtn">ปิด</button></div></dialog>
+        <script src="../js/pdf.min.js"></script>
+        <script>
+            (() => {
+                const page = document.getElementById('page');
+                const stage = page.closest('.stage');
+                let pdfZoomMode = 'page';
+                let manualPdfZoom = 1;
+                function fitPdfToStage() {
+                    const style = getComputedStyle(stage);
+                    const appStyle = getComputedStyle(document.getElementById('app'));
+                    const bottomPadding = parseFloat(appStyle.paddingBottom) || 0;
+                    const availableHeight = window.innerHeight - stage.getBoundingClientRect().top - bottomPadding;
+                    stage.style.height = `${Math.max(240, availableHeight)}px`;
+                    if (window.innerWidth > 850) {
+                        const side = document.querySelector('.side');
+                        side.style.maxHeight = stage.style.height;
+                        side.style.overflowY = 'auto';
+                    } else {
+                        const side = document.querySelector('.side');
+                        side.style.maxHeight = '';
+                        side.style.overflowY = '';
+                    }
+                    const available = stage.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+                    const width = parseFloat(page.style.width) || page.clientWidth;
+                    const height = parseFloat(page.style.height) || page.clientHeight;
+                    const vertical = stage.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom) - 8;
+                    if (available > 0 && width > 0 && height > 0) {
+                        const fitWidth = available / width;
+                        const zoom = pdfZoomMode === 'manual' ? manualPdfZoom : pdfZoomMode === 'width' ? fitWidth : Math.min(fitWidth, vertical / height);
+                        page.style.zoom = String(Math.max(.1, zoom));
+                        document.getElementById('pdfZoomValue').textContent = `${Math.round(Number(page.style.zoom) * 100)}%`;
+                        document.getElementById('pdfFitPage').setAttribute('aria-pressed', String(pdfZoomMode === 'page'));
+                        document.getElementById('pdfFitWidth').setAttribute('aria-pressed', String(pdfZoomMode === 'width'));
+                    }
+                }
+                function displayScale() {
+                    return page.getBoundingClientRect().width / page.clientWidth || 1;
+                }
+                const fitObserver = new ResizeObserver(fitPdfToStage);
+                fitObserver.observe(stage);
+                fitObserver.observe(page);
+                window.addEventListener('resize', fitPdfToStage);
+                function changePdfZoom(delta) {
+                    manualPdfZoom = Math.max(.1, Math.min(4, Number(page.style.zoom || 1) + delta));
+                    pdfZoomMode = 'manual'; fitPdfToStage();
+                }
+                document.getElementById('pdfZoomOut').onclick = () => changePdfZoom(-.1);
+                document.getElementById('pdfZoomIn').onclick = () => changePdfZoom(.1);
+                document.getElementById('pdfFitPage').onclick = () => {pdfZoomMode = 'page'; fitPdfToStage(); stage.scrollTop = 0; stage.scrollLeft = 0;};
+                document.getElementById('pdfFitWidth').onclick = () => {pdfZoomMode = 'width'; fitPdfToStage(); stage.scrollLeft = 0;};
+                const coords = document.getElementById('coords');
+                const dialog = document.getElementById('jsonDialog');
+                const output = document.getElementById('jsonOutput');
+                const pdfCanvas = document.getElementById('pdfCanvas');
+                const pageLabel = document.getElementById('pageLabel');
+                const addButton = document.getElementById('addBtn');
+                const documentRoleList = document.getElementById('documentRoleList');
+                const defaultWorkflowSelect = document.getElementById('defaultWorkflowSelect');
+                const defaultRoleSelect = document.getElementById('defaultRoleSelect');
+                const defaultAssigneeSelect = document.getElementById('defaultAssigneeSelect');
+                const wfGroupSearch = document.getElementById('wfGroupSearch');
+                const wfGroupSelect = document.getElementById('wfGroupSelect');
+                const wfGroupLoadBtn = document.getElementById('wfGroupLoadBtn');
+                const wfGroupInfo = document.getElementById('wfGroupInfo');
+                const selectedWorkflowSelect = document.getElementById('selectedWorkflowSelect');
+                const selectedRoleSelect = document.getElementById('selectedRoleSelect');
+                const selectedAssigneeSelect = document.getElementById('selectedAssigneeSelect');
+                const actionReview = document.getElementById('actionReview');
+                const actionSign = document.getElementById('actionSign');
+                const actionApprove = document.getElementById('actionApprove');
+                const selectedBlockInfo = document.getElementById('selectedBlockInfo');
+                const blockEditorPanel = selectedBlockInfo.closest('.participant-editor');
+                blockEditorPanel.hidden = false;
+                const blockTextEditor = document.createElement('div');
+                blockTextEditor.id = 'blockTextEditor';
+                blockEditorPanel.appendChild(blockTextEditor);
+                const bookmarkName = document.getElementById('bookmarkName');
+                const bookmarkPage = document.getElementById('bookmarkPage');
+                const bookmarkAddBtn = document.getElementById('bookmarkAddBtn');
+                const bookmarkList = document.getElementById('bookmarkList');
+                const bookmarkCount = document.getElementById('bookmarkCount');
+                const templateName = document.getElementById('templateName');
+                const templateSelect = document.getElementById('templateSelect');
+                const templateSaveBtn = document.getElementById('templateSaveBtn');
+                const templateLoadBtn = document.getElementById('templateLoadBtn');
+                const templateDeleteBtn = document.getElementById('templateDeleteBtn');
+                const templateInfo = document.getElementById('templateInfo');
+                const TEMPLATE_STORAGE_KEY = 'pdfbox-layout-templates';
+                const docIdInput = document.getElementById('docIdInput');
+                const generatePdfBtn = document.getElementById('generatePdfBtn');
+                const GENERATE_PDF_ENDPOINT = '../api/pdf/generate';
+                const fields = [];
+                const participants = [];
+                let wfGroupSearchTimer = null;
+                let loadedWfGroupName = '';
+                const STATIC_PARTICIPANTS = [
+                    {user_id: '00001', name: 'สมชาย ใจดี'}, // เจ้าหน้าที่
+                    {user_id: '00002', name: 'สมหญิง รักงาน'}, // หัวหน้าซื้อจ้าง
+                    {user_id: '00003', name: 'วิภา ศรีสุข'}, // เลขาผู้ช่วยหัวหน้าพัสดุ
+                    {user_id: '00004', name: 'ประยุทธ มั่นคง'}, // หัวหน้าพัสดุ
+                    {user_id: '00005', name: 'อรุณี พงษ์ไพร'}, // เลขาผู้ช่วยรองคณบดี
+                    {user_id: '00006', name: 'สุรชัย เกียรติยศ'}, // รองคณบดี
+                    {user_id: '00007', name: 'ปิยะดา ทองอินทร์'}, // เลขาผู้ช่วยคณบดี
+                    {user_id: '00008', name: 'ธีรพงศ์ วิทยากุล'}      // คณบดี
+                ];
+                const bookmarks = [];
+                let bookmarkSequence = 1;
+                const workflows = [
+                    {id: 'CONTRACT', name: 'สัญญา'},
+                    {id: 'PROCUREMENT_DOCUMENT', name: 'เอกสารซื้อจ้าง'},
+                    {id: 'PHARMA_PROSTHESIS_DOCUMENT', name: 'เอกสารเภสัชและอวัยวเทียม'},
+                    {id: 'ASSET_DOCUMENT', name: 'ทรัพย์สิน'}
+                ];
+                const roles = [
+                    {id: 'PROCUREMENT_OFFICER', order: 1, name: 'เจ้าหน้าที่'},
+                    {id: 'PROCUREMENT_LINE_HEAD', order: 2, name: 'หัวหน้าซื้อจ้าง'},
+                    {id: 'ASSISTANT_PROCUREMENT_HEAD_SECRETARY', order: 3, name: 'เลขาผู้ช่วยหัวหน้าพัสดุ'},
+                    {id: 'PROCUREMENT_HEAD', order: 4, name: 'หัวหน้าพัสดุ'},
+                    {id: 'ASSISTANT_DEPUTY_DEAN_SECRETARY', order: 5, name: 'เลขาผู้ช่วยรองคณบดี'},
+                    {id: 'DEPUTY_DEAN', order: 6, name: 'รองคณบดี'},
+                    {id: 'ASSISTANT_DEAN_SECRETARY', order: 7, name: 'เลขาผู้ช่วยคณบดี'},
+                    {id: 'DEAN', order: 8, name: 'คณบดี'}
+                ];
+                const documentRoleIds = new Set(roles.map(role => role.id));
+                let sequence = 1;
+                let pageWidth = 595;
+                let pageHeight = 842;
+                let pdfFileName = null;
+                let selectedPdfFile = null;
+                let documentPdf = null;
+                let currentPage = 1;
+                let totalPages = 0;
+                let selectedFieldId = null;
+                let renderRequestId = 0;
+                let activeRenderTask = null;
+                const pageSizes = {};
+                const pdfJsReady = typeof window.pdfjsLib !== 'undefined';
+                if (pdfJsReady)
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = '../js/pdf.worker.min.js';
+
+                const thaiDate = () => new Intl.DateTimeFormat('th-TH', {dateStyle: 'long'}).format(new Date());
+                let signDatePolicy = {mode:'none', fixed:''};
+                function applySignDatePolicy() {
+                    if (window.parent !== window && typeof window.parent.getDocumentSignDatePolicy === 'function')
+                        signDatePolicy = window.parent.getDocumentSignDatePolicy();
+                    fields.forEach(field => {
+                        field.signDateMode = signDatePolicy.mode;
+                        field.signDateFixed = signDatePolicy.fixed;
+                        field.hiddenRows = (field.hiddenRows || []).filter(key => key !== 'signedDate');
+                        if (signDatePolicy.mode === 'none') {
+                            field.hiddenRows.push('signedDate');
+                            field.signedDate = '';
+                        } else if ((signDatePolicy.mode === 'fixed' || signDatePolicy.mode === 'capped') && signDatePolicy.fixed) {
+                            const fixed = new Date(`${signDatePolicy.fixed}T00:00:00`);
+                            const now = new Date(); now.setHours(0,0,0,0);
+                            const date = signDatePolicy.mode === 'capped' && now < fixed ? now : fixed;
+                            field.signedDate = Number.isNaN(date.getTime()) ? '' : new Intl.DateTimeFormat('th-TH', {dateStyle:'long'}).format(date);
+                        } else {
+                            field.signedDate = thaiDate();
+                        }
+                    });
+                }
+                const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+                const normalizedRoleId = roleId => {
+                    if (roleId === 'FINANCE_LINE_HEAD' || roleId === 'LINE_HEAD')
+                        return 'PROCUREMENT_LINE_HEAD';
+                    if (roleId === 'ASSISTANT_PROCUREMENT_HEAD')
+                        return 'ASSISTANT_PROCUREMENT_HEAD_SECRETARY';
+                    if (roleId === 'ASSISTANT_DEPUTY_DEAN')
+                        return 'ASSISTANT_DEPUTY_DEAN_SECRETARY';
+                    if (roleId === 'ASSISTANT_DEAN')
+                        return 'ASSISTANT_DEAN_SECRETARY';
+                    return roleId;
+                };
+                const normalizedRoleName = roleName => {
+                    if (roleName === 'หัวหน้าสายเงิน' || roleName === 'หัวหน้าสายงาน')
+                        return 'หัวหน้าซื้อจ้าง';
+                    if (roleName === 'ผู้จัดทำ(เจ้าหน้าที่พัสดุ)')
+                        return 'เจ้าหน้าที่';
+                    if (roleName === 'ผู้ช่วยหัวหน้าพัสดุ')
+                        return 'เลขาผู้ช่วยหัวหน้าพัสดุ';
+                    if (roleName === 'ผู้ช่วยรองคณบดี')
+                        return 'เลขาผู้ช่วยรองคณบดี';
+                    if (roleName === 'ผู้ช่วยคณบดี')
+                        return 'เลขาผู้ช่วยคณบดี';
+                    return roleName;
+                };
+                const actionEnabled = value => value !== false && value !== 'false';
+                const participantOptionLabel = person => `WF ${person.wfOrder || '-'} · ${person.name}`;
+
+                async function renderPdfToCanvas(pdfPage, viewport, ratio, requestId) {
+                    if (activeRenderTask) {
+                        const previousTask = activeRenderTask;
+                        previousTask.cancel();
+                        try {
+                            await previousTask.promise;
+                        } catch (error) {
+                            if (!error || error.name !== 'RenderingCancelledException')
+                                throw error;
+                        }
+                    }
+                    if (requestId !== renderRequestId)
+                        return false;
+                    const task = pdfPage.render({canvasContext: pdfCanvas.getContext('2d'), viewport, transform: ratio === 1 ? null : [ratio, 0, 0, ratio, 0, 0]});
+                    activeRenderTask = task;
+                    try {
+                        await task.promise;
+                        return true;
+                    } catch (error) {
+                        if (error && error.name === 'RenderingCancelledException')
+                            return false;
+                        throw error;
+                    } finally {
+                        if (activeRenderTask === task)
+                            activeRenderTask = null;
+                    }
+                }
+
+                function activeRoles() {
+                    return roles.filter(role => documentRoleIds.has(role.id)).sort((a, b) => a.order - b.order);
+                }
+
+                function renderDocumentRoleList() {
+                    documentRoleList.innerHTML = roles.map(role => `
+              <label class="role-option">
+                <input type="checkbox" value="${role.id}" ${documentRoleIds.has(role.id) ? 'checked' : ''}>
+                <span>${role.order}. ${role.name}</span>
+              </label>
+            `).join('');
+                    documentRoleList.querySelectorAll('input[type="checkbox"]').forEach(input => {
+                        input.addEventListener('change', () => {
+                            if (input.checked)
+                                documentRoleIds.add(input.value);
+                            else
+                                documentRoleIds.delete(input.value);
+                            if (documentRoleIds.size === 0) {
+                                documentRoleIds.add(input.value);
+                                input.checked = true;
+                            }
+                            const activeIds = new Set(activeRoles().map(role => role.id));
+                            fields.forEach(field => {
+                                if (!activeIds.has(field.roleId)) {
+                                    const fallback = activeRoles()[0];
+                                    field.roleId = fallback.id;
+                                    field.roleName = fallback.name;
+                                    applyRoleDefaults(field, fallback);
+                                }
+                            });
+                            renderDefaultSelectors();
+                            render();
+                        });
+                    });
+                }
+
+                function renderDefaultSelectors() {
+                    const availableRoles = activeRoles();
+                    const selectedWorkflowId = defaultWorkflowSelect.value || 'CONTRACT';
+                    const selectedRoleId = defaultRoleSelect.value || availableRoles[0].id;
+                    const selectedAssigneeId = defaultAssigneeSelect.value || '';
+                    defaultWorkflowSelect.innerHTML = workflows.map(workflow => `<option value="${workflow.id}">${workflow.name}</option>`).join('');
+                    defaultWorkflowSelect.value = workflows.some(workflow => workflow.id === selectedWorkflowId) ? selectedWorkflowId : 'CONTRACT';
+                    defaultRoleSelect.innerHTML = availableRoles.map(role => `<option value="${role.id}">${role.order}. ${role.name}</option>`).join('');
+                    defaultRoleSelect.value = availableRoles.some(role => role.id === selectedRoleId) ? selectedRoleId : availableRoles[0].id;
+                    defaultAssigneeSelect.innerHTML = '<option value="">ยังไม่เลือกคนที่ทำหน้าที่</option>'
+                       + (participants.length ? '<option value="__ALL__">✓ เลือกทั้งหมด</option>' : '')
+                       + participants.map(person => `<option value="${person.id}">${participantOptionLabel(person)}</option>`).join('');
+                    defaultAssigneeSelect.value = selectedAssigneeId === '__ALL__' || participants.some(person => person.id === selectedAssigneeId) ? selectedAssigneeId : '';
+                    renderSelectedBlockEditor();
+                }
+
+                function selectedField() {
+                    return fields.find(field => field.id === selectedFieldId) || null;
+                }
+
+                function renderSelectedBlockEditor() {
+                    const field = selectedField();
+                    renderBlockTextEditor(field);
+                    const availableRoles = activeRoles();
+                    selectedWorkflowSelect.innerHTML = workflows.map(workflow => `<option value="${workflow.id}">${workflow.name}</option>`).join('');
+                    selectedRoleSelect.innerHTML = availableRoles.map(role => `<option value="${role.id}">${role.order}. ${role.name}</option>`).join('');
+                    selectedAssigneeSelect.innerHTML = '<option value="">ยังไม่เลือกคนที่ทำหน้าที่</option>'
+                       + (participants.length ? '<option value="__ALL__">✓ เลือกทั้งหมด</option>' : '')
+                       + participants.map(person => `<option value="${person.id}">${participantOptionLabel(person)}</option>`).join('');
+                    selectedWorkflowSelect.disabled = !field;
+                    selectedRoleSelect.disabled = !field;
+                    selectedAssigneeSelect.disabled = participants.length === 0;
+                    if (!field) {
+                        selectedBlockInfo.textContent = 'ยังไม่ได้เลือกบล็อก';
+                        actionReview.disabled = true;
+                        actionSign.disabled = true;
+                        actionApprove.disabled = true;
+                        return;
+                    }
+                    selectedWorkflowSelect.value = field.workflowId || 'CONTRACT';
+                    selectedRoleSelect.value = field.roleId || '';
+                    selectedAssigneeSelect.value = field.assigneeId || '';
+                    actionReview.disabled = false;
+                    actionSign.disabled = false;
+                    actionApprove.disabled = false;
+                    actionReview.checked = field.reviewAction !== false;
+                    actionSign.checked = field.signAction !== false;
+                    actionApprove.checked = field.approveAction !== false;
+                    selectedBlockInfo.textContent = `${field.id}${field.assigneeName ? ' · ' + field.assigneeName : ''}`;
+                }
+
+                function renderBlockTextEditor(field) {
+                    blockTextEditor.replaceChildren();
+                    if (!field) return;
+                    blockTextEditor.style.setProperty('--editor-font-size', `${field.fontSize || 16}px`);
+                    field.hiddenRows ||= [];
+                    const heading = document.createElement('h3');
+                    heading.textContent = 'ข้อความแต่ละบรรทัด — แก้ไข / ลบ / คืนค่า';
+                    blockTextEditor.appendChild(heading);
+                    const rows = [['approval','หัวข้ออนุมัติ (Header 1)'],['signText','ข้อความลงนาม'],
+                        ['committee','คณบดี / กรรมการ'],['signerName','ชื่อผู้ลงนาม'],['position','ตำแหน่ง'],['faculty','คณะ / ส่วนงาน'],
+                        ['actingForPresident','ปฏิบัติหน้าที่แทนอธิการบดี'],['organization','หน่วยงาน'],['signedDate','วันที่']];
+                    for (const [key, title] of rows) {
+                        const label = document.createElement('label'); label.textContent = title;
+                        const row = document.createElement('div'); row.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:8px';
+                        const input = document.createElement('input'); input.type = 'text'; input.value = field[key] || '';
+                        input.style.cssText = 'flex:1;min-width:0'; input.disabled = field.hiddenRows.includes(key);
+                        input.setAttribute('aria-label',title);
+                        input.addEventListener('input', () => { field[key] = input.value; layoutIsAuthoritative = true; render(); });
+                        const toggle = document.createElement('button'); toggle.type = 'button';
+                        toggle.textContent = field.hiddenRows.includes(key) ? 'คืนค่า' : 'ลบ';
+                        toggle.addEventListener('click', () => {
+                            field.hiddenRows = field.hiddenRows.includes(key) ? field.hiddenRows.filter(item => item !== key) : [...field.hiddenRows,key];
+                            layoutIsAuthoritative = true; render(); renderSelectedBlockEditor();
+                        });
+                        row.append(input,toggle); blockTextEditor.append(label,row);
+                    }
+                }
+
+                function renderParticipantList() {
+                    const list = document.getElementById('participantList');
+                    list.innerHTML = '';
+                    participants.forEach(person => {
+                        const item = document.createElement('li');
+                        item.className = 'participant-item';
+                        const label = document.createElement('span');
+                        const actions = [person.reviewAction && 'ตรวจสอบ', person.signAction && 'ลงนาม', person.approveAction && 'อนุมัติ'].filter(Boolean).join(' • ');
+                        label.textContent = `WF ${person.wfOrder || '-'} · ${person.name} (user_id: ${person.user_id})${actions ? ` · ${actions}` : ''}`;
+                        const removeBtn = document.createElement('button');
+                        removeBtn.type = 'button';
+                        removeBtn.textContent = '✕';
+                        removeBtn.title = 'ลบรายชื่อนี้';
+                        removeBtn.addEventListener('click', () => {
+                            const index = participants.indexOf(person);
+                            if (index > -1)
+                                participants.splice(index, 1);
+                            renderParticipantList();
+                        });
+                        item.appendChild(label);
+                        item.appendChild(removeBtn);
+                        list.appendChild(item);
+                    });
+                    renderDefaultSelectors();
+                    render();
+                }
+
+                function seedStaticParticipants() {
+                    participants.length = 0;
+                    STATIC_PARTICIPANTS.forEach(person => participants.push({id: person.user_id, user_id: person.user_id, name: person.name}));
+                    renderParticipantList();
+                }
+
+                let bookmarkDraftOrder = [];
+                const bookmarkUpdateBtn = document.getElementById('bookmarkUpdateBtn');
+                const bookmarkOrderStatus = document.getElementById('bookmarkOrderStatus');
+                function markBookmarkOrder() {
+                    bookmarkDraftOrder = Array.from(bookmarkList.querySelectorAll('.bookmark-item'), item => item.dataset.bookmarkId);
+                    bookmarkUpdateBtn.disabled = bookmarkDraftOrder.every((id, index) => id === bookmarks[index]?.id);
+                    bookmarkOrderStatus.textContent = bookmarkUpdateBtn.disabled ? '' : 'ลำดับเปลี่ยนแล้ว — กดอัปเดต Bookmark';
+                }
+                bookmarkUpdateBtn.addEventListener('click', () => {
+                    const byId = new Map(bookmarks.map(bookmark => [bookmark.id, bookmark]));
+                    const ordered = bookmarkDraftOrder.map(id => byId.get(id)).filter(Boolean);
+                    bookmarks.forEach(bookmark => { if (!ordered.includes(bookmark)) ordered.push(bookmark); });
+                    bookmarks.splice(0, bookmarks.length, ...ordered);
+                    bookmarkDraftOrder = [];
+                    layoutIsAuthoritative = true;
+                    renderBookmarkList();
+                    window.parent.postMessage({type:'EIS_DOCS_LAYOUT_STATE', data:buildPayload()}, location.origin);
+                    bookmarkOrderStatus.textContent = 'อัปเดตลำดับ Bookmark แล้ว';
+                });
+                function bindBookmarkDrag(handle, item) {
+                    handle.addEventListener('keydown', event => {
+                        if (!['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+                        event.preventDefault();
+                        const sibling = event.key === 'ArrowUp' ? item.previousElementSibling : item.nextElementSibling;
+                        if (!sibling) return;
+                        bookmarkList.insertBefore(item, event.key === 'ArrowUp' ? sibling : sibling.nextElementSibling);
+                        markBookmarkOrder();
+                        handle.focus();
+                    });
+                    handle.addEventListener('pointerdown', event => {
+                        if (!event.isPrimary || event.button !== 0 || item.querySelector('form')) return;
+                        event.preventDefault();
+                        const initialOrder = Array.from(bookmarkList.children);
+                        let y = event.clientY, frame = 0;
+                        // Capture on the stationary list: moving the handle's row can
+                        // release pointer capture when the row is reinserted in the DOM.
+                        bookmarkList.setPointerCapture(event.pointerId);
+                        item.classList.add('is-dragging');
+                        function moveItem() {
+                            let sibling = item.previousElementSibling;
+                            while (sibling) {
+                                const rect = sibling.getBoundingClientRect();
+                                if (y >= rect.top + rect.height / 2) break;
+                                bookmarkList.insertBefore(item, sibling);
+                                sibling = item.previousElementSibling;
+                            }
+                            sibling = item.nextElementSibling;
+                            while (sibling) {
+                                const rect = sibling.getBoundingClientRect();
+                                if (y <= rect.top + rect.height / 2) break;
+                                bookmarkList.insertBefore(item, sibling.nextElementSibling);
+                                sibling = item.nextElementSibling;
+                            }
+                        }
+                        function scroll() {
+                            const rect = bookmarkList.getBoundingClientRect();
+                            const speed = y < rect.top + 40 ? -8 : y > rect.bottom - 40 ? 8 : 0;
+                            if (speed) { bookmarkList.scrollTop += speed; moveItem(); }
+                            frame = requestAnimationFrame(scroll);
+                        }
+                        function move(e) { if (e.pointerId === event.pointerId) { y = e.clientY; moveItem(); } }
+                        function finish(e) {
+                            if (e.pointerId !== event.pointerId) return;
+                            cancelAnimationFrame(frame);
+                            item.classList.remove('is-dragging');
+                            bookmarkList.removeEventListener('pointermove', move);
+                            bookmarkList.removeEventListener('pointerup', finish);
+                            bookmarkList.removeEventListener('pointercancel', finish);
+                            bookmarkList.removeEventListener('lostpointercapture', finish);
+                            if (e.type === 'pointercancel') initialOrder.forEach(row => bookmarkList.append(row));
+                            if (bookmarkList.hasPointerCapture(event.pointerId)) bookmarkList.releasePointerCapture(event.pointerId);
+                            markBookmarkOrder();
+                        }
+                        bookmarkList.addEventListener('pointermove', move);
+                        bookmarkList.addEventListener('pointerup', finish);
+                        bookmarkList.addEventListener('pointercancel', finish);
+                        bookmarkList.addEventListener('lostpointercapture', finish);
+                        frame = requestAnimationFrame(scroll);
+                    });
+                }
+                function renderBookmarkList() {
+                    bookmarkList.innerHTML = '';
+                    bookmarkCount.textContent = bookmarks.length;
+                    bookmarkUpdateBtn.disabled = true;
+                    bookmarkOrderStatus.textContent = '';
+                    if (!bookmarks.length) {
+                        const empty = document.createElement('li');
+                        empty.className = 'bookmark-empty';
+                        empty.innerHTML = 'ยังไม่มี Bookmark<br><small>อัปโหลด PDF หรือเพิ่มรายการด้านบน</small>';
+                        bookmarkList.appendChild(empty);
+                        return;
+                    }
+                    bookmarks
+                       .slice()
+                       .sort((a, b) => { const rank = id => { const index = bookmarkDraftOrder.indexOf(id); return index < 0 ? bookmarkDraftOrder.length + bookmarks.findIndex(row => row.id === id) : index; }; return rank(a.id) - rank(b.id); })
+                       .forEach(bookmark => {
+                           const item = document.createElement('li');
+                           item.className = 'bookmark-item';
+                           item.dataset.bookmarkId = bookmark.id;
+                           const handle = document.createElement('button');
+                           handle.type = 'button';
+                           handle.className = 'bookmark-drag-handle';
+                           handle.textContent = '\u2630';
+                           handle.title = 'ลากเพื่อเรียง Bookmark ขึ้นลง';
+                           handle.setAttribute('aria-label', 'ลากเพื่อเรียง ' + bookmark.name + ' หรือใช้ปุ่มลูกศรขึ้นลง');
+                           bindBookmarkDrag(handle, item);
+                           item.appendChild(handle);
+                           const label = document.createElement('span');
+                           label.className = 'bookmark-link';
+                           label.textContent = `${bookmark.name} · หน้า ${bookmark.page}`;
+                           label.style.paddingLeft = `${Math.max(0, Number(bookmark.level) || 0) * 14}px`;
+                           label.title = `${bookmark.name} · หน้า ${bookmark.page} — คลิกเพื่อไปยังหน้านี้`;
+                           label.tabIndex = 0;
+                           label.setAttribute('role', 'link');
+                           label.addEventListener('keydown', event => { if (event.key === 'Enter') showPage(bookmark.page); });
+                           label.style.cursor = 'pointer';
+                           label.addEventListener('click', () => showPage(bookmark.page));
+                           const editBtn = document.createElement('button');
+                           editBtn.type = 'button';
+                           editBtn.textContent = '✎ แก้ไข';
+                           editBtn.className = 'bookmark-edit-button';
+                           editBtn.title = `แก้ไขชื่อและหน้า ${bookmark.name}`;
+                           editBtn.setAttribute('aria-label', editBtn.title);
+                           editBtn.addEventListener('click', () => {
+                               if (item.querySelector('.bookmark-edit-form')) return;
+                               const form = document.createElement('form');
+                               form.className = 'bookmark-edit-form';
+                               form.style.cssText = 'grid-column:1 / -1;display:grid;gap:6px;min-width:0';
+                               const nameInput = document.createElement('input');
+                               nameInput.type = 'text';
+                               nameInput.value = bookmark.name;
+                               nameInput.required = true;
+                               nameInput.setAttribute('aria-label', 'ชื่อ Bookmark');
+                               const pageInput = document.createElement('input');
+                               pageInput.type = 'number';
+                               pageInput.min = '1';
+                               pageInput.step = '1';
+                               pageInput.required = true;
+                               if (documentPdf) pageInput.max = String(totalPages);
+                               pageInput.value = bookmark.page;
+                               pageInput.setAttribute('aria-label', 'หน้า Bookmark');
+                               const saveBtn = document.createElement('button');
+                               saveBtn.type = 'submit';
+                               saveBtn.textContent = 'บันทึก';
+                               saveBtn.className = 'bookmark-save-button';
+                               saveBtn.style.cssText = 'width:auto;height:auto;padding:6px';
+                               const cancelBtn = document.createElement('button');
+                               cancelBtn.type = 'button';
+                               cancelBtn.textContent = 'ยกเลิก';
+                               cancelBtn.style.cssText = 'width:auto;height:auto;padding:6px';
+                               cancelBtn.addEventListener('click', () => { form.remove(); editBtn.focus(); });
+                               const nameLabel = document.createElement('label');
+                               nameLabel.textContent = 'ชื่อ Bookmark';
+                               nameLabel.appendChild(nameInput);
+                               const pageLabel = document.createElement('label');
+                               pageLabel.textContent = 'หน้า';
+                               pageLabel.appendChild(pageInput);
+                               form.append(nameLabel, pageLabel, saveBtn, cancelBtn);
+                               form.addEventListener('submit', event => {
+                                   event.preventDefault();
+                                   const name = nameInput.value.trim();
+                                   const pageNo = Number(pageInput.value);
+                                   if (!name) { nameInput.focus(); return; }
+                                   if (!Number.isInteger(pageNo) || pageNo < 1 || (documentPdf && pageNo > totalPages)) {
+                                       coords.textContent = 'กรุณาระบุเลขหน้าที่อยู่ใน PDF';
+                                       pageInput.focus();
+                                       return;
+                                   }
+                                   bookmark.name = name;
+                                   bookmark.page = pageNo;
+                                   renderBookmarkList();
+                                   coords.textContent = `แก้ไข Bookmark "${name}" เป็นหน้า ${pageNo} แล้ว`;
+                                   window.parent.postMessage({type:'EIS_DOCS_LAYOUT_STATE', data:buildPayload()}, location.origin);
+                               });
+                               item.appendChild(form);
+                               nameInput.focus();
+                               nameInput.select();
+                           });
+                           const removeBtn = document.createElement('button');
+                           removeBtn.type = 'button';
+                           removeBtn.textContent = '× ลบ';
+                           removeBtn.className = 'bookmark-delete-button';
+                           removeBtn.title = `ลบจุดคั่นหน้า ${bookmark.name}`;
+                           removeBtn.addEventListener('click', () => {
+                               const index = bookmarks.findIndex(candidate => candidate.id === bookmark.id);
+                               if (index !== -1)
+                                   bookmarks.splice(index, 1);
+                               renderBookmarkList();
+                           });
+                           item.appendChild(label);
+                           const actions = document.createElement('div');
+                           actions.className = 'bookmark-item-actions';
+                           actions.append(editBtn, removeBtn);
+                           item.appendChild(actions);
+                           bookmarkList.appendChild(item);
+                       });
+                    markBookmarkOrder();
+                }
+
+                async function loadPdfBookmarks(pdfDocument) {
+                    const outline = await pdfDocument.getOutline();
+                    const loaded = [];
+
+                    async function resolvePage(destination) {
+                        if (!destination)
+                            return null;
+                        const explicitDestination = typeof destination === 'string'
+                           ? await pdfDocument.getDestination(destination)
+                           : destination;
+                        if (!Array.isArray(explicitDestination) || explicitDestination.length === 0)
+                            return null;
+                        const pageReference = explicitDestination[0];
+                        if (Number.isInteger(pageReference))
+                            return pageReference + 1;
+                        try {
+                            return (await pdfDocument.getPageIndex(pageReference)) + 1;
+                        } catch (error) {
+                            console.warn('ไม่สามารถหาหน้าที่ bookmark อ้างอิงได้', error);
+                            return null;
+                        }
+                    }
+
+                    async function visit(items, level) {
+                        for (const item of items || []) {
+                            const pageNo = await resolvePage(item.dest);
+                            const name = String(item.title || '').trim();
+                            if (name && pageNo && pageNo <= pdfDocument.numPages) {
+                                 loaded.push({
+                                     id: `bookmark-${bookmarkSequence++}`,
+                                     name,
+                                     page: pageNo,
+                                     level,
+                                     source: 'pdf'
+                                 });
+                            }
+                            await visit(item.items, level + 1);
+                        }
+                    }
+
+                    await visit(outline, 0);
+                    const procurementBookmarks = bookmarks.filter(bookmark => bookmark.source === 'procurement');
+                    bookmarks.length = 0;
+                    bookmarks.push(...loaded, ...procurementBookmarks);
+                    renderBookmarkList();
+                    return loaded.length;
+                }
+
+                function addBookmark() {
+                    const name = bookmarkName.value.trim();
+                    if (!name) {
+                        coords.textContent = 'กรุณาระบุชื่อจุดคั่นหน้าก่อนเพิ่ม';
+                        return;
+                    }
+                    let pageNo = Number(bookmarkPage.value) || currentPage || 1;
+                    if (totalPages)
+                        pageNo = clamp(pageNo, 1, totalPages);
+                    else
+                        pageNo = Math.max(1, pageNo);
+                    bookmarks.push({id: `bookmark-${bookmarkSequence++}`, name, page: pageNo});
+                    bookmarkName.value = '';
+                    renderBookmarkList();
+                    coords.textContent = `เพิ่มจุดคั่นหน้า "${name}" ที่หน้า ${pageNo} แล้ว`;
+                }
+
+                function assignmentSelect(items, selectedId, placeholder, onChange) {
+                    const select = document.createElement('select');
+                    const empty = document.createElement('option');
+                    empty.value = '';
+                    empty.textContent = placeholder;
+                    select.appendChild(empty);
+                    items.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = item.name;
+                        option.selected = item.id === selectedId;
+                        select.appendChild(option);
+                    });
+                    select.addEventListener('pointerdown', event => event.stopPropagation());
+                    select.addEventListener('change', () => onChange(select.value));
+                    return select;
+                }
+
+                function participantIsReviewOnly(person) {
+                    return actionEnabled(person && person.reviewAction)
+                       && !actionEnabled(person && person.signAction)
+                       && !actionEnabled(person && person.approveAction);
+                }
+
+                function participantHeightRatio(person) {
+                    return participantIsReviewOnly(person) ? 0.08314 : 0.205;
+                }
+
+                function applyWorkflowGridPlacement(field, placementIndex, orderedParticipants = [], person = field) {
+                    const column = placementIndex % 2;
+                    const gapRatio = 0.025;
+                    let yRatio = 0.025;
+                    for (let index = column; index < placementIndex; index += 2)
+                        yRatio += participantHeightRatio(orderedParticipants[index]) + gapRatio;
+                    field.x = page.clientWidth * (column === 0 ? 0.025 : 0.52672);
+                    field.y = page.clientHeight * yRatio;
+                    field.w = page.clientWidth * 0.44828;
+                    field.h = page.clientHeight * participantHeightRatio(person);
+                    field.gridRow = Math.floor(placementIndex / 2) + 1;
+                    field.gridColumn = column + 1;
+                    return field;
+                }
+
+                function createBlockForPerson(selectedPerson, placementIndex = -1, orderedParticipants = []) {
+                    const defaultBox = {xRatio: 0.31933, yRatio: 0.61671, widthRatio: 0.45714, heightRatio: 0.18775};
+                    const field = {id: `signature-${sequence++}`, page: 1, x: page.clientWidth * defaultBox.xRatio, y: page.clientHeight * defaultBox.yRatio, w: page.clientWidth * defaultBox.widthRatio, h: page.clientHeight * defaultBox.heightRatio, fontName: 'TH Sarabun', fontSize: 16, hiddenRows: [], reviewAction: true, signAction: true, approveAction: false, signText: 'ลงชื่อ', signatureImage: null, committee: 'ประธานกรรมการ', signerName: '(ชื่อ-นามสกุล)', position: 'ตำแหน่ง', actingForPresident: '', organization: 'หน่วยงาน', signedDate: thaiDate()};
+                    const selectedWorkflow = workflows.find(workflow => workflow.id === defaultWorkflowSelect.value) || workflows[0];
+                    const selectedRole = (selectedPerson && activeRoles().find(role => role.order === selectedPerson.wfOrder))
+                       || activeRoles().find(role => role.id === defaultRoleSelect.value) || activeRoles()[0] || roles[0];
+                    field.page = currentPage;
+                    field.id = `participant-role-${sequence - 1}`;
+                    field.workflowId = selectedWorkflow.id;
+                    field.workflowName = selectedWorkflow.name;
+                    field.roleId = selectedRole.id;
+                    field.roleName = selectedRole.name;
+                    field.assigneeId = selectedPerson ? selectedPerson.id : '';
+                    field.user_id = selectedPerson ? selectedPerson.user_id : '';
+                    field.assigneeName = selectedPerson ? selectedPerson.name : '';
+                    field.approval = 'อนุมัติ';
+                    applyRoleDefaults(field, selectedRole);
+                    if (selectedPerson) {
+                        field.signerName = `(${selectedPerson.name})`;
+                        field.reviewAction = selectedPerson.reviewAction;
+                        field.signAction = selectedPerson.signAction;
+                        field.approveAction = selectedPerson.approveAction;
+                        field.wfOrder = selectedPerson.wfOrder;
+                        field.wfGroupName = loadedWfGroupName;
+                        applyGroupSignatureDefaults(field, selectedRole);
+                    }
+                    if (placementIndex >= 0)
+                        applyWorkflowGridPlacement(field, placementIndex, orderedParticipants, selectedPerson);
+                    fields.push(field);
+                    return field;
+                }
+
+                let useWorkflowSignatureDefaults = false;
+                function applyGroupSignatureDefaults(field, role) {
+                    const faculty = 'คณะแพทยศาสตร์วชิรพยาบาล';
+                    const roleId = role && role.id;
+                    const positions = {
+                        PROCUREMENT_OFFICER: 'เจ้าหน้าที่พัสดุ',
+                        PROCUREMENT_LINE_HEAD: 'เจ้าหน้าหัวหน้าสายงานพัสดุ',
+                        PROCUREMENT_HEAD: 'หัวหน้าเจ้าหน้าที่',
+                        DEPUTY_DEAN: `รองคณบดี${faculty}`,
+                        DEAN: `คณบดี${faculty}`
+                    };
+                    field.signText = 'ลงชื่อ';
+                    field.committee = role && role.name ? role.name : '';
+                    field.position = positions[roleId] || (role && role.name) || '';
+                    const workflowPositions = {1:'เจ้าหน้าที่พัสดุ',2:'เจ้าหน้าหัวหน้าสายงานพัสดุ'};
+                    if (workflowPositions[Number(field.wfOrder)]) field.position = workflowPositions[Number(field.wfOrder)];
+                    field.faculty = roleId === 'DEAN' || roleId === 'DEPUTY_DEAN' ? '' : faculty;
+                    field.actingForPresident = roleId === 'DEAN' ? 'ปฏิบัติการแทนอธิการบดี' : '';
+                    field.organization = 'มหาวิทยาลัยนวมินทราธิราช';
+                    field.hiddenRows = ['approval', 'signText', 'committee', 'signedDate'];
+                    if (useWorkflowSignatureDefaults) {
+                        const name = String(field.assigneeName || field.signerName || '').replace(/[\s()]/g,'');
+                        let personDefaults = null;
+                        if ((name.includes('เกียรติดำรงค์') || name.includes('เกียรตีดำรงค์')) && name.includes('จันทร์พิพัฒน์กุล')) {
+                            personDefaults = {signerName:'(ผู้ช่วยศาสตราจารย์เกียรตีดำรงค์ จันทร์พิพัฒน์กุล)',position:'รองคณบดี'+faculty,faculty:'',actingForPresident:'',organization:'มหาวิทยาลัยนวมินทราธิราช',approval:'อนุมัติตามข้อ ๑ และ ๒ / ลงนามแล้ว ตามข้อ ๓'};
+                        } else if (name.includes('จักราวุธ') && name.includes('มณีฤทธิ์')) {
+                            personDefaults = {signerName:'(ผู้ช่วยศาสตราจารย์จักราวุธ มณีฤทธิ์)',position:'คณบดี'+faculty,faculty:'',actingForPresident:'ปฏิบัติการแทนอธิการบดี',organization:'มหาวิทยาลัยนวมินทราธิราช',approval:'อนุมัติ'};
+                        } else if (name.includes('ภูริวัชร์') && name.includes('เชาว์โรจนนนท์')) {
+                            personDefaults = {signerName:'(นายภูริวัชร์ เชาว์โรจนนนท์)',position:'หัวหน้าเจ้าหน้าที่',faculty,actingForPresident:'',organization:'มหาวิทยาลัยนวมินทราธิราช'};
+                        }
+                        if (personDefaults) {
+                            Object.assign(field, personDefaults);
+                            field.assigneeName = personDefaults.signerName.replace(/^\(|\)$/g,'');
+                            if (personDefaults.approval) field.hiddenRows = field.hiddenRows.filter(key => key !== 'approval');
+                        }
+                    }
+
+                }
+
+                function addBlock() {
+                    if (defaultAssigneeSelect.value === '__ALL__') {
+                        if (!participants.length) {
+                            coords.textContent = 'ยังไม่มีรายชื่อคนที่ทำหน้าที่ กรุณาโหลดกลุ่มผู้ลงนามก่อน';
+                            return;
+                        }
+                        const orderedParticipants = participants.slice().sort((a, b) =>
+                            Number(a.wfOrder || 0) - Number(b.wfOrder || 0)
+                            || String(a.name || '').localeCompare(String(b.name || ''), 'th')
+                        );
+                        const created = orderedParticipants.map((person, index) => {
+                            const existing = fields.find(field =>
+                                field.page === currentPage
+                                && String(field.assigneeId || field.user_id || '') === String(person.id)
+                            );
+                            if (!existing)
+                                return createBlockForPerson(person, index, orderedParticipants);
+                            existing.wfOrder = person.wfOrder;
+                            existing.reviewAction = person.reviewAction;
+                            existing.signAction = person.signAction;
+                            existing.approveAction = person.approveAction;
+                            existing.wfGroupName = loadedWfGroupName;
+                            applyWorkflowGridPlacement(existing, index, orderedParticipants, person);
+                            return existing;
+                        });
+                        render();
+                        select(created[0].id);
+                        coords.textContent = `เพิ่มบล็อกคนที่ทำหน้าที่ทั้งหมด ${created.length} คน ตามลำดับ WF แล้ว`;
+                        return;
+                    }
+                    const selectedPerson = participants.find(person => person.id === defaultAssigneeSelect.value);
+                    const field = createBlockForPerson(selectedPerson);
+                    render();
+                    select(field.id);
+                }
+
+                function input(field, key, label, className = '') {
+                    const multiline = !['signText', 'committee'].includes(key);
+                    const node = document.createElement(multiline ? 'textarea' : 'input');
+                    if (multiline) node.rows = 1;
+                    node.className = className;
+                    node.value = field[key];
+                    node.setAttribute('aria-label', label);
+                    node.addEventListener('pointerdown', event => event.stopPropagation());
+                    node.addEventListener('input', () => {
+                        field[key] = node.value;
+                        const block = node.closest('.block');
+                        if (block) fitBlockHeight(block, field);
+                    });
+                    return node;
+                }
+
+                function applyRoleDefaults(field, role) {
+                    field.committee = role && role.name ? role.name : field.committee;
+                    if (role && role.id === 'DEAN') {
+                        field.reviewAction = true;
+                        field.signAction = true;
+                        field.approveAction = true;
+                        field.signText = 'ลงนาม';
+                        field.approval = 'อนุมัติ';
+                        field.actingForPresident = field.actingForPresident || 'ปฏิบัติการแทนอธิการบดี';
+                        field.h = Math.max(field.h, 222);
+                    } else {
+                        field.reviewAction = field.reviewAction !== false;
+                        field.signAction = field.signAction !== false;
+                        field.approveAction = field.approveAction !== false;
+                        field.actingForPresident = '';
+                    }
+                }
+
+                function deleteButton(field, key) {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'delete-row';
+                    button.textContent = '×';
+                    button.title = `ลบแถว ${key}`;
+                    button.addEventListener('click', event => {
+                        event.stopPropagation();
+                        if (!field.hiddenRows.includes(key))
+                            field.hiddenRows.push(key);
+                        render();
+                    });
+                    return button;
+                }
+
+                function appendTextRow(block, field, key, label, className = '') {
+                    if (field.hiddenRows.includes(key))
+                        return;
+                    const row = document.createElement('div');
+                    row.className = 'text-row';
+                    row.appendChild(input(field, key, label, className));
+                    row.appendChild(deleteButton(field, key));
+                    block.appendChild(row);
+                }
+
+                async function searchWorkflowGroups() {
+                    const query = wfGroupSearch.value.trim();
+                    wfGroupSelect.disabled = true;
+                    wfGroupLoadBtn.disabled = true;
+                    wfGroupSelect.replaceChildren(new Option('— กำลังค้นหา —', ''));
+                    try {
+                        const response = await fetch(`wf-groups.php?q=${encodeURIComponent(query)}`, {credentials: 'same-origin'});
+                        const result = await response.json().catch(() => ({}));
+                        if (!response.ok || !result.success)
+                            throw new Error(result.message || `HTTP ${response.status}`);
+                        const groups = Array.isArray(result.groups) ? result.groups : [];
+                        wfGroupSelect.replaceChildren(new Option(groups.length ? '— เลือกกลุ่มผู้ลงนาม —' : '— ไม่พบกลุ่ม —', ''));
+                        groups.forEach(group => wfGroupSelect.add(new Option(`${group.name} (${group.member_count} คน)`, group.id)));
+                        wfGroupSelect.disabled = groups.length === 0;
+                        wfGroupInfo.textContent = groups.length ? `พบ ${groups.length} กลุ่ม` : 'ไม่พบกลุ่มผู้ลงนาม';
+                    } catch (error) {
+                        wfGroupSelect.replaceChildren(new Option('— โหลดข้อมูลไม่สำเร็จ —', ''));
+                        wfGroupInfo.textContent = `โหลดกลุ่มไม่สำเร็จ: ${error.message}`;
+                    }
+                }
+
+                async function loadWorkflowGroup(requestedGroupId) {
+                    if (restoringDocument) {
+                        wfGroupInfo.textContent = 'กรุณารอให้โหลดเอกสารเดิมเสร็จก่อน';
+                        return;
+                    }
+                    const selectedGroup = requestedGroupId && Array.isArray(requestedGroupId.members) ? requestedGroupId : null;
+                    const groupId = selectedGroup ? String(selectedGroup.id) : typeof requestedGroupId === 'string' ? requestedGroupId : wfGroupSelect.value;
+                    if (!groupId)
+                        return;
+                    if (![...wfGroupSelect.options].some(option => option.value === groupId))
+                        wfGroupSelect.add(new Option(groupId, groupId));
+                    wfGroupSelect.value = groupId;
+                    wfGroupLoadBtn.disabled = true;
+                    wfGroupInfo.textContent = 'กำลังโหลดสมาชิกและเส้นทาง WF...';
+                    try {
+                        let group = selectedGroup;
+                        if (!group) {
+                            const response = await fetch(`wf-groups.php?group_id=${encodeURIComponent(groupId)}`, {credentials: 'same-origin'});
+                            const result = await response.json().catch(() => ({}));
+                            if (!response.ok || !result.success)
+                                throw new Error(result.message || `HTTP ${response.status}`);
+                            group = result.group || {};
+                        }
+                        participants.length = 0;
+                        (Array.isArray(group.members) ? group.members : []).forEach((member, index) => {
+                            participants.push({
+                                id: String(member.user_id),
+                                user_id: String(member.user_id),
+                                dcEmpId: String(member.dc_emp_id || ''),
+                                name: member.c_name || `พนักงาน ${member.dc_emp_id || index + 1}`,
+                                wfOrder: Number(member.wf_order || index + 1),
+                                reviewAction: Boolean(member.review_action),
+                                signAction: Boolean(member.sign_action),
+                                approveAction: Boolean(member.approve_action)
+                            });
+                        });
+                        participants.sort((a, b) => a.wfOrder - b.wfOrder);
+                        // สมาชิกคนแรกของ Template คือเจ้าหน้าที่ผู้จัดทำ และเป็น WF1 เสมอ
+                        participants.forEach((participant, index) => participant.wfOrder = index + 1);
+                        loadedWfGroupName = group.name || groupId;
+                        loadedWorkflowGroupId = groupId;
+                        setSignatureSource('group');
+                        loadedSavedTemplate = false;
+                        renderParticipantList();
+                        wfGroupInfo.textContent = `โหลดกลุ่ม “${loadedWfGroupName}” แล้ว ${participants.length} คน`;
+                        return true;
+                    } catch (error) {
+                        wfGroupInfo.textContent = `โหลดสมาชิกไม่สำเร็จ: ${error.message}`;
+                        return false;
+                    } finally {
+                        wfGroupLoadBtn.disabled = !wfGroupSelect.value;
+                    }
+                }
+
+                function isReviewOnly(field) {
+                    return actionEnabled(field.reviewAction)
+                       && !actionEnabled(field.signAction)
+                       && !actionEnabled(field.approveAction);
+                }
+
+                function fitBlockHeight(block, field) {
+                    block.style.height = 'auto';
+                    block.querySelectorAll('textarea').forEach(node => {
+                        node.style.height = '0px';
+                        node.style.height = `${node.scrollHeight}px`;
+                    });
+                    field.h = Math.ceil(block.offsetHeight);
+                }
+
+                if (document.fonts) document.fonts.ready.then(() => {
+                    page.querySelectorAll('.block').forEach(block => {
+                        const field = fields.find(item => item.id === block.dataset.id);
+                        if (field) fitBlockHeight(block, field);
+                    });
+                });
+
+                function render() {
+                    applySignDatePolicy();
+                    page.querySelectorAll('.block').forEach(node => node.remove());
+                    fields.filter(field => field.page === currentPage).forEach(field => {
+                        const block = document.createElement('div');
+                        const reviewOnly = isReviewOnly(field);
+                        block.className = `block ${field.id === selectedFieldId ? 'selected' : ''}${reviewOnly ? ' review-only' : ''}`;
+                        block.dataset.id = field.id;
+                        block.dataset.userId = field.user_id || '';
+                        Object.assign(block.style, {left: `${field.x}px`, top: `${field.y}px`, width: `${field.w}px`, height: `${field.h}px`, '--block-font-size': `${field.fontSize}px`});
+                        const tools = document.createElement('div');
+                        tools.className = 'block-tools';
+                        tools.innerHTML = `<span>user_id: ${field.user_id || 'ยังไม่เลือก'}</span><span>TH Sarabun</span><span>ขนาด</span>`;
+                        const size = document.createElement('input');
+                        size.type = 'number';
+                        size.min = '8';
+                        size.max = '72';
+                        size.value = field.fontSize;
+                        size.title = 'ขนาดตัวอักษร (pt)';
+                        size.addEventListener('pointerdown', event => event.stopPropagation());
+                        size.addEventListener('input', () => {
+                            field.fontSize = Math.max(8, Math.min(72, Number(size.value) || 16));
+                            block.style.setProperty('--block-font-size', `${field.fontSize}px`);
+                            fitBlockHeight(block, field);
+                        });
+                        tools.appendChild(size);
+                        const editText = document.createElement('button');
+                        editText.type = 'button'; editText.textContent = '✏️ แก้ไข';
+                        editText.addEventListener('pointerdown', event => event.stopPropagation());
+                        editText.addEventListener('click', event => {
+                            event.stopPropagation(); select(field.id);
+                            blockEditorPanel.scrollIntoView({behavior:'smooth',block:'nearest'});
+                        });
+                        tools.appendChild(editText);
+                        const restore = document.createElement('button');
+                        restore.type = 'button';
+                        restore.textContent = 'คืนแถว';
+                        restore.title = 'แสดงแถวที่ลบกลับคืน';
+                        restore.disabled = field.hiddenRows.length === 0;
+                        restore.addEventListener('click', event => {
+                            event.stopPropagation();
+                            field.hiddenRows = [];
+                            render();
+                        });
+                        tools.appendChild(restore);
+                        block.appendChild(tools);
+                        if (reviewOnly) {
+                            const nameOnly = document.createElement('div');
+                            nameOnly.className = 'review-only-name';
+                            nameOnly.textContent = field.assigneeName || String(field.signerName || '').replace(/^\(|\)$/g, '') || 'ยังไม่เลือกชื่อ';
+                            block.appendChild(nameOnly);
+                        } else {
+                            if (actionEnabled(field.approveAction))
+                                appendTextRow(block, field, 'approval', 'ข้อความอนุมัติ', 'approval');
+                            const signatureRow = document.createElement('div');
+                            signatureRow.className = 'sig-row';
+                            if (!actionEnabled(field.signAction) || field.hiddenRows.includes('signatureLine'))
+                                signatureRow.style.display = 'none';
+                            if (actionEnabled(field.signAction) && !field.hiddenRows.includes('signText'))
+                                signatureRow.appendChild(input(field, 'signText', 'ข้อความลงนาม', 'sign-prefix'));
+                            const signature = document.createElement('label');
+                            signature.className = 'sig-upload';
+                            signature.classList.add('signature-placeholder');
+                            signature.setAttribute('aria-label', 'พื้นที่สำหรับลายเซ็นตอนลงนามเอกสาร');
+                            if (!field.hiddenRows.includes('signatureImage'))
+                                signatureRow.appendChild(signature);
+                            if (!field.hiddenRows.includes('committee'))
+                                signatureRow.appendChild(input(field, 'committee', 'ตำแหน่งกรรมการ', 'committee-input'));
+                            signatureRow.appendChild(deleteButton(field, 'signatureLine'));
+                            block.appendChild(signatureRow);
+                            appendTextRow(block, field, 'signerName', 'ชื่อ-นามสกุล');
+                            appendTextRow(block, field, 'position', 'ตำแหน่ง');
+                            if (field.faculty)
+                                appendTextRow(block, field, 'faculty', 'คณะ / ส่วนงาน');
+                            if (field.actingForPresident)
+                                appendTextRow(block, field, 'actingForPresident', 'ปฏิบัติการแทนอธิการบดี');
+                            appendTextRow(block, field, 'organization', 'หน่วยงาน');
+                            appendTextRow(block, field, 'signedDate', 'วันที่');
+                        }
+                        const remove = document.createElement('button');
+                        remove.className = 'remove';
+                        remove.textContent = '×';
+                        remove.title = 'ลบบล็อก';
+                        remove.addEventListener('click', event => {
+                            event.stopPropagation();
+                            if (selectedFieldId === field.id)
+                                selectedFieldId = null;
+                            fields.splice(fields.indexOf(field), 1);
+                            render();
+                            renderSelectedBlockEditor();
+                        });
+                        block.appendChild(remove);
+                        const resize = document.createElement('span');
+                        resize.className = 'resize';
+                        resize.addEventListener('pointerdown', event => startResize(event, field, block));
+                        block.appendChild(resize);
+                        block.addEventListener('pointerdown', () => select(field.id), {capture:true});
+                        block.addEventListener('pointerdown', event => startDrag(event, field, block));
+                        page.appendChild(block);
+                        fitBlockHeight(block, field);
+                    });
+                }
+
+                function select(id) {
+                    selectedFieldId = id;
+                    page.querySelectorAll('.block').forEach(node => node.classList.toggle('selected', node.dataset.id === id));
+                    renderSelectedBlockEditor();
+                }
+                function report(field) {
+                    coords.textContent = `${field.id} · x:${field.x.toFixed(0)} y:${field.y.toFixed(0)} กว้าง:${field.w.toFixed(0)} สูง:${field.h.toFixed(0)} pt`;
+                }
+
+                function startDrag(event, field, block) {
+                    if (event.target.closest('input,textarea,label,button,.resize'))
+                        return;
+                    event.preventDefault();
+                    select(field.id);
+                    block.setPointerCapture(event.pointerId);
+                    const sx = event.clientX, sy = event.clientY, ox = field.x, oy = field.y;
+                    const move = e => {
+                        field.x = clamp(ox + (e.clientX - sx) / displayScale(), 0, page.clientWidth - field.w);
+                        field.y = clamp(oy + (e.clientY - sy) / displayScale(), 0, page.clientHeight - field.h);
+                        block.style.left = `${field.x}px`;
+                        block.style.top = `${field.y}px`;
+                        report(field);
+                    };
+                    const end = () => {
+                        block.removeEventListener('pointermove', move);
+                        block.removeEventListener('pointerup', end);
+                    };
+                    block.addEventListener('pointermove', move);
+                    block.addEventListener('pointerup', end);
+                }
+
+                function startResize(event, field, block) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    const handle = event.currentTarget;
+                    handle.setPointerCapture(event.pointerId);
+                    const sx = event.clientX, ow = field.w;
+                    const move = e => {
+                        field.w = clamp(ow + (e.clientX - sx) / displayScale(), 120, page.clientWidth - field.x);
+                        block.style.width = `${field.w}px`;
+                        fitBlockHeight(block, field);
+                        report(field);
+                    };
+                    const end = () => {
+                        handle.removeEventListener('pointermove', move);
+                        handle.removeEventListener('pointerup', end);
+                    };
+                    handle.addEventListener('pointermove', move);
+                    handle.addEventListener('pointerup', end);
+                }
+
+                function buildPayload() {
+                    applySignDatePolicy();
+                    return {
+                        signatureSourceMode,
+                        savedAt: new Date().toISOString(),
+                        samplePdf: {fileName: pdfFileName, pageCount: totalPages || 0},
+                        pageSize: {width: pageWidth, height: pageHeight, unit: 'pt'},
+                        workflows: workflows.map(workflow => ({id: workflow.id, name: workflow.name})),
+                        roles: roles.map(role => ({id: role.id, order: role.order, name: role.name})),
+                        documentRoles: activeRoles().map(role => ({id: role.id, order: role.order, name: role.name})),
+                        wfGroupName: loadedWfGroupName,
+                        participants: participants.map(person => ({id: person.id, user_id: person.user_id, name: person.name, wfOrder: person.wfOrder, reviewAction: person.reviewAction, signAction: person.signAction, approveAction: person.approveAction})),
+                        bookmarks: bookmarks
+                           .slice()
+                           .map(bookmark => ({name: bookmark.name, page: bookmark.page, level: bookmark.level || 0, source: bookmark.source || 'manual', documentId: bookmark.documentId || null, group: bookmark.group || null})),
+                        assignments: fields.map(field => ({
+                                fieldId: field.id,
+                                workflowId: field.workflowId,
+                                workflowName: field.workflowName,
+                                roleId: field.roleId,
+                                roleName: field.roleName,
+                                assigneeId: field.assigneeId,
+                                user_id: field.user_id || field.assigneeId,
+                                assigneeName: field.assigneeName,
+                                wfOrder: field.wfOrder,
+                                wfGroupName: field.wfGroupName,
+                                actions: {
+                                    review: field.reviewAction !== false,
+                                    sign: field.signAction !== false,
+                                    approve: field.approveAction !== false
+                                }
+                            })),
+                        signatureFields: fields.map(field => {
+                            const reviewOnly = isReviewOnly(field);
+                            const size = pageSizes[field.page] || {displayWidth:pageWidth || 595, displayHeight:pageHeight || 842};
+                            return ({
+                                id: field.id,
+                                workflowId: field.workflowId,
+                                workflowName: field.workflowName,
+                                roleId: field.roleId,
+                                roleName: field.roleName,
+                                assigneeId: field.assigneeId,
+                                user_id: field.user_id || field.assigneeId,
+                                assigneeName: field.assigneeName,
+                                wfOrder: field.wfOrder,
+                                wfGroupName: field.wfGroupName,
+                                page: field.page,
+                                xRatio: +(field.x / size.displayWidth).toFixed(5),
+                                yRatio: +(field.y / size.displayHeight).toFixed(5),
+                                widthRatio: +(field.w / size.displayWidth).toFixed(5),
+                                heightRatio: +(field.h / size.displayHeight).toFixed(5),
+                                pdfBoxAnchor: 'top-left',
+                                fontName: field.fontName,
+                                fontSize: field.fontSize,
+                                hiddenRows: field.hiddenRows,
+                                actions: {
+                                    review: field.reviewAction !== false,
+                                    sign: field.signAction !== false,
+                                    approve: field.approveAction !== false
+                                },
+                                documentVisible: !reviewOnly,
+                                reviewAction: field.reviewAction !== false,
+                                signAction: field.signAction !== false,
+                                approveAction: field.approveAction !== false,
+                                approval: reviewOnly || !actionEnabled(field.approveAction) || field.hiddenRows.includes('approval') ? null : field.approval,
+                                signText: reviewOnly || !actionEnabled(field.signAction) || field.hiddenRows.includes('signatureLine') || field.hiddenRows.includes('signText') ? null : field.signText,
+                                signatureImage: reviewOnly || !actionEnabled(field.signAction) || field.hiddenRows.includes('signatureLine') || field.hiddenRows.includes('signatureImage') ? null : field.signatureImage,
+                                committee: reviewOnly || !actionEnabled(field.signAction) || field.hiddenRows.includes('signatureLine') || field.hiddenRows.includes('committee') ? null : field.committee,
+                                signerName: reviewOnly || field.hiddenRows.includes('signerName') ? null : field.signerName,
+                                position: reviewOnly || field.hiddenRows.includes('position') ? null : field.position,
+                                faculty: reviewOnly || field.hiddenRows.includes('faculty') ? null : field.faculty,
+                                signatureSpace: !reviewOnly && actionEnabled(field.signAction) && !field.hiddenRows.includes('signatureLine'),
+                                actingForPresident: !reviewOnly && !field.hiddenRows.includes('actingForPresident') ? field.actingForPresident : null,
+                                organization: reviewOnly || field.hiddenRows.includes('organization') ? null : field.organization,
+                                signedDate: reviewOnly || field.hiddenRows.includes('signedDate') ? null : field.signedDate,
+                                signDateMode: field.signDateMode, signDateFixed: field.signDateFixed
+                            });
+                        })
+                    };
+                }
+
+                function payload() {
+                    const result = buildPayload();
+                    result.signatureFields.forEach(item => {
+                        const field = fields.find(candidate => candidate.id === item.id);
+                        const size = field && pageSizes[field.page];
+                        if (field && size) {
+                            item.xRatio = +(field.x / size.displayWidth).toFixed(5);
+                            item.yRatio = +(field.y / size.displayHeight).toFixed(5);
+                            item.widthRatio = +(field.w / size.displayWidth).toFixed(5);
+                            item.heightRatio = +(field.h / size.displayHeight).toFixed(5);
+                        }
+                    });
+                    result.involvedPartyFields = result.signatureFields;
+                    return result;
+                }
+
+                function decodeHeader(value) {
+                    if (!value) return '';
+                    try {
+                        // Java's URL encoder represents spaces as "+" in response headers.
+                        // Convert them back before decoding so the saved Document ID matches
+                        // the real PDF/JSON filename on the server.
+                        return decodeURIComponent(String(value).replace(/\+/g, ' '));
+                    } catch (e) {
+                        return String(value).replace(/\+/g, ' ');
+                    }
+                }
+
+                const uploadResultBox = document.getElementById('uploadResult');
+                let parentDocsId = null;
+                // เปิด signature-pad.html ต่อจากหน้านี้ได้เลย (ไฟล์อยู่โฟลเดอร์เดียวกันตาม deployment ปัจจุบัน)
+                const SIGNATURE_PAD_URL = './signature-pad.html';
+
+                function showUploadResult(docId, pdfPath, jsonPath) {
+                    if (!uploadResultBox) return;
+                    if (!docId && !pdfPath) {
+                        uploadResultBox.style.display = 'none';
+                        return;
+                    }
+                    const signUrl = docId ? `${SIGNATURE_PAD_URL}?docId=${encodeURIComponent(docId)}` : SIGNATURE_PAD_URL;
+                    uploadResultBox.innerHTML = `
+                        <strong>✅ อัปโหลด PDF และ JSON ขึ้นเซิร์ฟเวอร์แล้ว</strong><br>
+                        Document ID: <code>${docId || '-'}</code><br>
+                        ไฟล์ PDF: <code>${pdfPath || '-'}</code><br>
+                        ไฟล์ JSON (signatureFields): <code>${jsonPath || '-'}</code><br>
+                        <a href="${signUrl}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px">
+                            ➡ ไปที่ขั้นตอนถัดไป: ลงนามเอกสาร (signature-pad.html)
+                        </a>`;
+                    uploadResultBox.style.display = 'block';
+                }
+
+                async function generatePdf() {
+                    if (generatePdfBtn.disabled) return;
+                    let docId = docIdInput.value.trim();
+                    if (!selectedPdfFile) {
+                        coords.textContent = 'กรุณาอัปโหลด PDF (ปุ่ม "อัปโหลด PDF ก่อนวาง") ก่อนสร้าง PDF';
+                        return;
+                    }
+                    if (fields.some(field => field.page < 1 || field.page > documentPdf.numPages)) {
+                        coords.textContent = 'Template มีตำแหน่งอยู่นอกจำนวนหน้า PDF ใหม่ กรุณาปรับหน้าของบล็อกก่อนสร้าง PDF';
+                        return;
+                    }
+                    const missing = missingAssignments();
+                    if (missing.length && !confirm(`ยังมี ${missing.length} บล็อกที่ไม่ได้เลือก role หรือผู้ทำหน้าที่ ต้องการสร้าง PDF ต่อหรือไม่?`))
+                        return;
+                    const originalLabel = generatePdfBtn.textContent;
+                    generatePdfBtn.disabled = true;
+                    generatePdfBtn.textContent = 'กำลังสร้าง PDF...';
+                    coords.textContent = 'กำลังอัปโหลด PDF และสร้างเอกสาร...';
+                    try {
+                        let generationMode = 'new';
+                        const body = payload();
+                        layoutIsAuthoritative = true;
+                        const layoutSnapshot = {payload:structuredClone(body), file:selectedPdfFile, sourceMode:signatureSourceMode,
+                            readyFromTemplate:loadedSavedTemplate && !restoringDocument && Boolean(documentPdf && selectedPdfFile)};
+                        if (window.parent !== window && typeof window.parent.prepareDocumentPdfGeneration === 'function') {
+                            const saved = await window.parent.prepareDocumentPdfGeneration({preserveWorkflow:Boolean(parentDocsId), layoutSnapshot});
+                            parentDocsId = saved.docsId;
+                            generationMode = saved.generationMode;
+                            docId = String(saved.documentPath || docId);
+                            docIdInput.value = docId;
+                        }
+                        body.generationMode = generationMode;
+                        body.docsId = parentDocsId;
+                        body.fileName = docId || (pdfFileName ? pdfFileName.replace(/\.pdf$/i, '') : 'saved-document');
+                        const formData = new FormData();
+                        formData.append('pdfFile', layoutSnapshot.file, layoutSnapshot.file.name || 'document.pdf');
+                        formData.append('payload', JSON.stringify(body));
+                        const response = await fetch(GENERATE_PDF_ENDPOINT, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        if (!response.ok) {
+                            if (response.status === 404) throw new Error('ไม่พบ API สร้าง PDF (404) กรุณาให้ผู้ดูแลตรวจการติดตั้ง eis-docs.war และเส้นทาง IIS ไป Tomcat');
+                            if (response.status === 502 || response.status === 503) throw new Error(`บริการ PDF ยังไม่พร้อม (${response.status}) กรุณาให้ผู้ดูแลตรวจบริการ Tomcat`);
+                            let detail = '';
+                            try {
+                                const contentType = response.headers.get('content-type') || '';
+                                detail = contentType.includes('application/json')
+                                   ? (await response.json()).message || ''
+                                   : contentType.includes('text/plain') ? (await response.text()).slice(0, 300) : '';
+                            } catch (readError) {
+                                // เซิร์ฟเวอร์อาจไม่ส่งรายละเอียดข้อผิดพลาดกลับมา
+                            }
+                            throw new Error(`เซิร์ฟเวอร์ตอบกลับ ${response.status}${detail ? `: ${detail}` : ''}`);
+                        }
+                        // เซิร์ฟเวอร์บันทึกสำเนา PDF และ JSON (signatureFields) ไว้ให้แล้ว
+                        // พาธจริงจะมากับ response header (encodeURIComponent ไว้ฝั่งเซิร์ฟเวอร์)
+                        const savedDocId = decodeHeader(response.headers.get('X-Doc-Id'));
+                        const savedPdfPath = decodeHeader(response.headers.get('X-Saved-Pdf-Path'));
+                        const savedJsonPath = decodeHeader(response.headers.get('X-Saved-Json-Path'));
+
+                        const blob = await response.blob();
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = `${(savedDocId || docId || 'saved-document').replace(/[\\/]+/g, '_').replace(/\.pdf$/i, '')}.pdf`;
+                        link.click();
+                        setTimeout(() => URL.revokeObjectURL(link.href), 0);
+                        coords.textContent = 'สร้าง PDF สำเร็จ กำลังดาวน์โหลดไฟล์';
+                        showUploadResult(savedDocId, savedPdfPath, savedJsonPath);
+                        if (window.parent !== window) {
+                            window.parent.postMessage({type: 'EIS_DOCS_PDF_CREATED', docsId: parentDocsId,
+                                docId: savedDocId || docId, pdfPath: savedPdfPath || '', jsonPath: savedJsonPath || ''}, window.location.origin);
+                        }
+                        return true;
+                    } catch (error) {
+                        coords.textContent = `สร้าง PDF ไม่สำเร็จ: ${error.message}`;
+                        return false;
+                    } finally {
+                        generatePdfBtn.disabled = false;
+                        generatePdfBtn.textContent = originalLabel;
+                    }
+                }
+
+                let loadedSavedTemplate = false;
+                let layoutIsAuthoritative = false;
+                window.getDocumentLayoutForParent = () => ({payload:payload(), file:selectedPdfFile, sourceMode:signatureSourceMode,
+                    readyFromTemplate: loadedSavedTemplate && !restoringDocument && Boolean(documentPdf && selectedPdfFile)});
+                window.generateSavedPdfForParent = async () => {
+                    if (generatePdfBtn.disabled) throw new Error('กำลังสร้าง PDF อยู่ กรุณารอสักครู่');
+                    if (!await generatePdf()) throw new Error(coords.textContent.replace(/^สร้าง PDF ไม่สำเร็จ:\s*/, ''));
+                    return coords.textContent;
+                };
+
+                function missingAssignments() {
+                    return fields.filter(field => !field.roleId || !field.assigneeId);
+                }
+
+                function saveJsonToLocalDraft() {
+                    const data = payload();
+                    try {
+                        localStorage.setItem('pdfbox-involved-party-fields-json', JSON.stringify(data));
+                    } catch (error) {
+                        // ลายเซ็นแบบ Data URL อาจทำให้เกินโควตา localStorage แต่ยังต้องส่งออกไฟล์ได้
+                        console.warn('บันทึกฉบับร่างในเบราว์เซอร์ไม่สำเร็จ', error);
+                    }
+                    return data;
+                }
+
+                function loadTemplateStore() {
+                    try {
+                        const raw = localStorage.getItem(TEMPLATE_STORAGE_KEY);
+                        const parsed = raw ? JSON.parse(raw) : {};
+                        return parsed && typeof parsed === 'object' ? parsed : {};
+                    } catch (error) {
+                        console.warn('อ่านรายการ template ไม่สำเร็จ', error);
+                        return {};
+                    }
+                }
+
+                function saveTemplateStore(store) {
+                    try {
+                        localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(store));
+                        return true;
+                    } catch (error) {
+                        console.warn('บันทึก template ไม่สำเร็จ (พื้นที่ localStorage อาจเต็ม)', error);
+                        return false;
+                    }
+                }
+
+                function renderTemplateSelect(selectName) {
+                    const store = loadTemplateStore();
+                    const names = Object.keys(store).sort((a, b) => a.localeCompare(b, 'th'));
+                    templateSelect.innerHTML = '<option value="">— เลือก Template —</option>' +
+                       names.map(name => `<option value="${name.replace(/"/g, '&quot;')}">${name}</option>`).join('');
+                    if (selectName && names.includes(selectName))
+                        templateSelect.value = selectName;
+                }
+
+                function saveCurrentAsTemplate(nameOverride = '', skipConfirm = false) {
+                    const name = (typeof nameOverride === 'string' && nameOverride.trim()
+                        ? nameOverride : templateName.value).trim();
+                    if (!name) {
+                        templateInfo.textContent = 'กรุณาตั้งชื่อ Template ก่อนบันทึก';
+                        templateName.focus();
+                        return;
+                    }
+                    const store = loadTemplateStore();
+                    if (store[name] && !skipConfirm && !confirm(`มี Template ชื่อ "${name}" อยู่แล้ว ต้องการบันทึกทับหรือไม่?`))
+                        return;
+                    store[name] = payload();
+                    if (saveTemplateStore(store)) {
+                        templateName.value = name;
+                        renderTemplateSelect(name);
+                        templateInfo.textContent = `บันทึก Template "${name}" แล้ว (${fields.length} บล็อก)`;
+                        if (window.parent !== window) {
+                            window.parent.postMessage({type: 'EIS_DOCS_LAYOUT_TEMPLATE_SAVED', name, fieldCount: fields.length}, window.location.origin);
+                        }
+                    } else {
+                        templateInfo.textContent = 'บันทึก Template ไม่สำเร็จ พื้นที่ localStorage อาจเต็ม (ลองลบรูปลายเซ็นหรือ Template เก่าออกก่อน)';
+                    }
+                }
+
+                async function loadSelectedTemplate(nameOverride = '', skipConfirm = false) {
+                    if (restoringDocument) {
+                        templateInfo.textContent = 'กำลังโหลดเอกสารเดิม กรุณารอให้เสร็จก่อนโหลด Template';
+                        return;
+                    }
+                    const name = (typeof nameOverride === 'string' && nameOverride.trim()
+                        ? nameOverride : templateSelect.value).trim();
+                    if (!name) {
+                        templateInfo.textContent = 'กรุณาเลือก Template ที่ต้องการโหลดก่อน';
+                        return;
+                    }
+                    const store = loadTemplateStore();
+                    const data = store[name];
+                    if (!data) {
+                        templateInfo.textContent = `ไม่พบ Template "${name}"`;
+                        return;
+                    }
+                    if (fields.length && !skipConfirm && !confirm(`โหลด Template "${name}" จะแทนที่บล็อก/รายชื่อ/bookmark ปัจจุบันทั้งหมด ดำเนินการต่อหรือไม่?`))
+                        return;
+                    try {
+                        loadedSavedTemplate = false;
+                        await restoreFromPayload(data);
+                        setSignatureSource('template');
+                        loadedSavedTemplate = true;
+                        templateName.value = name;
+                        renderTemplateSelect(name);
+                        templateInfo.textContent = `โหลด Template "${name}" แล้ว (${fields.length} บล็อก)`;
+                        window.parent.postMessage({type:'EIS_DOCS_LAYOUT_STATE', name, data:buildPayload(), loadedSavedTemplate:true},window.location.origin);
+                    } catch (error) {
+                        templateInfo.textContent = `โหลด Template ไม่สำเร็จ: ${error.message}`;
+                    }
+                }
+
+                function deleteSelectedTemplate() {
+                    const name = templateSelect.value;
+                    if (!name) {
+                        templateInfo.textContent = 'กรุณาเลือก Template ที่ต้องการลบก่อน';
+                        return;
+                    }
+                    if (!confirm(`ลบ Template "${name}" ออกจากเบราว์เซอร์นี้หรือไม่?`))
+                        return;
+                    const store = loadTemplateStore();
+                    delete store[name];
+                    saveTemplateStore(store);
+                    renderTemplateSelect();
+                    templateInfo.textContent = `ลบ Template "${name}" แล้ว`;
+                }
+
+                function upsertParticipant(person) {
+                    if (!person || !person.name)
+                        return null;
+                    const userId = String(person.user_id != null ? person.user_id : (person.id || '')).trim();
+                    const existing = participants.find(item => item.user_id === userId || item.name === person.name);
+                    if (existing)
+                        return existing;
+                    const next = {
+                        id: userId || `person-${participants.length + 1}`,
+                        user_id: userId || `person-${participants.length + 1}`,
+                        name: person.name,
+                        wfOrder: Number(person.wfOrder || person.wf_order || participants.length + 1),
+                        reviewAction: person.reviewAction !== false,
+                        signAction: person.signAction !== false,
+                        approveAction: person.approveAction === true
+                    };
+                    participants.push(next);
+                    return next;
+                }
+
+                function templateFieldList(data) {
+                    const candidates = [
+                        data && data.signatureFields,
+                        data && data.involvedPartyFields,
+                        data && data.fields,
+                        data && data.boxes
+                    ];
+                    return candidates.find(Array.isArray) || null;
+                }
+
+                async function restoreFromPayload(data) {
+                    if (typeof data === 'string')
+                        data = JSON.parse(data);
+                    if (data && data.payload && !templateFieldList(data))
+                        data = typeof data.payload === 'string' ? JSON.parse(data.payload) : data.payload;
+
+                    const sourceFields = templateFieldList(data);
+                    if (!data || !sourceFields) {
+                        throw new Error('JSON ไม่ใช่รูปแบบ PDFBox involved party fields');
+                    }
+                    layoutIsAuthoritative = true;
+                    setSignatureSource(data.signatureSourceMode === 'template' ? 'template' : 'group');
+                    loadedWfGroupName = String(data.wfGroupName || '');
+                    if (Array.isArray(data.documentRoles) && data.documentRoles.length) {
+                        documentRoleIds.clear();
+                        data.documentRoles.forEach(role => {
+                            const roleId = normalizedRoleId(role.id || role.roleId || '');
+                            if (roles.some(candidate => candidate.id === roleId))
+                                documentRoleIds.add(roleId);
+                        });
+                        if (documentRoleIds.size === 0)
+                            roles.forEach(role => documentRoleIds.add(role.id));
+                        renderDocumentRoleList();
+                    }
+                    participants.length = 0;
+                    (data.participants || []).forEach(upsertParticipant);
+                    if (Array.isArray(data.bookmarks)) {
+                        bookmarks.length = 0;
+                        data.bookmarks.forEach(bookmark => {
+                            if (bookmark && bookmark.name)
+                                bookmarks.push({id: `bookmark-${bookmarkSequence++}`, name: bookmark.name, page: Number(bookmark.page) || 1, level: Number(bookmark.level) || 0, source: bookmark.source || 'manual', documentId: bookmark.documentId || null, group: bookmark.group || null});
+                        });
+                    }
+                    sourceFields.forEach(item => {
+                        if (item.assigneeName)
+                            upsertParticipant({id: item.assigneeId, user_id: item.user_id, name: item.assigneeName});
+                    });
+
+                    pdfFileName = selectedPdfFile ? selectedPdfFile.name : (data.samplePdf && data.samplePdf.fileName ? data.samplePdf.fileName : pdfFileName);
+                    totalPages = documentPdf ? documentPdf.numPages : Math.max(
+                       Number(data.samplePdf && data.samplePdf.pageCount ? data.samplePdf.pageCount : 0),
+                       ...sourceFields.map(item => Number(item.page || 1))
+                       );
+                    if (!totalPages || totalPages < 1)
+                        totalPages = 1;
+                    currentPage = Math.min(totalPages, Math.max(1, sourceFields.length ? Number(sourceFields[0].page || 1) : 1));
+
+                    fields.length = 0;
+                    sourceFields.forEach((item, index) => {
+                        const pageNo = Number(item.page || 1);
+                        const size = pageSizes[pageNo] || {displayWidth: page.clientWidth || 595, displayHeight: page.clientHeight || 842};
+                        const roleId = normalizedRoleId(item.roleId || '');
+                        const role = roles.find(candidate => candidate.id === roleId);
+                        const workflow = workflows.find(candidate => candidate.id === item.workflowId) || workflows[0];
+                        const assignee = upsertParticipant({id: item.assigneeId, user_id: item.user_id, name: item.assigneeName});
+                        const itemActions = item.actions || {};
+                        const restoredField = {
+                            id: item.id || `participant-role-${index + 1}`,
+                            page: pageNo,
+                            x: Number(item.xRatio != null ? item.xRatio * size.displayWidth : item.x || 170),
+                            y: Number(item.yRatio != null ? item.yRatio * size.displayHeight : item.y || 145),
+                            w: Number(item.widthRatio != null ? item.widthRatio * size.displayWidth : item.w || 250),
+                            h: Number(item.heightRatio != null ? item.heightRatio * size.displayHeight : item.h || 205),
+                            fontName: item.fontName || 'TH Sarabun',
+                            fontSize: Number(item.fontSize || 16),
+                            hiddenRows: Array.isArray(item.hiddenRows) ? item.hiddenRows : [],
+                            reviewAction: item.reviewAction == null ? actionEnabled(itemActions.review) : actionEnabled(item.reviewAction),
+                            signAction: item.signAction == null ? actionEnabled(itemActions.sign) : actionEnabled(item.signAction),
+                            approveAction: item.approveAction == null ? actionEnabled(itemActions.approve) : actionEnabled(item.approveAction),
+                            signText: item.signText ?? 'ลงชื่อ',
+                            signatureImage: item.signatureImage || null,
+                            committee: normalizedRoleName(item.committee || item.roleName || (role && role.name) || ''),
+                            signerName: item.signerName || (assignee ? `(${assignee.name})` : '(ชื่อ-นามสกุล)'),
+                            position: item.position ?? 'ตำแหน่ง',
+                            faculty: item.faculty ?? '',
+                            actingForPresident: item.actingForPresident ?? (role && role.id === 'DEAN' ? 'ปฏิบัติหน้าที่แทนอธิการบดี' : ''),
+                            organization: item.organization || 'หน่วยงาน',
+                            signedDate: item.signedDate || thaiDate(),
+                            workflowId: workflow.id,
+                            workflowName: workflow.name,
+                            roleId: role ? role.id : roleId,
+                            roleName: role ? role.name : normalizedRoleName(item.roleName || ''),
+                            assigneeId: assignee ? assignee.id : '',
+                            user_id: assignee ? assignee.user_id : '',
+                            assigneeName: assignee ? assignee.name : '',
+                            wfOrder: Number(item.wfOrder || (role && role.order) || index + 1),
+                            wfGroupName: item.wfGroupName || loadedWfGroupName
+                        };
+                        if (role && role.id === 'DEAN') {
+                            if (actionEnabled(restoredField.approveAction)) {
+                                restoredField.approval = item.approval ?? 'อนุมัติ';
+                                restoredField.actingForPresident = item.actingForPresident ?? 'ปฏิบัติหน้าที่แทนอธิการบดี';
+                                restoredField.h = Math.max(restoredField.h, 222);
+                            }
+                            restoredField.signText = item.signText ?? 'ลงนาม';
+                        }
+                        fields.push(restoredField);
+                    });
+
+                    sequence = fields.length + 1;
+                    selectedFieldId = fields[0] ? fields[0].id : null;
+                    updatePageNavigation();
+                    document.getElementById('prevPageBtn').disabled = currentPage <= 1;
+                    document.getElementById('nextPageBtn').disabled = currentPage >= totalPages;
+                    addButton.disabled = false;
+                    renderParticipantList();
+                    renderBookmarkList();
+                    bookmarkPage.max = totalPages || '';
+                    bookmarkPage.value = currentPage;
+                    if (documentPdf && currentPage >= 1 && currentPage <= documentPdf.numPages)
+                        await showPage(currentPage);
+                    else
+                        render();
+                    if (selectedFieldId)
+                        select(selectedFieldId);
+                    coords.textContent = `โหลด JSON PDFBox แล้ว ${fields.length} บล็อก`;
+                }
+
+                async function showPage(pageNumber) {
+                    if (!documentPdf || pageNumber < 1 || pageNumber > totalPages)
+                        return;
+                    const requestId = ++renderRequestId;
+                    currentPage = pageNumber;
+                    const pdfPage = await documentPdf.getPage(currentPage);
+                    if (requestId !== renderRequestId)
+                        return;
+                    const original = pdfPage.getViewport({scale: 1});
+                    pageWidth = original.width;
+                    pageHeight = original.height;
+                    const viewport = pdfPage.getViewport({scale: 1});
+                    page.style.width = `${viewport.width}px`;
+                    page.style.height = `${viewport.height}px`;
+                    fitPdfToStage();
+                    pageSizes[currentPage] = {displayWidth: viewport.width, displayHeight: viewport.height};
+                    const ratio = window.devicePixelRatio || 1;
+                    pdfCanvas.width = Math.floor(viewport.width * ratio);
+                    pdfCanvas.height = Math.floor(viewport.height * ratio);
+                    if (!await renderPdfToCanvas(pdfPage, viewport, ratio, requestId) || requestId !== renderRequestId)
+                        return;
+                    updatePageNavigation();
+                    document.getElementById('prevPageBtn').disabled = currentPage <= 1;
+                    document.getElementById('nextPageBtn').disabled = currentPage >= totalPages;
+                    pageLabel.textContent = `หน้า ${currentPage} จาก ${totalPages} · ${Math.round(pageWidth)} × ${Math.round(pageHeight)} pt`;
+                    render();
+                    coords.textContent = `กำลังดูหน้า ${currentPage} — สามารถเพิ่มหรือลากบล็อกบนหน้านี้ได้`;
+                    bookmarkPage.value = currentPage;
+                    bookmarkPage.max = totalPages || '';
+                }
+
+                document.getElementById('pdfInput').addEventListener('change', async event => {
+                    const file = event.target.files[0];
+                    if (!file)
+                        return;
+                    selectedPdfFile = file;
+                    const hasTemplateFields = fields.length > 0;
+                    if (!pdfJsReady) {
+                        coords.textContent = 'ไม่พบ PDF.js กรุณาตรวจสอบไฟล์ ../js/pdf.min.js และ ../js/pdf.worker.min.js';
+                        event.target.value = '';
+                        return;
+                    }
+                    const requestId = ++renderRequestId;
+                    Object.keys(pageSizes).forEach(key => delete pageSizes[key]);
+                    try {
+                        coords.textContent = 'กำลังเปิดไฟล์ PDF...';
+                        const data = await file.arrayBuffer();
+                        documentPdf = await pdfjsLib.getDocument({data}).promise;
+                        if (requestId !== renderRequestId)
+                            return;
+                        totalPages = documentPdf.numPages;
+                        for (let number = 1; number <= totalPages; number++) {
+                            const loadedPage = await documentPdf.getPage(number);
+                            if (requestId !== renderRequestId) return;
+                            const size = loadedPage.getViewport({scale:1});
+                            pageSizes[number] = {displayWidth:size.width, displayHeight:size.height};
+                        }
+                        currentPage = 1;
+                        const loadedBookmarkCount = await loadPdfBookmarks(documentPdf);
+                        if (requestId !== renderRequestId)
+                            return;
+                        updatePageNavigation();
+                        document.getElementById('prevPageBtn').disabled = true;
+                        document.getElementById('nextPageBtn').disabled = totalPages <= 1;
+                        const pdfPage = await documentPdf.getPage(1);
+                        if (requestId !== renderRequestId)
+                            return;
+                        const original = pdfPage.getViewport({scale: 1});
+                        pageWidth = original.width;
+                        pageHeight = original.height;
+                        pdfFileName = file.name;
+                        const scale = 1;
+                        const viewport = pdfPage.getViewport({scale});
+                        pageSizes[1] = {displayWidth: viewport.width, displayHeight: viewport.height};
+                        page.style.width = `${viewport.width}px`;
+                        page.style.height = `${viewport.height}px`;
+                    fitPdfToStage();
+                        const ratio = window.devicePixelRatio || 1;
+                        pdfCanvas.width = Math.floor(viewport.width * ratio);
+                        pdfCanvas.height = Math.floor(viewport.height * ratio);
+                        if (!await renderPdfToCanvas(pdfPage, viewport, ratio, requestId) || requestId !== renderRequestId)
+                            return;
+                        render();
+                        addButton.disabled = false;
+                        pageLabel.textContent = `หน้า 1 จาก ${documentPdf.numPages} · ${Math.round(pageWidth)} × ${Math.round(pageHeight)} pt`;
+                        const bookmarkMessage = loadedBookmarkCount
+                           ? ` · โหลด bookmark ${loadedBookmarkCount} รายการจาก PDF`
+                           : ' · PDF ไม่มี bookmark';
+                        coords.textContent = (hasTemplateFields
+                           ? `เปิด ${file.name} แล้ว — แสดง ${fields.length} บล็อกจาก JSON Template`
+                           : `เปิด ${file.name} แล้ว — เพิ่มบล็อกผู้เกี่ยวข้องแล้วลากไปวางได้`) + bookmarkMessage;
+                        bookmarkPage.max = totalPages || '';
+                        bookmarkPage.value = currentPage;
+                        if (parentDocsId) coords.textContent += ' · ตรวจสอบตำแหน่งแล้วกดสร้าง PDF (ยืนยันแก้ไข) เพื่อเริ่ม WF1 ใหม่ตาม WF เดิม';
+                    } catch (error) {
+                        addButton.disabled = true;
+                        selectedPdfFile = null;
+                        coords.textContent = `เปิด PDF ไม่สำเร็จ: ${error.message}`;
+                    }
+                });
+
+                document.getElementById('jsonInput').addEventListener('change', async event => {
+                    const file = event.target.files[0];
+                    if (!file)
+                        return;
+                    try {
+                        if (file.size > 10 * 1024 * 1024) throw new Error('ไฟล์ JSON ต้องไม่เกิน 10 MB');
+                        const text = await file.text();
+                        let data = JSON.parse(text);
+                        if (data?.config_json) data = typeof data.config_json === 'string' ? JSON.parse(data.config_json) : data.config_json;
+                        if (data?.layoutPayload) data = data.layoutPayload;
+                        if (data?.payload && !templateFieldList(data)) data = typeof data.payload === 'string' ? JSON.parse(data.payload) : data.payload;
+                        if (!templateFieldList(data) && Array.isArray(data?.signatureBoxes)) data = {...data, signatureFields:data.signatureBoxes};
+                        const importedFields = templateFieldList(data);
+                        if (!importedFields || importedFields.length > 1000 || importedFields.some(field => !field || typeof field !== 'object' || Array.isArray(field))) {
+                            throw new Error('ไม่พบตำแหน่งลายเซ็นที่ถูกต้องใน JSON Template');
+                        }
+                        if (fields.length && !confirm('นำเข้า JSON Template จะแทนที่ตำแหน่งลายเซ็นปัจจุบัน ต้องการนำเข้าหรือไม่?')) return;
+                        await restoreFromPayload(data);
+                        loadedSavedTemplate = true;
+                        if (window.parent !== window) window.parent.postMessage({type:'EIS_DOCS_LAYOUT_STATE', data:buildPayload(), loadedSavedTemplate:true}, window.location.origin);
+                        coords.textContent = `นำเข้า ${file.name} สำเร็จ (${fields.length} ตำแหน่ง)${documentPdf ? '' : ' — กรุณาอัปโหลด PDF เพื่อแสดงเอกสาร'}`;
+                    } catch (error) {
+                        coords.textContent = `นำเข้า JSON Template ไม่สำเร็จ: ${error.message}`;
+                    } finally {
+                        event.target.value = '';
+                    }
+                });
+
+                addButton.addEventListener('click', addBlock);
+
+                function parsePageRanges(text, maxPage) {
+                    const pages = new Set();
+                    String(text || '').split(',').forEach(part => {
+                        const trimmed = part.trim();
+                        if (!trimmed)
+                            return;
+                        const rangeMatch = trimmed.match(/^(\d+)\s*-\s*(\d+)$/);
+                        if (rangeMatch) {
+                            let start = Number(rangeMatch[1]);
+                            let end = Number(rangeMatch[2]);
+                            if (start > end)
+                                [start, end] = [end, start];
+                            for (let p = start; p <= end; p++)
+                                pages.add(p);
+                        } else if (/^\d+$/.test(trimmed)) {
+                            pages.add(Number(trimmed));
+                        }
+                    });
+                    return [...pages].filter(p => p >= 1 && (!maxPage || p <= maxPage)).sort((a, b) => a - b);
+                }
+
+                document.getElementById('groupCopyBtn').addEventListener('click', () => {
+                    const sourceInput = document.getElementById('groupSourcePage').value;
+                    const sourcePage = sourceInput ? Number(sourceInput) : currentPage;
+                    const sourceFields = fields.filter(field => field.page === sourcePage);
+                    if (!sourceFields.length) {
+                        coords.textContent = `ไม่พบบล็อกในหน้า ${sourcePage} ให้คัดลอก — กรุณาวางบล็อกกลุ่มนี้ในหน้าเทมเพลตก่อน`;
+                        return;
+                    }
+                    const targetPages = parsePageRanges(document.getElementById('groupTargetPages').value, totalPages || undefined)
+                       .filter(p => p !== sourcePage);
+                    if (!targetPages.length) {
+                        coords.textContent = 'กรุณาระบุหน้าปลายทาง เช่น 5-7,11';
+                        return;
+                    }
+                    let addedCount = 0;
+                    targetPages.forEach(targetPage => {
+                        sourceFields.forEach(field => {
+                            fields.push({...field, id: `field-copy-${sequence++}`, page: targetPage, hiddenRows: [...field.hiddenRows]});
+                            addedCount++;
+                        });
+                    });
+                    render();
+                    coords.textContent = `คัดลอก ${sourceFields.length} บล็อกจากหน้า ${sourcePage} ไปยัง ${targetPages.length} หน้า (${targetPages.join(', ')}) รวม ${addedCount} บล็อกใหม่`;
+                });
+                wfGroupSearch.addEventListener('input', () => {
+                    clearTimeout(wfGroupSearchTimer);
+                    wfGroupSearchTimer = setTimeout(searchWorkflowGroups, 300);
+                });
+                wfGroupSelect.addEventListener('change', () => {
+                    wfGroupLoadBtn.disabled = !wfGroupSelect.value;
+                });
+                wfGroupLoadBtn.addEventListener('click', loadWorkflowGroup);
+                let signatureSourceMode = 'group';
+                let loadedWorkflowGroupId = '';
+                const signatureSourcePanel = document.createElement('div');
+                signatureSourcePanel.className = 'participant-editor';
+                signatureSourcePanel.innerHTML = '<h3>กล่องลายเซ็น</h3><label for="signatureSourceMode">โหมดข้อมูล</label><select id="signatureSourceMode"><option value="group">จากกลุ่มผู้ลงนาม</option><option value="template">จาก Template ที่บันทึกไว้</option></select><small>เลือกโหมด แล้วโหลดกลุ่มหรือ Template เพื่อแก้ไขกล่องลายเซ็น ใช้ได้ทั้งเอกสารใหม่และเอกสารเดิม</small>';
+                document.querySelector('.side').prepend(signatureSourcePanel);
+                const signatureSourceSelect = document.getElementById('signatureSourceMode');
+                signatureSourceSelect.hidden = true;
+                signatureSourcePanel.querySelector('label[for="signatureSourceMode"]').hidden = true;
+                const groupPanel = wfGroupSelect.closest('.participant-editor');
+                const oldGroupControls = document.createElement('div');
+                oldGroupControls.hidden = true;
+                [...groupPanel.children].forEach(child => {
+                    if (child.tagName !== 'H3' && child.id !== 'wfGroupInfo' && child.id !== 'participantList') oldGroupControls.appendChild(child);
+                });
+                groupPanel.appendChild(oldGroupControls);
+                const loadTabGroupBtn = document.createElement('button');
+                loadTabGroupBtn.type = 'button';
+                loadTabGroupBtn.className = 'primary';
+                loadTabGroupBtn.textContent = 'โหลดข้อมูลจากกลุ่มผู้ลงนามที่เลือกในแถบที่สอง';
+                signatureSourceSelect.after(loadTabGroupBtn);
+                wfGroupInfo.textContent = 'เลือกกลุ่มผู้ลงนามในแถบ 2 แล้วกดโหลด';
+                loadTabGroupBtn.addEventListener('click', () => {
+                    if (!documentPdf) {
+                        coords.textContent = 'กรุณาเปิด PDF ก่อนสร้างกล่องลายเซ็นจากกลุ่มผู้ลงนาม';
+                        return;
+                    }
+                    if (restoringDocument) {
+                        wfGroupInfo.textContent = 'กรุณารอให้โหลดเอกสารเดิมเสร็จก่อน';
+                        coords.textContent = wfGroupInfo.textContent;
+                        return;
+                    }
+                    if (window.parent === window) {
+                        wfGroupInfo.textContent = 'กรุณาเปิดผ่านหน้าจัดทำเอกสารเพื่อใช้กลุ่มจากแถบ 2';
+                        coords.textContent = wfGroupInfo.textContent;
+                        return;
+                    }
+                    window.parent.postMessage({type:'EIS_DOCS_REQUEST_SELECTED_SIGNER_GROUP'}, location.origin);
+                    coords.textContent = 'กำลังโหลดข้อมูลจากกลุ่มผู้ลงนามที่เลือกในแถบที่สอง...';
+                });
+                const clearSignatureBoxesBtn = document.createElement('button');
+                clearSignatureBoxesBtn.type = 'button';
+                clearSignatureBoxesBtn.className = 'danger';
+                clearSignatureBoxesBtn.textContent = 'ลบกล่องผู้ลงนามเดิมทั้งหมด';
+                loadTabGroupBtn.before(clearSignatureBoxesBtn);
+                clearSignatureBoxesBtn.addEventListener('click', () => {
+                    if (restoringDocument) {
+                        coords.textContent = 'กรุณารอให้โหลดเอกสารเดิมเสร็จก่อนลบกล่อง';
+                        return;
+                    }
+                    const count = fields.length;
+                    fields.length = 0;
+                    selectedFieldId = null;
+                    render();
+                    renderSelectedBlockEditor();
+                    coords.textContent = `ลบกล่องผู้ลงนามทั้งหมด ${count} กล่องแล้ว`;
+                    window.parent.postMessage({type:'EIS_DOCS_LAYOUT_STATE', data:buildPayload()}, location.origin);
+                });
+                const loadSelectedSignatureTemplateBtn = document.createElement('button');
+                loadSelectedSignatureTemplateBtn.type = 'button';
+                loadSelectedSignatureTemplateBtn.className = 'primary';
+                loadSelectedSignatureTemplateBtn.textContent = 'โหลดจาก Template ที่เลือก';
+                loadTabGroupBtn.after(loadSelectedSignatureTemplateBtn);
+                loadSelectedSignatureTemplateBtn.addEventListener('click', async () => {
+                    setSignatureSource('template');
+                    if (!templateSelect.value) {
+                        coords.textContent = 'กรุณาเลือก Template ที่บันทึกไว้ด้านล่างก่อนโหลด';
+                        templateSelect.focus();
+                        return;
+                    }
+                    loadSelectedSignatureTemplateBtn.disabled = true;
+                    try {
+                        await loadSelectedTemplate();
+                    } finally {
+                        loadSelectedSignatureTemplateBtn.disabled = false;
+                    }
+                });
+                function setSignatureSource(mode) {
+                    signatureSourceMode = mode === 'template' ? 'template' : 'group';
+                    signatureSourceSelect.value = signatureSourceMode;
+                    wfGroupSelect.closest('.participant-editor').hidden = true;
+                    templateSelect.closest('.participant-editor').hidden = signatureSourceMode !== 'template';
+                }
+                signatureSourceSelect.addEventListener('change', () => {
+                    setSignatureSource(signatureSourceSelect.value);
+                    coords.textContent = signatureSourceMode === 'template'
+                        ? 'เลือก Template ที่บันทึกไว้แล้วกดโหลด เพื่อใช้ตำแหน่งและผู้ลงนามจาก Template'
+                        : 'เลือกกลุ่มผู้ลงนามแล้วกดโหลด จากนั้นแก้ไขหรือเพิ่มกล่องลายเซ็นได้';
+                });
+                setSignatureSource('group');
+                let restoringDocument = false;
+                window.addEventListener('message', async event => {
+                    if (event.origin !== window.location.origin)
+                        return;
+                    const message = event.data;
+                    if (!message)
+                        return;
+                    if (message.type === 'EIS_DOCS_SIGN_DATE_POLICY' && event.source === window.parent) {
+                        signDatePolicy = message.policy || {mode:'none', fixed:''};
+                        render();
+                        return;
+                    }
+                    if (message.type === 'EIS_DOCS_SELECTED_SIGNER_GROUP' && event.source === window.parent) {
+                        if (!message.group) {
+                            wfGroupInfo.textContent = 'กรุณาเลือกกลุ่มผู้ลงนามในแถบ 2 ก่อนโหลด';
+                            coords.textContent = wfGroupInfo.textContent;
+                            return;
+                        }
+                        if (!documentPdf) {
+                            coords.textContent = 'กรุณาเปิด PDF ก่อนสร้างกล่องลายเซ็นจากกลุ่มผู้ลงนาม';
+                            return;
+                        }
+                        useWorkflowSignatureDefaults = message.group.useSignatureDefaults === true;
+                        const loaded = await loadWorkflowGroup(message.group);
+                        if (!loaded || !participants.length) {
+                            coords.textContent = loaded ? 'กลุ่มที่เลือกไม่มีผู้ลงนาม' : wfGroupInfo.textContent;
+                            return;
+                        }
+                        defaultAssigneeSelect.value = '__ALL__';
+                        addBlock();
+                        coords.textContent = `โหลดกลุ่ม “${loadedWfGroupName}” และจัดกล่อง ${participants.length} กล่องตามตำแหน่งเริ่มต้นที่หน้า ${currentPage} แล้ว`;
+                        window.parent.postMessage({type:'EIS_DOCS_LAYOUT_STATE', name:loadedWfGroupName, data:buildPayload()}, location.origin);
+                        return;
+                    }
+                    if (message.type === 'EIS_DOCS_RESTORE_DOCUMENT') {
+                        if (event.source !== window.parent || restoringDocument) return;
+                        restoringDocument = true;
+                        try {
+                            parentDocsId = message.docsId || null;
+                            docIdInput.value = String(message.docId || '');
+                            coords.textContent = 'กำลังโหลด PDF และตำแหน่งที่บันทึกไว้...';
+                            let payload = message.payload;
+                            if (message.docsId) {
+                                const query = `?docId=${encodeURIComponent(message.docId)}`;
+                                if (!payload && message.docId) {
+                                    const response = await fetch('../pdf/fields' + query, {credentials:'same-origin'});
+                                    if (response.ok) payload = await response.json();
+                                }
+                                let response = await fetch('document-source.php?id=' + encodeURIComponent(message.docsId), {credentials:'same-origin'});
+                                const hasOriginal = response.ok;
+                                if (response.status === 404) response = await fetch('../pdf/view' + query, {credentials:'same-origin'});
+                                if (!response.ok) throw new Error(`โหลด PDF ไม่สำเร็จ (HTTP ${response.status})`);
+                                payload = payload || message.fallbackPayload;
+                                const blob = await response.blob();
+                                selectedPdfFile = hasOriginal ? new File([blob], payload?.samplePdf?.fileName || 'document.pdf', {type:'application/pdf'}) : null;
+                                documentPdf = await pdfjsLib.getDocument({data:await blob.arrayBuffer()}).promise;
+                                Object.keys(pageSizes).forEach(key => delete pageSizes[key]);
+                                for (let number = 1; number <= documentPdf.numPages; number++) {
+                                    const pdfPage = await documentPdf.getPage(number);
+                                    const viewport = pdfPage.getViewport({scale:1});
+                                    pageSizes[number] = {displayWidth:viewport.width, displayHeight:viewport.height};
+                                }
+                                pdfFileName = payload?.samplePdf?.fileName || 'document.pdf';
+                                totalPages = documentPdf.numPages;
+                                await showPage(1);
+                            }
+                            payload = payload || message.fallbackPayload;
+                            if (payload) {
+                                if (documentPdf) payload = {...payload, samplePdf:{...payload.samplePdf, pageCount:documentPdf.numPages}};
+                                await restoreFromPayload(payload);
+                            }
+                            coords.textContent = selectedPdfFile
+                                ? `โหลด PDF ต้นฉบับและค่าที่บันทึกไว้แล้ว (${fields.length} บล็อก)`
+                                : 'แสดง PDF ที่สร้างไว้และตำแหน่งเดิม — ยังไม่มีต้นฉบับ กรุณาอัปโหลด PDF ต้นฉบับก่อนสร้าง PDF ใหม่เพื่อป้องกันข้อความซ้อน';
+                            window.parent.postMessage({type:'EIS_DOCS_LAYOUT_STATE', data:buildPayload()}, location.origin);
+                            window.parent.postMessage({type:'EIS_DOCS_DOCUMENT_RESTORED'}, location.origin);
+                        } catch (error) {
+                            coords.textContent = `เปิดเอกสารเดิมไม่สำเร็จ: ${error.message}`;
+                        } finally {
+                            restoringDocument = false;
+                        }
+                        return;
+                    }
+                    if (message.type === 'EIS_DOCS_REQUEST_LAYOUT_STATE') {
+                        window.parent.postMessage({type:'EIS_DOCS_LAYOUT_STATE',name:templateName.value || templateSelect.value,data:buildPayload()},window.location.origin);
+                        return;
+                    }
+                    if (message.type === 'EIS_DOCS_LOAD_WF_GROUP' && message.groupId) {
+                        useWorkflowSignatureDefaults = message.useSignatureDefaults === true;
+                        if (signatureSourceMode === 'template' || loadedWorkflowGroupId === String(message.groupId)) return;
+                        loadWorkflowGroup(String(message.groupId));
+                        return;
+                    }
+                    if (message.type === 'EIS_DOCS_SAVE_LAYOUT_TEMPLATE' && message.name) {
+                        saveCurrentAsTemplate(String(message.name), true);
+                        return;
+                    }
+                    if (message.type === 'EIS_DOCS_LOAD_LAYOUT_TEMPLATE' && message.name) {
+                        loadSelectedTemplate(String(message.name), true);
+                        return;
+                    }
+                    if (message.type === 'EIS_DOCS_SYNC_PROCUREMENT_BOOKMARKS') {
+                        if (event.source !== window.parent) return;
+                        parentDocsId = message.docsId || null;
+                        docIdInput.value = String(message.documentPath || message.prCode || '').trim();
+                        docIdInput.dispatchEvent(new Event('input', {bubbles: true}));
+                        document.getElementById('layoutDocumentType').textContent = String(message.documentType || '').trim() || 'ยังไม่ได้เลือกชนิดเอกสาร';
+                        if (layoutIsAuthoritative && message.forceReload !== true) return;
+                        const incoming = Array.isArray(message.bookmarks) ? message.bookmarks : [];
+                        const retained = bookmarks.filter(bookmark => bookmark.source !== 'procurement');
+                        const inserted = incoming
+                           .filter(bookmark => bookmark && bookmark.name)
+                           .map(bookmark => ({
+                               id: `bookmark-${bookmarkSequence++}`,
+                               name: String(bookmark.name),
+                               page: Math.max(1, Number(bookmark.page) || 1),
+                               level: Math.max(0, Number(bookmark.level) || 0),
+                               source: 'procurement',
+                               documentId: String(bookmark.documentId || ''),
+                               group: Number(bookmark.group) || null
+                           }));
+                        bookmarks.length = 0;
+                        bookmarks.push(...retained, ...inserted);
+                        renderBookmarkList();
+                        if (message.forceReload === true) {
+                            layoutIsAuthoritative = true;
+                            window.parent.postMessage({type:'EIS_DOCS_LAYOUT_STATE', data:buildPayload()}, location.origin);
+                        }
+                        coords.textContent = inserted.length
+                           ? `แทรก Bookmark จากรายการเอกสารจัดซื้อ ${inserted.length} รายการ${message.prCode ? ` (${message.prCode})` : ''} แล้ว`
+                           : 'ลบ Bookmark จากรายการเอกสารจัดซื้อแล้ว';
+                    }
+                });
+                defaultAssigneeSelect.addEventListener('change', () => {
+                    const person = participants.find(item => item.id === defaultAssigneeSelect.value);
+                    if (!person)
+                        return;
+                    const matchedRole = activeRoles().find(role => role.order === person.wfOrder);
+                    if (matchedRole)
+                        defaultRoleSelect.value = matchedRole.id;
+                });
+                const procurementBtn = document.createElement('button');
+                procurementBtn.type = 'button';
+                procurementBtn.className = 'bookmark-add';
+                procurementBtn.textContent = '📂 โหลด Bookmark จากข้อมูลหลัก';
+                bookmarkAddBtn.after(procurementBtn);
+                procurementBtn.addEventListener('click', () => {
+                    if (window.parent === window) {
+                        coords.textContent = 'กรุณาเปิดผ่านหน้าจัดทำเอกสาร PR เพื่อโหลด Bookmark จากข้อมูลหลัก';
+                        return;
+                    }
+                    window.parent.postMessage({type: 'EIS_DOCS_REQUEST_PROCUREMENT_BOOKMARKS'}, location.origin);
+                });
+                const templateBookmarkBtn = document.createElement('button');
+                templateBookmarkBtn.type = 'button';
+                templateBookmarkBtn.className = 'bookmark-add';
+                templateBookmarkBtn.textContent = '📑 เพิ่ม Bookmark จาก Template';
+                procurementBtn.after(templateBookmarkBtn);
+                templateBookmarkBtn.addEventListener('click', () => {
+                    const name = templateSelect.value;
+                    if (!name) {
+                        coords.textContent = 'กรุณาเลือก Template ที่บันทึกไว้ด้านล่างก่อนเพิ่ม Bookmark';
+                        setSignatureSource('template');
+                        templateSelect.focus();
+                        return;
+                    }
+                    const data = loadTemplateStore()[name];
+                    const incoming = Array.isArray(data?.bookmarks) ? data.bookmarks : [];
+                    let added = 0, skipped = 0;
+                    incoming.forEach(mark => {
+                        const pageNo = Number(mark?.page);
+                        if (!mark?.name || !Number.isInteger(pageNo) || pageNo < 1 || (documentPdf && pageNo > totalPages)) {
+                            skipped++;
+                            return;
+                        }
+                        if (bookmarks.some(existing => existing.name === String(mark.name) && existing.page === pageNo)) return;
+                        bookmarks.push({...mark, id: `bookmark-${bookmarkSequence++}`, name: String(mark.name), page: pageNo, source: 'template'});
+                        added++;
+                    });
+                    renderBookmarkList();
+                    coords.textContent = incoming.length
+                        ? `เพิ่ม Bookmark จาก Template "${name}" ${added} รายการแล้ว${skipped ? ` (ข้ามเลขหน้าที่ไม่ถูกต้อง ${skipped} รายการ)` : ''}`
+                        : `Template "${name}" ไม่มี Bookmark`;
+                });
+                bookmarkPage.addEventListener('keydown', async event => {
+                    if (event.key !== 'Enter') return;
+                    event.preventDefault();
+                    const pageNo = Number(bookmarkPage.value);
+                    if (!documentPdf) {
+                        coords.textContent = 'กรุณาเปิด PDF ก่อนไปยังหน้าที่ระบุ';
+                        return;
+                    }
+                    if (!Number.isInteger(pageNo) || pageNo < 1 || pageNo > totalPages) {
+                        coords.textContent = `กรุณาระบุเลขหน้าตั้งแต่ 1 ถึง ${totalPages}`;
+                        return;
+                    }
+                    await showPage(pageNo);
+                });
+                bookmarkAddBtn.addEventListener('click', addBookmark);
+                document.getElementById('bookmarkClearBtn').addEventListener('click', () => {
+                    if (!bookmarks.length)
+                        return;
+                    if (!confirm(`ล้าง Bookmark ทั้งหมด ${bookmarks.length} รายการหรือไม่?`))
+                        return;
+                    bookmarks.length = 0;
+                    renderBookmarkList();
+                    coords.textContent = 'ล้าง Bookmark เดิมทั้งหมดแล้ว กรุณาสร้าง PDF ใหม่เพื่อบันทึกการเปลี่ยนแปลง';
+                });
+                bookmarkName.addEventListener('keydown', event => {
+                    if (event.key === 'Enter')
+                        bookmarkAddBtn.click();
+                });
+                selectedWorkflowSelect.addEventListener('change', () => {
+                    const field = selectedField();
+                    if (!field)
+                        return;
+                    const workflow = workflows.find(item => item.id === selectedWorkflowSelect.value);
+                    field.workflowId = workflow ? workflow.id : '';
+                    field.workflowName = workflow ? workflow.name : '';
+                    render();
+                    renderSelectedBlockEditor();
+                });
+                selectedRoleSelect.addEventListener('change', () => {
+                    const field = selectedField();
+                    if (!field)
+                        return;
+                    const role = roles.find(item => item.id === selectedRoleSelect.value);
+                    field.roleId = role ? role.id : '';
+                    field.roleName = role ? role.name : '';
+                    applyRoleDefaults(field, role);
+                    render();
+                    renderSelectedBlockEditor();
+                });
+                selectedAssigneeSelect.addEventListener('change', () => {
+                    if (selectedAssigneeSelect.value === '__ALL__') {
+                        defaultAssigneeSelect.value = '__ALL__';
+                        addBlock();
+                        return;
+                    }
+                    const person = participants.find(item => item.id === selectedAssigneeSelect.value);
+                    let field = selectedField();
+                    if (!field && person) {
+                        field = createBlockForPerson(person);
+                        render();
+                        select(field.id);
+                        return;
+                    }
+                    if (!field)
+                        return;
+                    field.assigneeId = person ? person.id : '';
+                    field.user_id = person ? person.user_id : '';
+                    field.assigneeName = person ? person.name : '';
+                    field.signerName = person ? `(${person.name})` : field.signerName;
+                    if (person) {
+                        field.reviewAction = person.reviewAction;
+                        field.signAction = person.signAction;
+                        field.approveAction = person.approveAction;
+                        field.wfOrder = person.wfOrder;
+                        field.wfGroupName = loadedWfGroupName;
+                        const matchedRole = activeRoles().find(role => role.order === person.wfOrder);
+                        if (matchedRole) {
+                            field.roleId = matchedRole.id;
+                            field.roleName = matchedRole.name;
+                        }
+                    }
+                    render();
+                    renderSelectedBlockEditor();
+                });
+                function updateSelectedFieldActions() {
+                    const field = selectedField();
+                    if (!field)
+                        return;
+                    field.reviewAction = actionReview.checked;
+                    field.signAction = actionSign.checked;
+                    field.approveAction = actionApprove.checked;
+                    if (field.roleId === 'DEAN' && field.approveAction) {
+                        field.approval = field.approval || 'อนุมัติ';
+                        field.actingForPresident = field.actingForPresident || 'ปฏิบัติการแทนอธิการบดี';
+                        field.h = Math.max(field.h, 222);
+                    }
+                    render();
+                    renderSelectedBlockEditor();
+                }
+                actionReview.addEventListener('change', updateSelectedFieldActions);
+                actionSign.addEventListener('change', updateSelectedFieldActions);
+                actionApprove.addEventListener('change', updateSelectedFieldActions);
+                function updatePageNavigation() {
+                    const input = document.getElementById('pageJumpInput');
+                    input.value = String(totalPages ? currentPage : 0);
+                    input.disabled = !totalPages;
+                    input.setCustomValidity('');
+                    document.getElementById('pageCounter').textContent = `/ ${totalPages}`;
+                    document.getElementById('pageJumpBtn').disabled = !totalPages;
+                }
+                document.getElementById('pageJumpInput').addEventListener('input', event => event.target.setCustomValidity(''));
+                document.getElementById('pageJumpForm').addEventListener('submit', async event => {
+                    event.preventDefault();
+                    const input = document.getElementById('pageJumpInput');
+                    const target = Number(input.value.trim());
+                    if (!totalPages || !Number.isInteger(target) || target < 1 || target > totalPages) {
+                        input.setCustomValidity(`กรุณาระบุเลขหน้า 1–${totalPages}`);
+                        input.reportValidity();
+                        return;
+                    }
+                    input.setCustomValidity('');
+                    input.blur();
+                    await showPage(target);
+                    stage.scrollTop = 0;
+                });
+                document.getElementById('prevPageBtn').addEventListener('click', () => showPage(currentPage - 1));
+                document.getElementById('nextPageBtn').addEventListener('click', () => showPage(currentPage + 1));
+                document.getElementById('previewBtn').addEventListener('click', event => {
+                    const missing = missingAssignments();
+                    if (missing.length)
+                        coords.textContent = `ยังมี ${missing.length} บล็อกที่ไม่ได้เลือก role หรือผู้ทำหน้าที่`;
+                    document.getElementById('app').classList.toggle('preview');
+                    event.currentTarget.textContent = document.getElementById('app').classList.contains('preview') ? 'กลับไปแก้ไข' : 'ดูตัวอย่างจริง';
+                });
+                document.getElementById('clearBtn').addEventListener('click', () => {
+                    if (!fields.length || !confirm('ล้างบล็อกผู้เกี่ยวข้องทั้งหมดหรือไม่?'))
+                        return;
+                    fields.length = 0;
+                    selectedFieldId = null;
+                    render();
+                    renderSelectedBlockEditor();
+                    coords.textContent = 'ล้างบล็อกผู้เกี่ยวข้องทั้งหมดแล้ว';
+                });
+                document.getElementById('exportBtn').addEventListener('click', () => {
+                    const missing = missingAssignments();
+                    if (missing.length && !confirm(`ยังมี ${missing.length} บล็อกที่ไม่ได้เลือก role หรือผู้ทำหน้าที่ ต้องการบันทึก JSON ต่อหรือไม่?`))
+                        return;
+                    const data = saveJsonToLocalDraft();
+                    output.value = JSON.stringify(data, null, 2);
+                    coords.textContent = 'บันทึก JSON ล่าสุดไว้ใน browser แล้ว สามารถดาวน์โหลดไฟล์จากหน้าต่างนี้ได้';
+                    dialog.showModal();
+                });
+                document.getElementById('closeBtn').addEventListener('click', () => dialog.close());
+                generatePdfBtn.addEventListener('click', generatePdf);
+                document.getElementById('downloadBtn').addEventListener('click', () => {
+                    const blob = new Blob([JSON.stringify(payload(), null, 2)], {type: 'application/json;charset=utf-8'});
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = 'pdfbox-involved-party-fields.json';
+                    link.click();
+                    setTimeout(() => URL.revokeObjectURL(link.href), 0);
+                });
+                templateSaveBtn.addEventListener('click', () => saveCurrentAsTemplate());
+                templateLoadBtn.addEventListener('click', () => loadSelectedTemplate());
+                templateDeleteBtn.addEventListener('click', deleteSelectedTemplate);
+                templateSelect.addEventListener('change', () => {
+                    if (templateSelect.value)
+                        templateName.value = templateSelect.value;
+                });
+                templateName.addEventListener('keydown', event => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        templateSaveBtn.click();
+                    }
+                });
+
+                renderDocumentRoleList();
+                renderParticipantList();
+                renderBookmarkList();
+                renderTemplateSelect();
+            })();
+        </script>
+    </body>
+</html>

@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="app-csrf" content="{{APP_CSRF}}" />
+  <meta name="app-user-id" content="{{USER_ID}}" />
+  <meta name="notification-ws-url" content="{{NOTIFICATION_WS_URL}}" />
+  <base href="/eis-docs/docMain/" />
+  <title>EIS-DOCS — ระบบจัดการเอกสาร</title>
+  <link rel="stylesheet" href="style.css?v=20260911-3" />
+  <style>
+    /* Embedded PDF layout tool (step: วางตำแหน่ง) */
+    .pdf-layout-embed {
+      width: 100%;
+      height: 78vh;
+      min-height: 620px;
+      border: 1px solid var(--edge, #e1d9c6);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .pdf-layout-embed iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-label="เปิดเมนูหลัก" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+
+    <!-- ══════════ MAIN MENU (SIDEBAR) ══════════ -->
+    <aside class="main-menu" id="mainMenu">
+      <div class="main-menu-brand">
+        <span class="brand-icon">🗂️</span>
+        <div class="brand-text">
+          <div class="brand-title">ระบบจัดการเอกสาร</div>
+          <div class="brand-sub">งานจัดซื้อ</div>
+        </div>
+        <button class="sidebar-collapse-toggle" id="sidebarCollapseToggle" type="button" aria-label="ย่อเมนู" aria-expanded="true">‹</button>
+      </div>
+
+      <nav class="main-menu-nav">
+        <div class="main-menu-group-label">เมนูหลัก</div>
+
+        <button class="menu-item active" data-view="create" title="จัดทำเอกสาร">
+          <span class="menu-item-icon">📝</span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">จัดทำเอกสาร</span>
+            <span class="menu-item-desc">สร้าง Template ลายเซ็น</span>
+          </span>
+        </button>
+
+        <button class="menu-item" data-view="list" title="หน้าเอกสาร">
+          <span class="menu-item-icon">✅</span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">หน้าเอกสาร</span>
+            <span class="menu-item-desc">หน้าเอกสารและรายการเสร็จแล้ว</span>
+          </span>
+        </button>
+
+        <button class="menu-item" data-view="pending" title="เอกสารที่รอเซ็น">
+          <span class="menu-item-icon">⏳</span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">เอกสารที่รอเซ็น</span>
+            <span class="menu-item-desc">ตรวจสอบและลงนามเอกสาร</span>
+          </span>
+        </button>
+      </nav>
+
+      <div class="main-menu-footer">
+        <div class="notification-area">
+          <button class="notification-bell" id="notificationBell" type="button" aria-label="การแจ้งเตือน" aria-expanded="false">🔔<span id="notificationBadge" hidden>0</span></button>
+          <div class="notification-popover" id="notificationPopover" hidden>
+            <div class="notification-popover-head"><strong>การแจ้งเตือน</strong><button id="markAllNotificationsRead" type="button">อ่านทั้งหมด</button></div>
+            <div id="notificationItems" class="notification-items"><p>ยังไม่มีการแจ้งเตือน</p></div>
+          </div>
+        </div>
+        <div class="user-chip" id="userMenuChip">
+          <span class="user-avatar">{{USER_INITIAL}}</span>
+          <span class="user-info">
+            <span class="user-name">{{USER_FULL_NAME}}</span>
+            <span class="user-role">{{USER_ROLE}}</span>
+          </span>
+          <button class="user-menu-toggle" id="userMenuToggle" type="button" aria-label="เปิดเมนูผู้ใช้" aria-expanded="false">⋮</button>
+          <div class="user-menu" id="userMenu" hidden>
+            <button type="button" class="user-menu-item" data-user-action="profile"><span>👤</span> โปรไฟล์</button>
+            <button type="button" class="user-menu-item" data-user-action="settings"><span>⚙️</span> ตั้งค่า</button>
+            <div class="user-menu-separator"></div>
+            <a class="user-menu-item danger" href="{{LOGOUT_URL}}"><span>↪</span> ออกจากระบบ</a>
+          </div>
+        </div>
+        <div class="user-quick-actions" aria-label="เมนูบัญชีผู้ใช้">
+          <button type="button" data-user-action="profile" title="โปรไฟล์"><span>👤</span><span>โปรไฟล์</span></button>
+          <button type="button" data-user-action="settings" title="ตั้งค่า"><span>⚙️</span><span>ตั้งค่า</span></button>
+          <a href="{{LOGOUT_URL}}" class="quick-logout" title="ออกจากระบบ"><span>↪</span><span>ออกจากระบบ</span></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ══════════ MAIN CONTENT ══════════ -->
+    <div class="main-content">
+
+      <!-- ─────────────────────────────────────────────
+           VIEW 1: จัดทำเอกสาร (Create Document Wizard)
+      ────────────────────────────────────────────── -->
+      <section id="view-create" class="app-view active">
+
+        <!-- TOP BAR -->
+        <div class="topbar">
+          <span class="topbar-icon">📋</span>
+          <div class="topbar-title">
+            <div class="topbar-main">PR Document — Signature Template Setup</div>
+            <div class="topbar-sub">ระบบกำหนด Template ลายเซ็น สำหรับเอกสารจัดซื้อ</div>
+          </div>
+        </div>
+
+        <!-- STEP INDICATOR -->
+        <div class="step-bar">
+          <div class="step-item active" data-step="0">
+            <span class="step-num">1</span> ข้อมูลหลัก
+          </div>
+          <span class="step-arrow">›</span>
+          <div class="step-item" data-step="1">
+            <span class="step-num">2</span> กลุ่มผู้ลงนาม
+          </div>
+          <span class="step-arrow">›</span>
+          <div class="step-item" data-step="2">
+            <span class="step-num">3</span> วางตำแหน่ง
+          </div>
+          <span class="step-arrow">›</span>
+          <div class="step-item" data-step="3">
+            <span class="step-num">4</span> บันทึก
+          </div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="content-wrap">
+          <div class="card main-card">
+            <!-- Section Header -->
+            <div class="section-header" id="sectionHeader">
+              <span class="section-icon" id="sectionIcon">📄</span>
+              <div>
+                <h2 id="sectionTitle">ข้อมูลเอกสารลงนาม</h2>
+                <p id="sectionSubtitle">กำหนดชนิดเอกสารและเลือกเอกสาร PR</p>
+              </div>
+            </div>
+
+            <!-- STEP 0: Template Config -->
+            <div id="step-0" class="step-panel active">
+              <div class="grid-2">
+                <div class="form-group grid-span-2">
+                  <label for="savedDocumentSelect">ข้อมูลที่บันทึกใน EIS_DOCS</label>
+                  <div class="record-toolbar">
+                    <select id="savedDocumentSelect"><option value="">— สร้างรายการใหม่ —</option></select>
+                    <button type="button" class="btn btn-subtle" id="newDocumentBtn">＋ ใหม่</button>
+                    <button type="button" class="btn btn-primary" id="saveDocumentBtn">💾 บันทึก</button>
+                    <button type="button" class="btn btn-danger" id="deleteDocumentBtn" disabled>🗑 ลบ</button>
+                  </div>
+                  <small id="documentCrudMessage">เลือกข้อมูลเดิมเพื่อแก้ไข หรือกรอกข้อมูลเพื่อสร้างรายการใหม่</small>
+                </div>
+                <div class="form-group">
+                  <label>ชนิดเอกสาร (Document Type)</label>
+                  <select id="docType">
+                    <option value="">-- เลือก --</option>
+                    <option value="PR - ใบขอซื้อ/ขอจ้าง" selected>PR - ใบขอซื้อ/ขอจ้าง</option>
+                    <option value="PO - ใบสั่งซื้อ">PO - ใบสั่งซื้อ</option>
+                    <option value="GR - ใบรับสินค้า">GR - ใบรับสินค้า</option>
+                    <option value="IV - ใบแจ้งหนี้">IV - ใบแจ้งหนี้</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="prSearch">เอกสาร PR</label>
+                  <div class="pr-picker" id="prPicker">
+                    <input type="search" id="prSearch" placeholder="ค้นหาเลข PR หรือชื่อเรื่อง" autocomplete="off" />
+                    <div class="pr-results" id="prResults" hidden></div>
+                  </div>
+                  <input type="hidden" id="prId" />
+                  <small class="pr-selected" id="prSelected">ยังไม่ได้เลือกเอกสาร PR</small>
+                  <label class="manual-pr-toggle"><input type="checkbox" id="manualPrToggle" /> ไม่พบ PR — ระบุเลขที่อ้างอิงและชื่อรายการเอง</label>
+                  <div class="manual-pr-fields" id="manualPrFields" hidden>
+                    <input type="text" id="manualPrCode" maxlength="100" placeholder="เลขที่อ้างอิง เช่น POME23654" />
+                    <input type="text" id="manualPrName" maxlength="500" placeholder="ชื่อรายการ เช่น รายการขอซื้อยา" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>ชื่อเอกสารลงนาม</label>
+                  <input type="text" id="templateName" placeholder="เช่น เห็นชอบ แต่งตั้งคณะกรรมการจัดทำ (TOR)" />
+                </div>
+                <div class="form-group">
+                  <label>รายละเอียด</label>
+                  <input type="text" id="description" placeholder="อธิบายการใช้งาน template นี้" />
+                </div>
+                <div class="form-group grid-span-2">
+                  <label>File on server</label>
+                  <input type="text" id="serverFilePath" placeholder="พาธไฟล์ PDF บนเซิร์ฟเวอร์" />
+                </div>
+                <div class="form-group">
+                  <label>สถานะ Template</label>
+                  <div class="status-btns">
+                    <button class="status-btn" data-status="Active">Active</button>
+                    <button class="status-btn active" data-status="Draft">Draft</button>
+                    <button class="status-btn" data-status="Inactive">Inactive</button>
+                  </div>
+                </div>
+              </div>
+              <section class="procurement-picker is-disabled" id="procurementPicker" aria-disabled="true">
+                <div class="procurement-heading">
+                  <div><h3>การทำเอกสารจัดซื้อ</h3><p>เลือกเอกสารที่ต้องจัดทำสำหรับ PR นี้</p></div>
+                  <div class="procurement-toolbar">
+                    <button type="button" id="procurementAddTopic" class="btn btn-subtle" disabled>＋ เพิ่มหัวข้อ</button>
+                    <label class="procurement-select-all"><input type="checkbox" id="procurementSelectAll" disabled /> เลือกทั้งหมด</label>
+                  </div>
+                </div>
+                <div class="procurement-table-head"><span></span><span>หัวข้อ</span><span>ชุด</span><span>หน้า</span><span>จัดการ</span></div>
+                <div id="procurementDocumentList" class="procurement-list">
+                  <div class="procurement-empty">กรุณาเลือกเอกสาร PR ก่อน</div>
+                </div>
+                <div class="procurement-summary" id="procurementSummary">เลือกแล้ว 0 รายการ</div>
+              </section>
+            </div>
+
+            <!-- STEP 1: Signature Groups -->
+            <div id="step-1" class="step-panel">
+              <div class="add-group-row">
+                <input type="search" id="wfGroupSearch" placeholder="ค้นหาชื่อกลุ่มผู้ลงนามจากฐานข้อมูล" autocomplete="off" />
+                <select id="wfGroupSelect" aria-label="เลือกกลุ่มผู้ลงนาม">
+                  <option value="">— กำลังโหลดกลุ่มผู้ลงนาม —</option>
+                </select>
+                <button class="btn btn-primary" id="addWfGroupBtn" disabled>+ เลือกกลุ่ม</button>
+              </div>
+              <div class="add-group-row wf-create-row">
+                <input type="text" id="newWfGroupName" maxlength="255" placeholder="สร้างชื่อกลุ่มผู้ลงนามใหม่" />
+                <select id="newWfGroupVisibility" aria-label="การมองเห็นกลุ่มใหม่">
+                  <option value="private">เห็นเฉพาะตัว</option>
+                  <option value="department">เห็นทั้งหน่วยงาน</option>
+                  <option value="all">เห็นทั้งหมด</option>
+                </select>
+                <button class="btn btn-success" id="createWfGroupBtn">+ สร้างกลุ่มใหม่</button>
+              </div>
+              <p class="json-memory-hint" id="wfGroupHint">ข้อมูลจาก EIS_DOCS.WF_USER_HDR / WF_USER_DTL</p>
+              <div id="groupList">
+                <p class="empty-msg">ยังไม่มีกลุ่มผู้ลงนาม — เพิ่มกลุ่มแรกด้านบน</p>
+              </div>
+            </div>
+
+            <!-- STEP 2: PDF Layout Placement (embedded tool) -->
+            <div id="step-2" class="step-panel">
+              <div class="pdf-layout-embed">
+                <iframe
+                  id="layoutFrame"
+                  src="layout.html?v=20260910-6"
+                  title="จัดวางบล็อกผู้เกี่ยวข้องในเอกสาร"
+                  loading="lazy"
+                ></iframe>
+              </div>
+            </div>
+
+            <!-- STEP 3: Preview + Save -->
+            <div id="step-3" class="step-panel">
+              <div class="grid-2">
+                <div>
+                  <div class="card preview-card">
+                    <h3>📋 ข้อมูล Template</h3>
+                    <div id="previewConfig"></div>
+                  </div>
+                  <div class="card preview-card" style="margin-top:12px">
+                    <h3>📦 กล่องลายเซ็น (<span id="previewBoxCount">0</span>)</h3>
+
+                    <div id="signDateOption" style="border:1px solid var(--border,#e2e2e2);border-radius:8px;padding:10px 12px;margin-bottom:12px">
+                      <div style="font-weight:700;font-size:13px;margin-bottom:8px">🗓️ วันที่ของการลงนาม</div>
+
+                      <label style="display:flex;align-items:flex-start;gap:6px;font-size:13px;margin-bottom:7px;cursor:pointer">
+                        <input type="radio" name="signDateMode" id="signDateModeFixed" value="fixed" style="margin-top:2px" />
+                        <span>1. ระบุวันที่เซ็นในเอกสาร</span>
+                      </label>
+
+                      <label style="display:flex;align-items:flex-start;gap:6px;font-size:13px;margin-bottom:7px;cursor:pointer">
+                        <input type="radio" name="signDateMode" id="signDateModeActual" value="actual" style="margin-top:2px" />
+                        <span>2. เป็นไปตามวันเซ็นจริง</span>
+                      </label>
+
+                      <label style="display:flex;align-items:flex-start;gap:6px;font-size:13px;margin-bottom:8px;cursor:pointer">
+                        <input type="radio" name="signDateMode" id="signDateModeCapped" value="capped" style="margin-top:2px" />
+                        <span>3. ตามวันเซ็นจริง แต่ถ้าเกินวันที่ระบุไว้ ให้ใช้วันที่ระบุแทน<br /><small style="color:var(--text-muted,#888)">เช่น อธิการเซ็นช้ากว่าวันที่กำหนด จะแสดงในเอกสารเป็นวันที่ระบุไว้แทนวันที่เซ็นจริง</small></span>
+                      </label>
+
+                      <div id="signDateValueRow" style="display:none;margin-top:2px">
+                        <label for="signDateValue" style="display:block;font-size:12px;color:var(--text-muted,#888);margin-bottom:4px">ระบุวันที่</label>
+                        <input type="date" id="signDateValue" style="padding:6px 8px;border:1px solid #ccc;border-radius:6px;font-size:13px" />
+                      </div>
+                    </div>
+
+                    <div id="previewBoxes"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="card preview-card">
+                    <h3>👥 กลุ่มผู้ลงนาม (<span id="previewGroupCount">0</span>)</h3>
+                    <div id="previewGroups"></div>
+                  </div>
+                  <div class="save-actions">
+                    <button class="btn btn-primary btn-full" id="saveBtn">💾 บันทึก Template</button>
+
+                    <div class="json-export-block">
+                      <div class="json-export-label">⬇️ Export JSON Config</div>
+                      <div class="json-export-btn-row">
+                        <button class="btn btn-ghost" id="exportJsonFileBtn">💻 บันทึกลงเครื่อง</button>
+                        <button class="btn btn-ghost" id="exportJsonMemoryBtn">🗂️ บันทึกใน Memories</button>
+                      </div>
+
+                      <div class="json-memory-load-row">
+                        <select id="jsonMemorySelect" class="list-select">
+                          <option value="">-- เลือก Template จาก Memories เพื่อใช้งาน --</option>
+                        </select>
+                        <button class="row-action" id="jsonMemoryDeleteBtn" title="ลบ Template ที่เลือก">🗑️</button>
+                      </div>
+                      <p class="json-memory-hint" id="jsonMemoryHint"></p>
+                    </div>
+
+                    <button class="btn btn-subtle btn-full" id="exportPdfBtn">🖨 สร้าง PDF ด้วยข้อมูลที่บันทึกไว้</button>
+                    <p id="generateSavedPdfStatus" role="status"></p>
+                  </div>
+                  <div id="savedMsg" class="saved-msg" style="display:none">
+                    <p class="saved-ok">✅ บันทึก Template เรียบร้อยแล้ว</p>
+                    <p class="saved-sub" id="savedDetail"></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- NAV BUTTONS -->
+            <div class="nav-row">
+              <button class="btn btn-subtle" id="backBtn" disabled>◀ ย้อนกลับ</button>
+              <button class="btn btn-primary" id="nextBtn">ถัดไป ▶</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─────────────────────────────────────────────
+           VIEW 2: รายการเซ็นเอกสาร (Document Signing List)
+      ────────────────────────────────────────────── -->
+      <section id="view-list" class="app-view">
+
+        <div class="topbar">
+          <span class="topbar-icon">✅</span>
+          <div class="topbar-title">
+            <div class="topbar-main">หน้าเอกสาร</div>
+            <div class="topbar-sub">รายการเอกสารทั้งหมดและเอกสารที่ดำเนินการเรียบร้อย</div>
+          </div>
+        </div>
+
+        <div class="content-wrap">
+          <div class="card main-card">
+
+            <!-- Sub tabs -->
+            <div class="list-tab-bar">
+              <button class="list-tab active" data-tab="all">
+                2.1 📑 หน้าเอกสาร <span class="tab-count" id="countAll">0</span>
+              </button>
+              <button class="list-tab" data-tab="done">
+                2.2 ✅ เอกสารที่เซ็นเรียบร้อย <span class="tab-count tab-count-success" id="countDone">0</span>
+              </button>
+              <button class="list-tab" data-tab="sets">2.3 📁 ชุดเอกสารส่งเบิก</button>
+              <div class="signed-pdf-tab" id="signedPdfTab" hidden>
+                <button class="list-tab" data-tab="signed-pdf" id="signedPdfTabButton">2.4 📄 PDF ที่ลงนาม</button>
+                <button class="signed-pdf-tab-close" id="closeSignedPdfTab" type="button" aria-label="ปิดแถบ PDF ที่ลงนาม" title="ปิดแถบ">×</button>
+              </div>
+            </div>
+            <div id="signedPdfPanel" hidden>
+              <div class="sign-frame-head">
+                <strong id="signedPdfTitle">PDF ที่ลงนาม</strong>
+                <button type="button" class="btn btn-subtle" id="closeSignedPdfPanel">✕ ปิดแถบ</button>
+              </div>
+              <iframe id="signedPdfFrame" class="signature-pad-embed" title="PDF ที่ลงนาม"></iframe>
+            </div>
+            <div id="documentSetPanel" hidden style="padding:18px 0">
+              <h3>รวมเอกสารเป็นชุดส่งเบิก</h3>
+              <label for="apSearch">ค้นหาเลขตรวจรับ AP / ชื่อรายการ / เลขสัญญา</label>
+              <input id="apSearch" class="list-search" placeholder="พิมพ์เลขตรวจรับ AP หรือชื่อรายการ" autocomplete="off">
+              <input type="hidden" id="selectedApId">
+              <div id="apSearchResults" style="max-height:280px;overflow:auto"></div>
+              <p id="apSelectedInfo" role="status">ยังไม่ได้เลือกเลขตรวจรับ</p>
+              <label for="documentSetName">ชื่อชุดเอกสาร</label>
+              <input id="documentSetName" class="list-search" maxlength="250" placeholder="รายการส่งเบิกซื้อวัสดุ - AP001">
+              <p>เลือกเอกสารจากแถบ 2.1 หรือ 2.2 แล้วจัดลำดับรายการด้านล่าง</p>
+              <div id="selectedSetDocuments"></div>
+              <button id="saveDocumentSet" class="btn btn-primary" type="button">บันทึกชุดเอกสาร</button>
+              <p id="documentSetMessage" role="status"></p>
+              <h3>ชุดเอกสารที่บันทึกไว้</h3><div id="savedDocumentSets"></div>
+            </div>
+            <p id="documentSelectionCount" aria-live="polite">เลือกแล้ว 0 รายการ</p>
+
+            <!-- Filters -->
+            <div class="list-filter-row">
+              <input type="text" id="docSearch" class="list-search" placeholder="ค้นหาเลขที่เอกสาร, ชื่อรายการ, ผู้ขอซื้อ..." />
+              <select id="docTypeFilter" class="list-select">
+                <option value="">ทุกชนิดเอกสาร</option>
+                <option value="PR">PR - ใบขอซื้อ/ขอจ้าง</option>
+                <option value="PO">PO - ใบสั่งซื้อ</option>
+                <option value="GR">GR - ใบรับสินค้า</option>
+                <option value="IV">IV - ใบแจ้งหนี้</option>
+              </select>
+              <button class="btn btn-subtle" id="docRefreshBtn" type="button">↻ โหลดข้อมูลใหม่</button>
+            </div>
+
+            <!-- Table -->
+            <div class="doc-table-wrap">
+              <table class="doc-table">
+                <thead>
+                  <tr>
+                    <th>เลขที่เอกสาร</th>
+                    <th>ชนิดเอกสาร</th>
+                    <th>ชื่อรายการ</th>
+                    <th>ผู้ขอซื้อ</th>
+                    <th>วันที่</th>
+                    <th>ผู้ลงนามปัจจุบัน</th>
+                    <th>ความคืบหน้า</th>
+                    <th>มูลค่า</th>
+                    <th>สถานะ</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="docTableBody"></tbody>
+              </table>
+              <p class="empty-msg" id="docEmptyMsg" style="display:none">ไม่พบเอกสารที่ตรงกับเงื่อนไข</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: เอกสารที่รอเซ็น -->
+      <section id="view-pending" class="app-view">
+        <div class="topbar">
+          <span class="topbar-icon">⏳</span>
+          <div class="topbar-title"><div class="topbar-main">เอกสารที่รอเซ็น</div><div class="topbar-sub">เอกสารตามลำดับ Workflow ของผู้เข้าสู่ระบบ</div></div>
+        </div>
+        <div class="content-wrap pending-content-wrap">
+          <div class="card main-card">
+            <div class="list-tab-bar pending-tab-bar">
+              <button class="list-tab pending-subtab active" data-pending-tab="queue">3.1 ⏳ เอกสารที่รอเซ็น <span class="tab-count tab-count-warning" id="countPending">0</span></button>
+              <button class="list-tab pending-subtab" data-pending-tab="review" id="pendingReviewTab" disabled>3.2 📄 เอกสารที่ต้องตรวจสอบ</button>
+              <button class="list-tab pending-subtab" data-pending-tab="sign" id="pendingSignTab" disabled>3.3 ✍️ เซ็นเอกสาร</button>
+            </div>
+            <div id="pending-panel-queue" class="pending-panel active">
+              <div class="list-filter-row">
+                <input type="text" id="pendingDocSearch" class="list-search" placeholder="ค้นหาเลขที่เอกสาร, ชื่อรายการ, ผู้ขอซื้อ..." />
+                <select id="pendingDocTypeFilter" class="list-select">
+                  <option value="">ทุกชนิดเอกสาร</option><option value="PR">PR - ใบขอซื้อ/ขอจ้าง</option><option value="PO">PO - ใบสั่งซื้อ</option><option value="GR">GR - ใบรับสินค้า</option><option value="IV">IV - ใบแจ้งหนี้</option>
+                </select>
+                <button class="btn btn-subtle" id="pendingRefreshBtn" type="button">↻ โหลดข้อมูลใหม่</button>
+              </div>
+              <div class="pending-bulk-toolbar"><span id="pendingSelectionCount" aria-live="polite">เลือกเอกสารเพื่อลงนาม 0 รายการ</span><button class="btn btn-primary" id="bulkSignBtn" type="button" disabled>✍️ เซ็นรายการที่เลือก</button></div>
+              <div class="doc-table-wrap"><table class="doc-table"><thead><tr><th><input type="checkbox" id="pendingSelectAll" aria-label="เลือกเอกสารทั้งหมดที่ลงนามได้"></th><th>เลขที่เอกสาร</th><th>ชนิดเอกสาร</th><th>ชื่อรายการ</th><th>ผู้ขอซื้อ</th><th>วันที่</th><th>ผู้ลงนามปัจจุบัน</th><th>ความคืบหน้า</th><th>มูลค่า</th><th>สถานะ</th><th></th></tr></thead><tbody id="pendingDocTableBody"></tbody></table><p class="empty-msg" id="pendingDocEmptyMsg" style="display:none"></p></div>
+            </div>
+            <div id="pending-panel-review" class="pending-panel">
+              <div class="sign-frame-head"><button type="button" class="btn btn-subtle" id="backToPendingQueueReview">◀ กลับรายการรอเซ็น</button><strong id="activeReviewTitle">ยังไม่ได้เลือกเอกสาร</strong></div>
+              <iframe id="reviewPadFrame" class="signature-pad-embed" title="ตรวจสอบเอกสาร"></iframe>
+            </div>
+            <div id="pending-panel-sign" class="pending-panel">
+              <div class="sign-frame-head"><button type="button" class="btn btn-subtle" id="backToPendingQueue">◀ กลับรายการรอเซ็น</button><strong id="activeSigningTitle">ยังไม่ได้เลือกเอกสาร</strong></div>
+              <iframe id="signaturePadFrame" class="signature-pad-embed" title="ลงนามเอกสาร"></iframe>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <dialog id="docDetailDialog" class="doc-detail-dialog">
+        <div class="doc-detail-head">
+          <div><h2 id="docDetailTitle">รายละเอียดเอกสาร</h2><p id="docDetailSubtitle"></p></div>
+          <button class="modal-close" id="docDetailClose" type="button">✕</button>
+        </div>
+        <div id="docDetailBody" class="doc-detail-body"></div>
+      </dialog>
+
+    </div>
+  </div>
+
+  <!-- USER PROFILE / SETTINGS MODAL -->
+  <div id="userPanelModal" class="modal-overlay" style="display:none">
+    <div class="modal-box user-panel-box" role="dialog" aria-modal="true" aria-labelledby="userPanelTitle">
+      <div class="modal-head">
+        <span class="modal-icon" id="userPanelIcon">👤</span>
+        <div>
+          <h3 id="userPanelTitle">โปรไฟล์ผู้ใช้</h3>
+          <p id="userPanelSubtitle">ข้อมูลบัญชีที่กำลังใช้งาน</p>
+        </div>
+        <button class="modal-close" id="userPanelClose" type="button" title="ปิด">✕</button>
+      </div>
+
+      <div id="profilePanel" class="user-panel-content">
+        <div class="profile-hero">
+          <span class="profile-avatar">{{USER_INITIAL}}</span>
+          <div><strong>{{USER_FULL_NAME}}</strong><small>{{USER_ROLE}}</small></div>
+        </div>
+        <dl class="profile-detail-list">
+          <dt>ชื่อผู้ใช้</dt><dd>{{USER_NAME}}</dd>
+          <dt>หน่วยงาน</dt><dd>{{USER_ROLE}}</dd>
+          <dt>รหัสหน่วยงาน</dt><dd>{{USER_COST_CODE}}</dd>
+        </dl>
+      </div>
+
+      <div id="settingsPanel" class="user-panel-content" hidden>
+        <label class="setting-row">
+          <span><strong>เมนูแบบกะทัดรัด</strong><small>ลดความกว้างของแถบเมนูด้านซ้าย</small></span>
+          <input id="compactMenuSetting" type="checkbox">
+        </label>
+        <label class="setting-row">
+          <span><strong>ลดการเคลื่อนไหว</strong><small>ปิด transition และ animation ที่ไม่จำเป็น</small></span>
+          <input id="reduceMotionSetting" type="checkbox">
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ PDF EXPORT PROGRESS MODAL ══════════ -->
+  <div id="pdfExportModal" class="modal-overlay" style="display:none">
+    <div class="modal-box">
+      <div class="modal-head">
+        <span class="modal-icon" id="pdfModalIcon">📄</span>
+        <div>
+          <h3 id="pdfModalTitle">กำลังสร้างไฟล์ PDF</h3>
+          <p id="pdfModalSub">โปรดรอสักครู่ ระบบกำลังประมวลผลบน Server</p>
+        </div>
+        <button class="modal-close" id="pdfModalClose" title="ปิด" style="display:none">✕</button>
+      </div>
+
+      <div class="pdf-progress-track">
+        <div class="pdf-progress-fill" id="pdfProgressFill" style="width:0%"></div>
+      </div>
+      <div class="pdf-progress-meta">
+        <span id="pdfProgressStatus">กำลังเตรียมข้อมูล...</span>
+        <span id="pdfProgressPct">0%</span>
+      </div>
+
+      <ol class="pdf-stage-list" id="pdfStageList">
+        <li data-stage="prepare"><span class="stage-dot"></span>เตรียมข้อมูล JSON</li>
+        <li data-stage="upload"><span class="stage-dot"></span>ส่งข้อมูลไปยัง Server</li>
+        <li data-stage="process"><span class="stage-dot"></span>ประมวลผล PDF ด้วย PDFBox (Java)</li>
+        <li data-stage="download"><span class="stage-dot"></span>ดาวน์โหลดไฟล์ PDF</li>
+      </ol>
+
+      <div class="modal-actions">
+        <button class="btn btn-subtle" id="pdfCancelBtn">ยกเลิก</button>
+        <button class="btn btn-primary" id="pdfRetryBtn" style="display:none">🔁 ลองอีกครั้ง</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="ap-select.js?v=20260910-1"></script>
+  <script src="app.js?v=20260930-ws1"></script>
+</body>
+</html>

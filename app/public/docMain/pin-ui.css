@@ -1,0 +1,31 @@
+.pin-card,.pin-dialog{font-family:'Segoe UI','Noto Sans Thai',sans-serif;color:#1a1d23}
+.pin-card{margin-top:20px;padding:20px;border:1px solid #dbe7f7;border-radius:16px;background:linear-gradient(145deg,#f6f9ff,#fff)}
+.pin-card-heading{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.pin-symbol{display:grid;place-items:center;flex-shrink:0;width:44px;height:44px;border-radius:14px;background:#e7f0ff;color:#1e6fcc}
+.pin-symbol svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pin-card-heading strong{display:block;font-size:15px;line-height:1.5}
+.pin-caption{margin:4px 0 0;font-size:12px;line-height:1.6;color:#6b7280}
+.pin-card-state{font-size:13px;line-height:1.7;margin:0 0 12px}
+.pin-card-actions{display:flex;flex-wrap:wrap;gap:8px}
+.pin-field{display:block;margin:18px 0 0;font-size:13px;font-weight:600}
+.pin-input{display:block;width:100%;height:58px;margin-top:8px;padding:10px 16px;border:1.5px solid #d6deea;border-radius:12px;background:#fff;color:#154e91;font:600 25px/1.2 'Segoe UI',monospace;letter-spacing:.55em;text-align:center;box-sizing:border-box;transition:border-color .15s,box-shadow .15s}
+.pin-input:focus{outline:none;border-color:#1e6fcc;box-shadow:0 0 0 4px #1e6fcc16}
+.pin-input::placeholder{color:#c2cad7;opacity:1;letter-spacing:.4em}
+.pin-input:invalid:not(:placeholder-shown):not(:focus){border-color:#cc2b2b}
+.pin-form-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.pin-card [role=status]{font-size:13px;line-height:1.65;margin:12px 0 0}
+.pin-dialog{width:min(420px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;padding:28px;border:0;border-radius:20px;background:#fff;box-shadow:0 24px 80px #14284440}
+.pin-dialog::backdrop{background:#17243c80;backdrop-filter:blur(4px)}
+.pin-dialog .pin-symbol{width:56px;height:56px;border-radius:18px;margin-bottom:18px}
+.pin-dialog h3{font-family:inherit;margin:0 0 8px;font-size:21px;line-height:1.45;color:#1a1d23}
+.pin-dialog-description{margin:0;color:#6b7280;font-size:14px;line-height:1.7}
+.pin-dialog .pin-input{height:66px;font-size:29px}
+.pin-dialog .pin-form-actions{flex-wrap:nowrap}
+.pin-dialog button{font:600 14px 'Segoe UI','Noto Sans Thai',sans-serif;letter-spacing:normal;border:1px solid #dfe5ee;padding:12px 16px;border-radius:10px;cursor:pointer;transition:background .15s;flex:1}
+.pin-dialog .pin-confirm{background:#1e6fcc;color:#fff;border-color:#1e6fcc}
+.pin-dialog .pin-confirm:hover{background:#154e91}
+.pin-dialog .pin-cancel{background:#f7f8fa;color:#536071}
+.pin-dialog .pin-cancel:hover{background:#edf0f5}
+.pin-dialog button:focus-visible{outline:3px solid #86b8f0;outline-offset:3px}
+@media(max-width:480px){.pin-dialog{padding:24px 20px}.pin-card{padding:16px}.pin-input{font-size:23px;letter-spacing:.45em}}
+@media(prefers-reduced-motion:reduce){.pin-input,.pin-dialog button{transition:none}}

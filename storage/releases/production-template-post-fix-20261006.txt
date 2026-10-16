@@ -1,0 +1,14 @@
+Production template POST 500 repair
+
+1. Deploy the app/ files from this archive, keeping their paths. app/src/ProcurementTemplateStore.php must be outside app/public.
+2. Place scripts/Repair-ProcurementStorage.ps1 under the project scripts folder on PRODUCTION.
+3. Open PowerShell as Administrator on PRODUCTION and run:
+   powershell -ExecutionPolicy Bypass -File .\scripts\Repair-ProcurementStorage.ps1
+   Default host: doc-eis.nmu.ac.th; application path: /eis-docs.
+   It identifies the application pool and configured anonymous account from IIS and grants Modify only on storage/procurement-templates and storage/logs.
+   It does not restart IIS or alter database data.
+4. Reload the browser (Ctrl+F5) and save the template again.
+5. If it still fails, read the last matching error in storage/logs/php-error.log on PRODUCTION.
+   If the API says mbstring is missing, enable extension=mbstring in the php.ini of the PHP executable configured in IIS FastCGI, then recycle the application pool.
+
+The HTML <!DOCTYPE response means that a server/IIS error page replaced the expected JSON. This archive improves diagnosis and addresses a likely storage-permission failure, but the exact production cause still requires the production error log.

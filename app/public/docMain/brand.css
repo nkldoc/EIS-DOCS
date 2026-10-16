@@ -1,0 +1,13 @@
+.main-menu-brand{gap:10px;padding:18px 14px}
+.brand-icon{display:flex;align-items:center;justify-content:center;flex:0 0 40px;width:40px;height:40px}
+.brand-icon img{display:block;width:40px;height:40px;filter:drop-shadow(0 3px 5px #154e911a)}
+.brand-text{min-width:0;flex:1}
+.brand-title{font-size:13px;line-height:1.55;color:#173a65;font-weight:700;overflow-wrap:anywhere}
+.brand-sub{margin-top:3px;font-size:10px;letter-spacing:1px;font-weight:600;color:#6984a5}
+.sidebar-collapse-toggle{flex-shrink:0}
+.app-header-title{display:flex;align-items:center;gap:10px}
+.app-header-title img{width:30px;height:30px;flex-shrink:0}
+.app-header-title span{margin-left:0;line-height:1.5}
+body.sidebar-collapsed .brand-icon{flex:0 0 40px}
+@media(max-width:860px){.app-header-start{gap:10px}.app-header-title{font-size:15px;gap:8px}body.mobile-menu-open .main-menu .brand-icon{flex:0 0 48px;background:transparent;box-shadow:none}body.mobile-menu-open .brand-icon img{width:48px;height:48px}body.mobile-menu-open .main-menu .brand-title{font-size:16px;line-height:1.5}body.mobile-menu-open .main-menu .brand-sub{font-size:11px}}
+@media(max-width:360px){.app-header-title img{width:26px;height:26px}.app-header{padding-left:10px;padding-right:10px}.app-header-start{gap:8px}}

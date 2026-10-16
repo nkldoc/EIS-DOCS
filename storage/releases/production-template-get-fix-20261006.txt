@@ -1,0 +1,23 @@
+Production GET 500 patch — 6 October 2026
+
+1. Upload BOTH files, preserving the directory structure:
+   app/public/docMain/procurement-templates.php
+   app/src/ProcurementTemplateStore.php
+   Do not place the helper in app/public/docMain.
+
+2. Reload while signed in. GET now reads without creating the storage directory or a lock file.
+   If this is the first use and no saved library exists, the expected response is:
+   {"success":true,"types":[],"templates":[],"savedId":null}
+
+3. Saving a template still requires storage/procurement-templates to be writable by the actual PHP/IIS identity.
+   If the application pool really is EIS-DOCS and the deployed project root really is D:\EIS-DOCS,
+   use an elevated PowerShell on PRODUCTION:
+   New-Item -ItemType Directory -Path 'D:\EIS-DOCS\storage\procurement-templates' -Force
+   icacls 'D:\EIS-DOCS\storage\procurement-templates' /grant 'IIS AppPool\EIS-DOCS:(OI)(CI)M'
+   Substitute the actual project root and App Pool identity if different. Do not grant access to Everyone.
+
+4. If GET is still 500, obtain Network > procurement-templates.php > Response and the matching production PHP error log entry.
+   Also confirm that the helper file was uploaded to app/src and that IIS uses PHP 7.4 or later.
+   The console screenshot alone does not establish which production failure occurred.
+
+This patch does not overwrite or remove saved template JSON files. No SQL changes are required for this template endpoint.

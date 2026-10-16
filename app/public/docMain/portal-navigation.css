@@ -1,0 +1,8 @@
+.portal-navigation { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 32px; background:#f7fbf9; border-bottom:1px solid #dce9e2; font:14px Tahoma,Arial,sans-serif; }
+.portal-navigation .portal-navigation-back { display:inline-flex; align-items:center; gap:10px; padding:10px 16px; border:1px solid #bad7c8; border-radius:10px; background:#fff; color:#075e46; text-decoration:none; font-weight:700; white-space:nowrap; }
+.portal-navigation .portal-navigation-back:hover { background:#e6f5ed; border-color:#16815d; }
+.portal-navigation .portal-navigation-back:focus-visible { outline:3px solid #16815d; outline-offset:3px; }
+.portal-navigation-context { color:#617c6e; font-size:12px; }
+.portal-navigation-context span { margin:0 8px; }
+@media(max-width:600px) { .portal-navigation { padding:12px 16px; flex-wrap:wrap; } .portal-navigation-context { width:100%; padding-left:2px; } }
+@media print { .portal-navigation { display:none; } }

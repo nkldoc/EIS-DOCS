@@ -1,0 +1,263 @@
+/* ==========================================================================
+   EIS-DOCS — แผงเมนูมือถือ (เมนูหลัก + บัญชีผู้ใช้)  v2
+   โหลดต่อจาก style.css  ·  ทำงานเฉพาะจอ ≤ 860px ตอนเปิดแผงเมนูเท่านั้น
+   ========================================================================== */
+@media (max-width: 860px) {
+
+  /* ── ตัวแผง (bottom sheet ที่เลื่อนลงมาจากด้านบน) ───────────────────── */
+  body.mobile-menu-open .main-menu {
+    --mm-ink: #14304a;
+    --mm-muted: #6b7b8c;
+    --mm-line: #e6ecf2;
+    --mm-surface: #f5f8fb;
+    --mm-accent: #1f6fd1;
+    --mm-accent-ink: #0f4aa0;
+    --mm-accent-soft: #eaf2fd;
+    --mm-accent-line: #cfe1fa;
+    --mm-danger: #b42318;
+    --mm-danger-soft: #fdecea;
+    --mm-danger-line: #f6cfca;
+    --mm-gutter: max(20px, calc((100% - 520px) / 2)); /* เนื้อหากว้างสุด 520px จัดกึ่งกลาง */
+
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    max-height: 100dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: env(safe-area-inset-top, 0) 0 calc(env(safe-area-inset-bottom, 0px) + 18px);
+    background: #fff;
+    color: var(--mm-ink);
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 20px 50px rgba(15, 35, 60, .30);
+  }
+
+  /* กันข้อความถูกซ่อนเมื่อเปิดโหมด "เมนูแบบกะทัดรัด" */
+  body.mobile-menu-open .main-menu .brand-text { display: block; }
+  body.mobile-menu-open .main-menu .menu-item-text,
+  body.mobile-menu-open .main-menu .user-info { display: flex; flex-direction: column; }
+  body.mobile-menu-open .main-menu .main-menu-group-label { display: block; }
+  body.mobile-menu-open .main-menu .sidebar-collapse-toggle { display: none !important; }
+
+  /* ── แบรนด์ (เว้นซ้ายให้ปุ่ม X) ─────────────────────────────────────── */
+  body.mobile-menu-open .main-menu .main-menu-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 76px;
+    margin: 0;
+    padding: 16px var(--mm-gutter) 14px max(72px, var(--mm-gutter));
+    border-bottom: 1px solid var(--mm-line);
+    text-align: left;
+  }
+  body.mobile-menu-open .main-menu .brand-icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    font-size: 24px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #fff6dc, #ffe9a8);
+    box-shadow: inset 0 0 0 1px rgba(214, 160, 0, .18);
+  }
+  body.mobile-menu-open .main-menu .brand-title { font-size: 17px; font-weight: 700; line-height: 1.25; color: var(--mm-ink); }
+  body.mobile-menu-open .main-menu .brand-sub { margin-top: 2px; font-size: 13px; color: var(--mm-muted); }
+
+  /* ── เมนูหลัก ───────────────────────────────────────────────────────── */
+  body.mobile-menu-open .main-menu .main-menu-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 18px var(--mm-gutter) 18px;
+  }
+  body.mobile-menu-open .main-menu .main-menu-group-label {
+    margin: 0 0 2px;
+    padding: 0 4px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    color: var(--mm-muted);
+  }
+
+  body.mobile-menu-open .main-menu .menu-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 66px;
+    margin: 0;
+    padding: 12px 14px;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    background: #fff;
+    color: var(--mm-ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: none;
+    transition: background .15s, border-color .15s, box-shadow .15s;
+  }
+  body.mobile-menu-open .main-menu .menu-item:active { background: var(--mm-surface); }
+  body.mobile-menu-open .main-menu .menu-item-icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    font-size: 22px;
+    border-radius: 12px;
+    background: var(--mm-surface);
+  }
+  body.mobile-menu-open .main-menu .menu-item-text { flex: 1; min-width: 0; gap: 2px; }
+  body.mobile-menu-open .main-menu .menu-item-title { font-size: 16px; font-weight: 700; line-height: 1.3; }
+  body.mobile-menu-open .main-menu .menu-item-desc {
+    display: block;
+    font-size: 13px;
+    line-height: 1.35;
+    color: var(--mm-muted);
+    white-space: normal;
+  }
+  body.mobile-menu-open .main-menu .menu-item::after {
+    content: "›";
+    flex: none;
+    font-size: 24px;
+    line-height: 1;
+    color: #a9b6c3;
+  }
+
+  /* รายการที่เลือกอยู่ */
+  body.mobile-menu-open .main-menu .menu-item.active {
+    background: var(--mm-accent-soft);
+    border-color: var(--mm-accent-line);
+    box-shadow: inset 4px 0 0 var(--mm-accent);
+  }
+  body.mobile-menu-open .main-menu .menu-item.active .menu-item-title { color: var(--mm-accent-ink); }
+  body.mobile-menu-open .main-menu .menu-item.active .menu-item-desc { color: #4d6f9c; }
+  body.mobile-menu-open .main-menu .menu-item.active .menu-item-icon { background: #fff; }
+  body.mobile-menu-open .main-menu .menu-item.active::after { color: var(--mm-accent); }
+
+  /* ── บัญชีผู้ใช้ ────────────────────────────────────────────────────── */
+  body.mobile-menu-open .main-menu .main-menu-footer {
+    display: block !important;
+    margin: 0;
+    padding: 18px var(--mm-gutter) 0;
+    border-top: 1px solid var(--mm-line);
+    background: transparent;
+  }
+
+  body.mobile-menu-open .main-menu .user-chip {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-sizing: border-box;
+    width: auto;
+    margin: 0 0 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--mm-line);
+    border-radius: 14px;
+    background: var(--mm-surface);
+  }
+  body.mobile-menu-open .main-menu .user-menu-toggle,
+  body.mobile-menu-open .main-menu .user-menu { display: none !important; } /* ใช้ปุ่มลัดด้านล่างแทน */
+  body.mobile-menu-open .main-menu .user-avatar {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, var(--mm-accent), #0b6b72);
+    box-shadow: 0 4px 10px rgba(31, 111, 209, .30);
+  }
+  body.mobile-menu-open .main-menu .user-info { min-width: 0; gap: 2px; }
+  body.mobile-menu-open .main-menu .user-name,
+  body.mobile-menu-open .main-menu .user-role { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  body.mobile-menu-open .main-menu .user-name { font-size: 16px; font-weight: 700; color: var(--mm-ink); }
+  body.mobile-menu-open .main-menu .user-role { font-size: 13px; color: var(--mm-muted); }
+
+  body.mobile-menu-open .main-menu .user-quick-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+  }
+  body.mobile-menu-open .main-menu .user-quick-actions > * {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    min-height: 50px;
+    margin: 0;
+    padding: 0 12px;
+    border: 1px solid var(--mm-line);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--mm-ink);
+    font: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+  body.mobile-menu-open .main-menu .user-quick-actions > * > span:first-child { font-size: 18px; line-height: 1; }
+  body.mobile-menu-open .main-menu .user-quick-actions > * > span:last-child { font-size: 15px; font-weight: 600; line-height: 1.2; }
+  body.mobile-menu-open .main-menu .user-quick-actions > *:active { background: var(--mm-surface); border-color: #d3dde7; }
+
+  /* ออกจากระบบ: เต็มแถว สีแดงอ่อน แยกจากปุ่มอื่นชัดเจน */
+  body.mobile-menu-open .main-menu .user-quick-actions .quick-logout {
+    grid-column: 1 / -1;
+    background: var(--mm-danger-soft);
+    border-color: var(--mm-danger-line);
+    color: var(--mm-danger);
+  }
+  body.mobile-menu-open .main-menu .user-quick-actions .quick-logout > span:last-child { font-weight: 700; }
+  body.mobile-menu-open .main-menu .user-quick-actions .quick-logout:active { background: #fadbd7; }
+
+  /* โฟกัสด้วยคีย์บอร์ด */
+  body.mobile-menu-open .main-menu .menu-item:focus-visible,
+  body.mobile-menu-open .main-menu .user-quick-actions > *:focus-visible {
+    outline: 3px solid rgba(31, 111, 209, .35);
+    outline-offset: 2px;
+  }
+
+  /* ── แอนิเมชันตอนเปิด (เบา ๆ) ──────────────────────────────────────── */
+  @keyframes mm-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  body.mobile-menu-open:not(.reduce-motion) .main-menu .menu-item,
+  body.mobile-menu-open:not(.reduce-motion) .main-menu .user-chip,
+  body.mobile-menu-open:not(.reduce-motion) .main-menu .user-quick-actions > * {
+    animation: mm-rise .28s ease both;
+  }
+  body.mobile-menu-open .main-menu .menu-item:nth-of-type(2) { animation-delay: .04s; }
+  body.mobile-menu-open .main-menu .menu-item:nth-of-type(3) { animation-delay: .08s; }
+  body.mobile-menu-open .main-menu .user-chip { animation-delay: .12s; }
+  body.mobile-menu-open .main-menu .user-quick-actions > *:nth-child(1) { animation-delay: .16s; }
+  body.mobile-menu-open .main-menu .user-quick-actions > *:nth-child(2) { animation-delay: .19s; }
+  body.mobile-menu-open .main-menu .user-quick-actions > *:nth-child(3) { animation-delay: .22s; }
+}
+
+@media (max-width: 860px) and (prefers-reduced-motion: reduce) {
+  body.mobile-menu-open .main-menu * { animation: none !important; transition: none !important; }
+}
+
+.app-header-start { display:flex; align-items:center; gap:12px; min-width:0; }
+@media (max-width:860px) {
+  .main-menu { position:fixed; top:64px; left:0; height:calc(100dvh - 64px); flex-direction:column; align-items:stretch; }
+  body.mobile-menu-open .main-menu { top:64px; max-height:calc(100dvh - 64px); }
+  .app-header { height:64px; min-height:64px; }
+  .app-shell { flex-direction:column; }
+  .main-content { width:100%; }
+  .topbar { padding-left:24px; }
+}

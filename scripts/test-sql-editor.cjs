@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict');
+const {risk,completion,target}=require('../app/public/docMain/sql-editor.js');
+assert.deepEqual(target('NMU_ERP..sp_tor'),{database:'NMU_ERP',schema:'dbo',table:'sp_tor'});
+assert.deepEqual(target('[NMU_ERP].[dbo].[sp_tor]'),{database:'NMU_ERP',schema:'dbo',table:'sp_tor'});
+assert.deepEqual(target('NMU_ERP.audit.sp_tor'),{database:'NMU_ERP',schema:'audit',table:'sp_tor'});
+assert.equal(target('NMU'),null);
+assert.throws(()=>target('NMU_ERP..'));
+for(const sql of ["UPDATE t SET x='WHERE id=1'",'DELETE FROM [WHERE]', 'DELETE FROM t -- WHERE id=1', 'UPDATE t SET x=1 /* WHERE id=1 */']) assert.equal(risk(sql).missingWhere,true,sql);
+for(const sql of ['UPDATE t SET x=1 WHERE id=1', "DELETE FROM t WHERE x='WHERE'",'SELECT * FROM t']) assert.equal(risk(sql).missingWhere,false,sql);
+const cols=[{name:'i_enable',type:'int'},{name:'i_enabled',type:'int'},{name:'name',type:'nvarchar'}];
+for(const sql of ['SELECT i_', 'SELECT I_', 'SELECT [i_', 'SELECT i_*']) assert.equal(completion(sql,sql.length,cols).matches.length,2);
+for(const sql of ["SELECT 'i_",'SELECT 1 -- i_', 'SELECT 1 /* i_']) assert.equal(completion(sql,sql.length,cols),null);
+const sql='SELECT i_* FROM t', c=completion(sql,9,cols);
+assert.equal(sql.slice(0,c.start)+'[i_enable]'+sql.slice(c.end),'SELECT [i_enable] FROM t');
+console.log('PASS field completion, wildcard replacement, literal/comment exclusion and missing-WHERE detection');

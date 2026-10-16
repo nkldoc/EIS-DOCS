@@ -1,0 +1,19 @@
+แพตช์ API production (6 ตุลาคม 2026)
+
+คัดลอกทับโดยรักษาโครงสร้าง:
+- app/public/docMain/procurement-templates.php
+- app/public/docMain/wf-groups.php
+- app/src/ProcurementTemplateStore.php
+
+อย่าอัปโหลดเฉพาะ app/public เพราะ procurement-templates.php ต้องใช้ helper ใน app/src
+รองรับ syntax PHP 7.4 ขึ้นไปสำหรับ helper ใหม่นี้ (ใช้ PHP รุ่นที่ระบบรองรับอยู่เดิม)
+
+หลังอัปโหลด ตรวจ Network > Response อีกครั้ง:
+- แจ้งติดตั้งไฟล์ไม่ครบ: ตรวจ app/src/ProcurementTemplateStore.php
+- แจ้งสิทธิ์เขียน Template: ตรวจสิทธิ์ของบัญชี PHP/IIS ที่ storage/procurement-templates
+- แจ้ง Microsoft Drivers: ตรวจ SQLSRV extension ของ PHP ที่ IIS ใช้งาน
+- แจ้งไม่มีคอลัมน์สิทธิ์กลุ่ม: ให้ผู้ดูแลฐานข้อมูลรัน database/EIS_DOCS/011_wf_group_visibility.sql บน EIS_DOCS โดยสำรองข้อมูลตามขั้นตอนของหน่วยงาน
+- แจ้งเชื่อมต่อฐานข้อมูลหรือสิทธิ์ SQL: ตรวจ storage/logs/php-error.log บน production
+
+ไฟล์ SQL ในแพตช์ไม่ได้ถูกรันอัตโนมัติ ต้องใช้เฉพาะเมื่อ Response/log ระบุว่าขาดคอลัมน์ visibility/owner_user_id/owner_cost_id
+ภาพ Console ที่มี HTTP 500 เพียงอย่างเดียวยังยืนยันสาเหตุของ production ไม่ได้

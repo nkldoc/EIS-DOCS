@@ -1,0 +1,11 @@
+{
+  "name": "eis-docs-supplies-presence",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test.js chat.test.js report.test.js client.test.js notifications.client.test.js legacy-socket.test.js server-output.test.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
