@@ -42,6 +42,7 @@ function verify(token) {
   const digest = crypto.createHmac('sha256', secret).update(parts[0]).digest('hex');
   if (parts.length !== 2 || !/^[a-f0-9]{64}$/.test(parts[1]) || !crypto.timingSafeEqual(Buffer.from(digest), Buffer.from(parts[1]))) throw new Error('Invalid signature');
   if (!/^\d{1,20}(?:@admin-[a-z0-9][a-z0-9_-]{1,31})?$/.test(String(identity.uid)) || !/^[a-f0-9]{64}$/.test(identity.session) || !Number.isFinite(identity.exp) || identity.exp <= Date.now() / 1000 || identity.exp > Date.now() / 1000 + 65 || fs.existsSync(path.join(directory, 'revoked', identity.session))) throw new Error('Expired session');
+  identity.chatAdmin = ['SUPPLIES','PROCURE','NMU-EIS'].includes(identity.system) && identity.chatAdmin === true;
   identity.admin = identity.system === 'EIS-DOCS' && identity.admin === true;
   return identity;
 }
@@ -84,10 +85,10 @@ function live(ws) { return ws.identity && ws.identity.exp>Date.now()/1000 && !fs
 function roster() {
   const users=new Map();
   for(const ws of wss.clients) if(live(ws)&&!ws.observer) {
-    const key=chat.key(ws.identity), user=users.get(key)||{system:ws.identity.system,uid:String(ws.identity.uid),name:ws.identity.name,pages:[]};
+    const key=chat.key(ws.identity), user=users.get(key)||{system:ws.identity.system,uid:String(ws.identity.uid),name:ws.identity.name,admin:!!(ws.identity.admin||ws.identity.chatAdmin),pages:[]};
     if(ws.page&&!user.pages.includes(ws.page))user.pages.push(ws.page);users.set(key,user);
   }
-  for(const ws of wss.clients)if(live(ws)&&ws.identity.admin)send(ws,{type:'chat-roster',users:[...users.values()]});
+  for(const ws of wss.clients)if(live(ws)&&(ws.identity.admin||ws.identity.chatAdmin))send(ws,{type:'chat-roster',users:[...users.values()]});
 }
 function inboxes(){const results=new Map();for(const ws of wss.clients)if(live(ws)&&ws.identity.admin){const key=chat.key(ws.identity);if(!results.has(key))results.set(key,JSON.stringify({type:'chat-inbox',jobs:chat.inbox(ws.identity)}));send(ws,results.get(key));}}
 function jobUpdate(room){room=chat.state.rooms[room.id]||room;if(!chat.isJob(room))return;const metadata=chat.publicRoom(room);for(const ws of wss.clients)if(live(ws)&&chat.allowed(room,ws.identity))send(ws,{type:'chat-job-updated',room:metadata});inboxes();}
@@ -126,7 +127,7 @@ wss.on('connection', (ws, req) => {
           old.close(1008, 'Session ended');
         }
         if (!ws.observer) store.connect(ws, ws.identity, req.socket.remoteAddress);
-        send(ws, { type: 'authenticated', identity:{system:ws.identity.system,uid:String(ws.identity.uid),name:ws.identity.name,admin:ws.identity.admin} }); broadcast();
+        send(ws, { type: 'authenticated', identity:{system:ws.identity.system,uid:String(ws.identity.uid),name:ws.identity.name,admin:ws.identity.admin,chatAdmin:ws.identity.chatAdmin} }); broadcast();
         send(ws,{type:'chat-ready',capabilities,rooms:chat.rooms(ws.identity)});
         for(const item of chat.history(ws.identity)) send(ws,{type:'chat-message',message:item,room:chat.publicRoom(chat.state.rooms[item.room]),replay:true,unread:chat.unread(ws.identity,item)});
         if(ws.identity.admin)send(ws,{type:'chat-inbox',jobs:chat.inbox(ws.identity)});

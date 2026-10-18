@@ -18,7 +18,7 @@ class ChatStore {
     if(changed)this.commit(migrated);
   }
   key(identity) { return JSON.stringify([identity.system, String(identity.uid)]); }
-  allowed(room, identity) { return room && (room.id === 'all' || room.members.includes(this.key(identity)) || ((room.ticket || room.conversation && room.team) && identity.admin)); }
+  allowed(room, identity) { return !!(room && (room.id === 'all' || room.members.includes(this.key(identity)) || (room.ticket && identity.admin) || (room.conversation && room.team && (identity.admin || identity.chatAdmin === true)))); }
   isJob(room){return !!(room&&(room.ticket||room.job));}
   storedRoom(room){return !!(room&&(this.isJob(room)||room.conversation));}
   managed(room,identity){return identity.admin&&(room.ticket||(room.job&&this.key(room.people[0])===this.key(identity)));}
@@ -120,9 +120,10 @@ class ChatStore {
     const next = JSON.parse(JSON.stringify(this.state)); let room = next.rooms[input.room];
     if(input.support===true && (input.conversation===true || input.generalTeam===true))throw new Error('เลือก Ticket หรือสนทนาทั่วไปเพียงประเภทเดียว');
     if(input.generalTeam===true){
-      if(identity.admin)throw new Error('Admin กรุณาเลือกผู้ใช้เพื่อเริ่มสนทนาส่วนตัว');
-      const id='conversation-team-'+crypto.createHash('sha256').update(this.key(identity)).digest('hex');
-      room=next.rooms[id] ||= {id,conversation:true,team:true,title:'คุยกับทีมผู้ดูแล',members:[this.key(identity)],people:[{system:identity.system,uid:String(identity.uid),name:identity.name}],createdAt:this.now(),updatedAt:this.now(),messages:[]};
+      if((identity.admin||identity.chatAdmin)&&(!input.target||!['EIS-DOCS','SUPPLIES','PROCURE','NMU-EIS'].includes(input.target.system)||!/^\d{1,20}$/.test(String(input.target.uid))))throw new Error('กรุณาเลือกผู้ใช้เพื่อเริ่มสนทนา');
+      const person=(identity.admin||identity.chatAdmin)?{system:input.target.system,uid:String(input.target.uid),name:String(input.target.name||input.target.uid).slice(0,120)}:identity;
+      const id='conversation-team-'+crypto.createHash('sha256').update(this.key(person)).digest('hex');
+      room=next.rooms[id] ||= {id,conversation:true,team:true,title:'คุยกับทีมผู้ดูแล',members:[this.key(person)],people:[{system:person.system,uid:String(person.uid),name:person.name}],createdAt:this.now(),updatedAt:this.now(),messages:[]};
     }else if(input.support===true){
       const id='ticket-'+crypto.randomUUID(),person={system:identity.system,uid:String(identity.uid),name:identity.name};
       room=next.rooms[id]={id,ticket:true,title:(typeof input.text==='string'?input.text.trim().slice(0,80):'')||'แจ้งปัญหาพร้อมรูป',members:[this.key(identity)],people:[person],status:'open',assignee:null,version:0,createdAt:this.now(),updatedAt:this.now(),audit:[],messages:[]};
@@ -143,7 +144,7 @@ class ChatStore {
     if(!text&&!image) throw new Error('กรุณาพิมพ์ข้อความหรือแนบรูป');
     const responder=this.isJob(room)?this.managed(room,identity):identity.admin;
     if(input.kind==='question'&&(!this.isJob(room)||!identity.admin||!responder||!text||input.closeWithReply))throw new Error('ถามกลับได้เฉพาะ Admin ในงาน และต้องไม่ปิดงานพร้อมกัน');
-    if(input.kind==='screen_request'&&!identity.admin) throw new Error('เฉพาะ Admin ที่ขอภาพหน้าจอได้');
+    if(input.kind==='screen_request'&&!(identity.admin||identity.chatAdmin&&room.conversation&&room.team)) throw new Error('เฉพาะ Admin ที่ขอภาพหน้าจอได้');
     if(this.isJob(room)&&responder){
       if(input.version!==undefined&&room.version!==input.version)throw new Error('งานมีการเปลี่ยนแปลง กรุณาโหลดข้อมูลล่าสุด');
       if(room.status==='closed')throw new Error('กรุณาเปิดงานใหม่ก่อนตอบ');
@@ -154,7 +155,7 @@ class ChatStore {
       if(!this.isJob(room)||!responder||input.kind==='screen_request')throw new Error('ไม่สามารถตอบและปิดงานนี้ได้');
       if(!text)throw new Error('กรุณาพิมพ์คำตอบเพื่อใช้สรุปปิดงาน');
     }
-    const message={id:crypto.randomUUID(),clientId:input.clientId,seq:++next.seq,room:room.id,sender:{key:this.key(identity),system:identity.system,uid:String(identity.uid),name:identity.name,admin:identity.admin===true},text,image,kind:['screen_request','question'].includes(input.kind)?input.kind:'message',at:this.now()};
+    const message={id:crypto.randomUUID(),clientId:input.clientId,seq:++next.seq,room:room.id,sender:{key:this.key(identity),system:identity.system,uid:String(identity.uid),name:identity.name,admin:identity.admin===true||identity.chatAdmin===true},text,image,kind:['screen_request','question'].includes(input.kind)?input.kind:'message',at:this.now()};
     if(this.isJob(room)){
       room.messages.push(message);room.updatedAt=this.now();room.version++;
       if(responder){room.status=input.kind==='screen_request'?'in_progress':'waiting';if(input.kind!=='screen_request'){room.lastAdminAt=message.at;room.lastAdminSeq=message.seq;}}

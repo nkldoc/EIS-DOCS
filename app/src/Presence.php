@@ -61,6 +61,6 @@ final class Presence
         $loginUrl = $system === 'SUPPLIES' ? '/NMU_permission/' : '/eis-docs/login';
         $client = $system === 'SUPPLIES' ? '/supplies/assets/js/presence-client.js' : '/eis-docs/assets/js/presence-client.js';
         $assets = $system === 'SUPPLIES' ? '/supplies/assets' : '/eis-docs/assets';
-        return '<link rel="stylesheet" href="' . $assets . '/css/presence-chat.css?v=20261015-chat-dock-v2"><script>window.EISPresenceConfig={tokenUrl:' . json_encode($url, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) . ',loginUrl:' . json_encode($loginUrl, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) . '};</script><script src="' . $client . '?v=20261014-connection-log"></script><script src="' . $assets . '/js/presence-image-viewer.js?v=20261010-read"></script><script src="' . $assets . '/js/presence-chat.js?v=20261015-chat-dock-v2"></script>';
+        return '<link rel="stylesheet" href="' . $assets . '/css/presence-chat.css?v=20261018-chat-admin-v3"><script>window.EISPresenceConfig={tokenUrl:' . json_encode($url, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) . ',loginUrl:' . json_encode($loginUrl, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) . '};</script><script src="' . $client . '?v=20261014-connection-log"></script><script src="' . $assets . '/js/presence-image-viewer.js?v=20261010-read"></script><script src="' . $assets . '/js/presence-chat.js?v=20261018-chat-admin-v3"></script>';
     }
 }

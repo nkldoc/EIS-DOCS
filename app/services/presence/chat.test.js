@@ -4,6 +4,33 @@ const {ChatStore}=require('./chat');
 const admin={system:'EIS-DOCS',uid:'1',name:'Admin',admin:true},user={system:'SUPPLIES',uid:'2',name:'User',admin:false},other={system:'EIS-DOCS',uid:'2',name:'Other',admin:false},admin2={system:'EIS-DOCS',uid:'3',name:'Admin 2',admin:true};
 function fixture(t){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'chat-test-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));return new ChatStore(dir);}
 function input(extra={}){return {clientId:require('crypto').randomUUID(),text:'Test',room:'all',...extra};}
+
+test('Supplies named chat admin sees user team chat without Docs ticket privileges',t=>{
+ const store=fixture(t),eak={system:'SUPPLIES',uid:'1@admin-eak',name:'admin-eak',admin:false,chatAdmin:true};
+ const room=store.send(user,input({generalTeam:true,conversation:true})).message.room;
+ assert.equal(store.allowed(store.state.rooms[room],eak),true);
+ assert.equal(store.unread(eak,store.allMessages().at(-1)),true);
+ store.send(eak,input({room,text:'Reply'}));
+ assert.equal(store.send(eak,input({generalTeam:true,target:user})).message.room,room);
+ const ticket=store.send(user,input({support:true})).message.room;
+ assert.equal(store.allowed(store.state.rooms[ticket],eak),false);
+ assert.throws(()=>store.inbox(eak));
+ assert.equal(store.allowed(store.state.rooms[room],other),false);
+});
+
+test('admin starts a shared team conversation; all operators see replies and users remain isolated',t=>{
+ const store=fixture(t),first=store.send(admin,input({generalTeam:true,conversation:true,target:user})).message;
+ assert.equal(store.allowed(store.state.rooms[first.room],admin2),true);
+ assert.equal(store.allowed(store.state.rooms[first.room],other),false);
+ const reply=store.send(user,input({generalTeam:true,conversation:true})).message;
+ assert.equal(reply.room,first.room);
+ assert.equal(store.unread(admin2,reply),true);
+ store.read(admin,reply.room,reply.seq);
+ assert.equal(store.unread(admin2,reply),true);
+ const answer=store.send(admin2,input({room:first.room})).message;
+ assert.equal(answer.room,first.room);
+ assert.throws(()=>store.send(admin,input({generalTeam:true,target:{system:'invalid',uid:'3'}})));
+});
 test('admin clearing requester unread is durable, audited, separate from actual reading and job status',t=>{
  const store=fixture(t),id=store.send(user,input({support:true})).message.room;
  const reply=store.send(admin,input({room:id,text:'Answer'})).message;
