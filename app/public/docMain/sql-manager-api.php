@@ -3,10 +3,11 @@ declare(strict_types=1);
 require_once dirname(__DIR__, 2) . '/src/bootstrap.php';
 require_once dirname(__DIR__, 2) . '/src/SqlConsole.php';
 require_once dirname(__DIR__, 2) . '/src/SqlBackup.php';
+require_once dirname(__DIR__, 2) . '/src/SqlRestore.php';
 header('Cache-Control: no-store, private');
 if (!Auth::check() || !DocumentAccess::isAdministrator() || Auth::impersonating()) jsonResponse(['error'=>'ไม่มีสิทธิ์จัดการ SQL'], 403);
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') jsonResponse(['error'=>'ใช้ POST เท่านั้น'], 405);
-$input = json_decode(file_get_contents('php://input'), true);
+$input = str_starts_with($_SERVER['CONTENT_TYPE'] ?? '', 'multipart/form-data') ? $_POST : json_decode(file_get_contents('php://input'), true);
 if (!is_array($input) || !safeCmp((string)($_SESSION['app_csrf'] ?? ''), (string)($input['csrf'] ?? '')) || empty($_SESSION['app_csrf'])) jsonResponse(['error'=>'CSRF ไม่ถูกต้อง'], 403);
 $db = null; $transaction = false;
 function consoleQuery($db, string $sql, array $params = []) {
@@ -49,6 +50,14 @@ try {
     }
     $key = (string)($input['database'] ?? '');
     if (!in_array($key, array_column($databases, 'key'), true)) throw new InvalidArgumentException('ไม่พบฐานข้อมูลที่ออนไลน์หรือบัญชี SQL ไม่มีสิทธิ์เข้าถึง กรุณาโหลดรายชื่อใหม่');
+    if ($action === 'restore') {
+        if ($connection !== 'local') throw new RuntimeException('Restore is only available for Local (.)');
+        consoleAudit(['action'=>'restore_start','connection'=>$connection,'database'=>$key]);
+        set_time_limit(0);
+        SqlRestore::run($db, $key, $_FILES['backup'] ?? [], ($input['replace'] ?? '') === '1', ($input['closeConnections'] ?? '') === '1');
+        try { consoleAudit(['action'=>'restore_complete','connection'=>$connection,'database'=>$key]); } catch (Throwable $e) { error_log($e->getMessage()); }
+        jsonResponse(['message'=>'Restore completed: Local / '.$key]);
+    }
     $selectedDatabase = $databases[array_search($key,array_column($databases,'key'),true)];
     if (!(int)$selectedDatabase['accessible']) throw new RuntimeException('ฐานข้อมูล '.$key.' อยู่ในสถานะ '.$selectedDatabase['state'].' หรือบัญชี SQL ไม่มีสิทธิ์เข้าถึง');
     $database = $key;
@@ -72,6 +81,33 @@ try {
         try { consoleAudit(['action'=>'backup_ready','connection'=>$connection,'database'=>$database,'file'=>$plan['relative'].'/'.$plan['base'].'.zip','bytes'=>$bytes]); }
         catch (Throwable $logError) { error_log('SQL backup audit: '.$logError->getMessage()); }
         jsonResponse(['download'=>'sql-manager-download.php?token='.rawurlencode($token),'filename'=>$_SESSION['sql_downloads'][$token]['name'],'bytes'=>$bytes,'folder'=>$plan['relative'],'expiresAt'=>date(DATE_ATOM,time()+3600)]);
+    }
+    if ($action === 'script') {
+        $query = trim((string)($input['query'] ?? ''));
+        if ($query === '' || strlen($query) > 1000000 || preg_match('/^\s*GO\s*(?:--.*)?$/mi', $query)) throw new InvalidArgumentException('Empty/oversized script or unsupported GO separator');
+        consoleAudit(['action'=>'script_attempt','connection'=>$connection,'database'=>$database,'queryHash'=>hash('sha256',$query)]);
+        $previous = sqlsrv_get_config('WarningsReturnAsErrors'); sqlsrv_configure('WarningsReturnAsErrors', 0);
+        try {
+            $statement = consoleQuery($db, $query); $rows = [];
+            do {
+                if (sqlsrv_num_fields($statement) > 0) {
+                    while (true) {
+                        $row = sqlsrv_fetch_array($statement, SQLSRV_FETCH_ASSOC);
+                        if ($row === false) throw new RuntimeException('Script result failed');
+                        if ($row === null) break;
+                        foreach ($row as &$value) { if (is_resource($value)) $value = '0x'.bin2hex(stream_get_contents($value)); } unset($value);
+                        if (count($rows) < 500) $rows[] = $row;
+                    }
+                }
+                $next = sqlsrv_next_result($statement);
+                if ($next === false) throw new RuntimeException('Script failed; check server log and database state before retry');
+            } while ($next === true);
+            sqlsrv_free_stmt($statement);
+            $open = consoleRows($db, 'SELECT @@TRANCOUNT AS n')[0]['n'];
+            if ($open) { consoleQuery($db, 'WHILE @@TRANCOUNT > 0 ROLLBACK TRANSACTION'); throw new RuntimeException('Script left an open transaction; rolled back'); }
+        } finally { sqlsrv_configure('WarningsReturnAsErrors', $previous); }
+        try { consoleAudit(['action'=>'script_complete','connection'=>$connection,'database'=>$database]); } catch (Throwable $e) { error_log($e->getMessage()); }
+        jsonResponse(['rows'=>$rows,'message'=>'Script completed (display limited to 500 rows)']);
     }
     $schema = (string)($input['schema'] ?? ''); $table = (string)($input['table'] ?? '');
     $columns = consoleRows($db, 'SELECT c.name,c.is_identity,c.is_computed,ty.name AS type FROM sys.columns c JOIN sys.tables t ON t.object_id=c.object_id JOIN sys.schemas s ON s.schema_id=t.schema_id JOIN sys.types ty ON ty.user_type_id=c.user_type_id WHERE s.name=? AND t.name=? ORDER BY c.column_id', [$schema,$table]);
@@ -115,4 +151,4 @@ try {
     if ($transaction && $db) sqlsrv_rollback($db);
     error_log('SQL manager: '.$error->getMessage());
     jsonResponse(['error'=>$error->getMessage()], 400);
-} finally { if ($db) sqlsrv_close($db); }
+} finally { if ($db) { @sqlsrv_query($db, 'WHILE @@TRANCOUNT > 0 ROLLBACK TRANSACTION'); sqlsrv_close($db); } }

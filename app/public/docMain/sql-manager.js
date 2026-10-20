@@ -66,6 +66,8 @@
   function status(message, error = false) { $('status').textContent = message; $('status').className = error ? 'error' : ''; }
   function syncContext() {
     const db = $('database').value, table = selected();
+    $('restore-panel').hidden = $('connection').value !== 'local';
+    if (typeof drawTabs === 'function' && $('query-tabs').children.length) drawTabs();
     $('backup-database').textContent = db || 'ยังไม่ได้เลือก';
     if (db !== backupDatabase) {
       backupDatabase = db;
@@ -304,6 +306,12 @@
   $('cancel').onclick = () => { invalidate(); status('ยกเลิกการยืนยันแล้ว'); };
   $('run').onclick = async () => {
     if (busy) return;
+    if ($('query-mode').value === 'script') {
+      const query = $('query').value, connection = $('connection').value, database = $('database').value;
+      if (!query.trim()) return;
+      if (!await safetyDialog({title:'Run T-SQL Script',message:connection + ' / ' + database + ' / Script can change multiple tables or databases via USE. No preview.',query,phrase:'RUN ' + database})) return;
+      return work(async () => { invalidate(); const data = await request('script', {query}); renderRows(data.rows); status(data.message); });
+    }
     const risk = editor.risk($('query').value);
     if (risk.missingWhere) {
       invalidate(); status('บล็อก ' + risk.action + ': ไม่พบ WHERE เพื่อป้องกันการเปลี่ยนข้อมูลทั้งตาราง', true);
@@ -354,5 +362,39 @@
       status('สำรองและบีบอัด ZIP เรียบร้อยแล้ว เริ่มดาวน์โหลดอัตโนมัติ หากเบราว์เซอร์ไม่เริ่มให้กดลิงก์ดาวน์โหลด');
     } catch (error) { card.className = 'backup-file failed'; detail.textContent = error.message; throw error; }
   });
-  work(loadDatabases);
+  const tabs = []; let activeTab = null;
+  function saveTab() {
+    if (activeTab) Object.assign(activeTab, {connection:$('connection').value, database:$('database').value, table:$('table').value, query:$('query').value, mode:$('query-mode').value});
+  }
+  function drawTabs() {
+    $('query-tabs').replaceChildren();
+    tabs.forEach((tab, index) => {
+      const button = document.createElement('button'); button.type = 'button'; button.role = 'tab';
+      button.textContent = (index + 1) + ' / ' + (tab === activeTab ? $('connection').value : tab.connection) + ' / ' + ((tab === activeTab ? $('database').value : tab.database) || 'SQL');
+      button.setAttribute('aria-selected', String(tab === activeTab));
+      button.onclick = () => { if (busy || tab === activeTab) return; saveTab(); work(async () => {
+        activeTab = tab; $('connection').value = tab.connection; await loadDatabases();
+        if (databases.some(db => db.key === tab.database)) { $('database').value = tab.database; await loadTables(); }
+        if (Array.from($('table').options).some(o => o.value === tab.table)) { $('table').value = tab.table; await loadColumns(); }
+        $('query').value = tab.query; $('query-mode').value = tab.mode; invalidate(); drawTabs();
+      }); }; $('query-tabs').append(button);
+      const close = document.createElement('button'); close.type = 'button'; close.textContent = 'x'; close.title = 'Close tab';
+      close.onclick = () => { if (busy || tabs.length === 1) return; if (tab.query && !confirm('Close this SQL tab?')) return; if (tab === activeTab) { const next = tabs.find(t => t !== tab); $('query-tabs').querySelectorAll('[role=tab]')[tabs.indexOf(next)].click(); } tabs.splice(tabs.indexOf(tab), 1); drawTabs(); };
+      $('query-tabs').append(close);
+    });
+  }
+  $('new-query-tab').onclick = () => { if (busy) return; saveTab(); activeTab = {connection:$('connection').value,database:$('database').value,table:$('table').value,query:'',mode:'safe'}; tabs.push(activeTab); $('query').value = ''; $('result').replaceChildren(); invalidate(); drawTabs(); };
+  $('query-mode').onchange = invalidate;
+  $('restore').onclick = async () => {
+    if (busy || $('connection').value !== 'local') return;
+    const file = $('restore-file').files[0], database = $('database').value;
+    if (!file || !database) { status('Select a Local database and ZIP file first', true); return; }
+    const replace = $('restore-replace').checked, closeConnections = $('restore-close').checked;
+    if (!await safetyDialog({title:'Confirm Restore Local',message:'File ' + file.name + ' to Local (.) / ' + database + '\nOverwrite: ' + replace + ' / Close connections: ' + closeConnections,query:'RESTORE WITH RECOVERY',phrase:'RESTORE ' + database})) return;
+    work(async () => {
+      const form = new FormData(); Object.entries({csrf:config.csrf,action:'restore',connection:'local',database,replace:replace?'1':'0',closeConnections:closeConnections?'1':'0'}).forEach(([k,v]) => form.append(k,v)); form.append('backup',file);
+      status('Uploading and restoring...'); const response = await fetch('sql-manager-api.php',{method:'POST',credentials:'same-origin',body:form}); const data = await response.json(); if (!response.ok || data.error) throw new Error(data.error || 'Restore failed'); await loadDatabases(); status(data.message);
+    });
+  };
+  work(async () => { await loadDatabases(); activeTab = {connection:$('connection').value,database:$('database').value,table:$('table').value,query:$('query').value,mode:'safe'}; tabs.push(activeTab); drawTabs(); });
 }());
