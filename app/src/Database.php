@@ -17,6 +17,20 @@ final class Database
         if (array_intersect($codes,[10065,10060,10061,53,258]) || in_array('HYT00',$states,true) || in_array('08001',$states,true)) return $target . ': เครื่องเว็บเชื่อมต่อเครือข่ายไป SQL ไม่ได้หรือหมดเวลา ตรวจ VPN / เส้นทางเครือข่าย / Firewall และ TCP port ของ SQL Server ยังยืนยันบัญชีหรือรายชื่อฐานข้อมูลไม่ได้';
         return $target . ': เชื่อมต่อไม่สำเร็จ กรุณาตรวจ SQL Server log และ PHP error log';
     }
+    public static function serverName(string $host, int $port, bool $windowsAuthentication): string
+    {
+        $host = trim($host);
+        if ($host === '') throw new InvalidArgumentException('SQL host is required');
+        $local = in_array(strtolower($host), ['localhost', '127.0.0.1', '.'], true);
+        if ($local && $windowsAuthentication) return $host;
+        // SQL authentication uses an explicit TCP loopback endpoint, not the dot alias.
+        if ($local) $host = 'tcp:127.0.0.1';
+        // Preserve explicit protocol/port and named-instance discovery settings.
+        if (str_contains($host, ',') || str_contains($host, '\\') || str_starts_with(strtolower($host), 'np:') || str_starts_with(strtolower($host), 'lpc:')) return $host;
+        if ($port < 1 || $port > 65535) throw new InvalidArgumentException('Invalid SQL port');
+        return $host . ',' . $port;
+    }
+
     /** @return resource */
     public static function connect(string $databaseKey = 'datacenter', bool $useDatabaseName = false, bool $sqlConsole = false, ?string $consoleEnvironment = null)
     {
@@ -30,7 +44,7 @@ final class Database
             $consoleEnvironment ??= $runtime['environment'];
             if (!in_array($consoleEnvironment, ['local','production'], true)) throw new InvalidArgumentException('Invalid SQL connection');
             // Explicit console selection must use that profile, not the web host's DB_HOST.
-            if ($consoleEnvironment !== $runtime['environment']) {
+            { // Console profiles are isolated from the application's DB_HOST/DB_PORT overrides.
                 $profile = require dirname(__DIR__) . '/config/profiles/' . $consoleEnvironment . '.php';
                 $credentials = is_file($profile['credentials_file']) ? require $profile['credentials_file'] : [];
                 $config = array_replace($config, $profile['database'], ['user'=>$credentials['user'] ?? '', 'password'=>$credentials['password'] ?? '']);
@@ -44,11 +58,7 @@ final class Database
             }
         }
         $useWindowsAuthentication = trim((string) $config['user']) === '';
-        $isLocalServer = in_array(strtolower((string) $config['host']), ['localhost', '127.0.0.1', '.'], true);
-        // Windows Authentication บนเครื่องเดียวกันใช้ local SQL protocol ได้เสถียรกว่า TCP/TLS
-        $server = $useWindowsAuthentication && $isLocalServer
-            ? (string) $config['host']
-            : $config['host'] . ',' . $config['port'];
+        $server = self::serverName((string)$config['host'], (int)$config['port'], $useWindowsAuthentication);
         $database = $useDatabaseName ? $databaseKey : ($config['databases'][$databaseKey] ?? $databaseKey);
         $connectionOptions = [
             'Database' => $database,

@@ -140,7 +140,7 @@
     busy = true;
     document.querySelectorAll('button,select,input,textarea').forEach(el => el.disabled = true);
     try { await fn(); } catch (error) { invalidate(); status(error.message, true); }
-    finally { busy = false; document.querySelectorAll('button,select,input,textarea').forEach(el => el.disabled = false); syncContext(); renderTree(); const db = databases.find(d => d.key === $('database').value); $('backup').disabled = !db || Number(db.accessible ?? 1) === 0; }
+    finally { busy = false; document.querySelectorAll('button,select,input,textarea').forEach(el => el.disabled = false); syncContext(); renderTree(); const db = databases.find(d => d.key === $('database').value); $('backup').disabled = !db || Number(db.accessible ?? 1) === 0; $('run').disabled = connectionFailed || !db; $('restore').disabled = connectionFailed || !db || $('connection').value !== 'local'; }
   }
   function renderRows(rows) {
     const result = $('result'); result.replaceChildren();
@@ -254,6 +254,7 @@
   async function loadDatabases() {
     invalidate(); status('กำลังโหลดฐานข้อมูล…');
     const previous = $('database').value;
+    $('backup-location').textContent = '';
     connectionFailed = false; $('connection-error').hidden = true; $('connection-dot').className = 'connection-dot pending';
     $('connected-server').textContent = $('connection').selectedOptions?.[0]?.textContent || $('connection').value;
     $('connected-login').textContent = 'กำลังเชื่อมต่อ SQL…';

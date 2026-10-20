@@ -13,3 +13,15 @@ foreach ([
     if (!str_contains($message,$expected)) throw new RuntimeException('Wrong error classification');
 }
 echo "PASS SQL network/authentication/permission/TLS/driver diagnostics\n";
+
+foreach ([
+    ['.',1433,false,'tcp:127.0.0.1,1433'],
+    ['localhost',1444,false,'tcp:127.0.0.1,1444'],
+    ['.',1433,true,'.'],
+    ['192.168.201.3',1433,false,'192.168.201.3,1433'],
+    ['server\\INSTANCE',1433,false,'server\\INSTANCE'],
+    ['tcp:server,1444',1433,false,'tcp:server,1444'],
+] as [$host,$port,$windows,$expected]) {
+    if (Database::serverName($host,$port,$windows) !== $expected) throw new RuntimeException('Incorrect SQL endpoint');
+}
+echo "PASS local TCP, Windows authentication, named instance and explicit port endpoints\n";
