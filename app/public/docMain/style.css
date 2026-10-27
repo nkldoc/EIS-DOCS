@@ -889,3 +889,5 @@ body.sidebar-collapsed .user-quick-actions span:last-child { display: none; }
 .procurement-insert-dialog select { display: block; width: 100%; margin-top: 6px; }
 .procurement-insert-dialog .actions { display: flex; justify-content: flex-end; gap: 8px; }
 .procurement-actions { flex-wrap: wrap; }
+
+.document-pagination{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0;color:var(--text-muted,#64748b);font-size:13px}.document-pagination[hidden]{display:none}.document-page-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.document-pagination button:disabled{opacity:.45;cursor:default}

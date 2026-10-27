@@ -2352,10 +2352,28 @@
     catch(error){message.textContent=`บันทึกไม่สำเร็จ: ${error.message}`;}finally{button.disabled=false;}
   }
 
+  const documentPageSize = 30;
+  const documentPages = { all: 1, done: 1 };
+  function pagedDocuments() {
+    const filtered = filteredDocs();
+    const pageCount = Math.max(1, Math.ceil(filtered.length / documentPageSize));
+    const page = Math.min(documentPages[state.listTab] || 1, pageCount);
+    documentPages[state.listTab] = page;
+    return { rows: filtered.slice((page - 1) * documentPageSize, page * documentPageSize), total: filtered.length, page, pageCount };
+  }
+  function renderDocumentPagination({total, page, pageCount}) {
+    const start = total ? (page - 1) * documentPageSize + 1 : 0;
+    $('#docPageSummary').textContent = `แสดง ${start}–${Math.min(page * documentPageSize, total)} จาก ${total} รายการ · หน้าละ 30 รายการ`;
+    $('#docPageNumber').textContent = `หน้า ${page} / ${pageCount}`;
+    document.querySelectorAll('[data-doc-page]').forEach(button => {
+      const atStart = ['first', 'prev'].includes(button.dataset.docPage);
+      button.disabled = docsLoading || !total || (atStart ? page === 1 : page === pageCount);
+    });
+  }
   function initDocList() {
     const head = document.querySelector('#view-list .doc-table thead tr');
-    const cell = document.createElement('th'); cell.innerHTML='<input type="checkbox" id="selectAllDocuments" aria-label="เลือกเอกสารทั้งหมดที่แสดง">'; head.prepend(cell);
-    cell.firstChild.onchange = event => {filteredDocs().forEach(doc => event.target.checked ? selectedDocuments.add(String(doc.id)) : selectedDocuments.delete(String(doc.id)));renderDocList();};
+    const cell = document.createElement('th'); cell.innerHTML='<input type="checkbox" id="selectAllDocuments" aria-label="เลือกเอกสารทั้งหมดในหน้านี้" title="เลือกเอกสารทั้งหมดในหน้านี้">'; head.prepend(cell);
+    cell.firstChild.onchange = event => {pagedDocuments().rows.forEach(doc => event.target.checked ? selectedDocuments.add(String(doc.id)) : selectedDocuments.delete(String(doc.id)));renderDocList();};
     $('#saveDocumentSet').onclick = saveDocumentSet;
     $$("#view-list .list-tab").forEach(tab => {
       tab.addEventListener("click", () => {
@@ -2374,8 +2392,14 @@
       renderPendingDocs();
     });
     $('#bulkSignBtn').addEventListener('click', openBulkSignaturePad);
-    $("#docSearch").addEventListener("input", e => { state.search = e.target.value; renderDocList(); });
-    $("#docTypeFilter").addEventListener("change", e => { state.typeFilter = e.target.value; renderDocList(); });
+    $("#docSearch").addEventListener("input", e => { state.search = e.target.value; documentPages.all = documentPages.done = 1; renderDocList(); });
+    $("#docTypeFilter").addEventListener("change", e => { state.typeFilter = e.target.value; documentPages.all = documentPages.done = 1; renderDocList(); });
+    document.querySelectorAll('[data-doc-page]').forEach(button => button.addEventListener('click', () => {
+      const { page, pageCount } = pagedDocuments();
+      const action = button.dataset.docPage;
+      documentPages[state.listTab] = action === 'first' ? 1 : action === 'last' ? pageCount : Math.max(1, Math.min(pageCount, page + (action === 'next' ? 1 : -1)));
+      renderDocList();
+    }));
     $("#docRefreshBtn").addEventListener("click", loadDocuments);
     $("#docDetailClose").addEventListener("click", () => $("#docDetailDialog").close());
     $("#docDetailDialog").addEventListener("click", event => {
@@ -2443,6 +2467,7 @@
     const signedPdfMode = state.listTab === 'signed-pdf';
     $('#documentSetPanel').hidden = !setsMode;
     $('#signedPdfPanel').hidden = !signedPdfMode;
+    $('#docPagination').hidden = setsMode || signedPdfMode;
     document.querySelector('#view-list .list-filter-row').style.display = (setsMode || signedPdfMode) ? 'none' : '';
     document.querySelector('#view-list .doc-table-wrap').style.display = (setsMode || signedPdfMode) ? 'none' : '';
     $('#documentSelectionCount').style.display = signedPdfMode ? 'none' : '';
@@ -2452,7 +2477,9 @@
     $("#countPending").textContent = DOCS.filter(d => d.status === "pending").length;
     $("#countDone").textContent = DOCS.filter(d => d.status === "done").length;
 
-    const rows = filteredDocs();
+    const pagination = pagedDocuments();
+    const rows = pagination.rows;
+    renderDocumentPagination(pagination);
     const tbody = $("#docTableBody");
     const empty = $("#docEmptyMsg");
     empty.style.display = rows.length === 0 ? "block" : "none";

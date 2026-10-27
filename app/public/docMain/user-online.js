@@ -1,6 +1,8 @@
 (function () {
   'use strict';
   var snapshot, receivedAt = 0, connected = false, currentTab = 'users', statusNode = document.getElementById('connection');
+  var pageSize = 30, pages = { users: 1, history: 1 };
+  function resetPage() { pages[currentTab] = 1; render(); }
   var today = new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 10);
   document.getElementById('start').value = document.getElementById('end').value = today;
   function duration(seconds) { seconds = Math.max(0, Math.floor(seconds)); return [Math.floor(seconds / 3600), Math.floor(seconds % 3600 / 60), seconds % 60].map(n => String(n).padStart(2, '0')).join(':'); }
@@ -25,6 +27,15 @@
     if(currentTab==='users') ['หน้าที่เปิดขณะนี้','สนทนา'].forEach(label=>{var th=document.createElement('th');th.textContent=label;tr.appendChild(th);});
     var query = document.getElementById('search').value.trim().toLowerCase(), department = document.getElementById('department').value, status = document.getElementById('status').value;
     var rows = (currentTab === 'users' ? snapshot.users : snapshot.sessions).filter(u => (currentTab !== 'users' || u.online) && (!query || (u.name + ' ' + u.uid).toLowerCase().includes(query)) && (!department || department === u.department) && (currentTab === 'users' || status === '' || String(Number(u.online)) === status));
+    var totalRows = rows.length, pageCount = Math.max(1, Math.ceil(totalRows / pageSize));
+    pages[currentTab] = Math.min(pages[currentTab], pageCount);
+    var offset = (pages[currentTab] - 1) * pageSize;
+    document.getElementById('page-summary').textContent = 'แสดง ' + (totalRows ? offset + 1 : 0) + '–' + Math.min(offset + pageSize, totalRows) + ' จาก ' + totalRows + ' รายการ · หน้าละ 30 รายการ';
+    document.getElementById('page-number').textContent = 'หน้า ' + pages[currentTab] + ' / ' + pageCount;
+    ['page-first', 'page-prev'].forEach(id => document.getElementById(id).disabled = !totalRows || pages[currentTab] === 1);
+    ['page-next', 'page-last'].forEach(id => document.getElementById(id).disabled = !totalRows || pages[currentTab] === pageCount);
+    document.getElementById('page-last').onclick = function () { pages[currentTab] = pageCount; render(); };
+    rows = rows.slice(offset, offset + pageSize);
     var body = document.getElementById('rows'); body.replaceChildren();
     var reasons = { login_replaced: 'ถูกแทนที่โดยล็อกอินใหม่', logout: 'ออกจากระบบ', connection_closed: 'ปิดแท็บ / การเชื่อมต่อหลุด', session_expired: 'เซสชันสิ้นสุด', server_restart: 'Service เริ่มใหม่', server_stop: 'Service หยุด' };
     rows.forEach(u => {
@@ -47,7 +58,7 @@
     var start = document.getElementById('start').value, end = document.getElementById('end').value;
     var invalid = !start || !end || start > end || Date.parse(end) - Date.parse(start) > 366 * 86400000;
     document.getElementById('filter-error').textContent = invalid ? 'กรุณาเลือกวันที่เริ่มก่อนวันที่สิ้นสุด และช่วงไม่เกิน 367 วัน' : '';
-    if (!invalid) window.EISPresence.subscribe({ start: start, end: end, system: document.getElementById('system').value });
+    if (!invalid) { pages.users = pages.history = 1; window.EISPresence.subscribe({ start: start, end: end, system: document.getElementById('system').value }); }
   }
   window.EISPresence.on(function (type, data) {
     if (type === 'snapshot') {
@@ -67,8 +78,11 @@
   });
   document.getElementById('filters').onsubmit = function (event) { event.preventDefault(); subscribe(); };
   document.getElementById('system').addEventListener('change', subscribe);
-  ['search', 'department', 'status'].forEach(id => document.getElementById(id).addEventListener('input', render));
+  ['search', 'department', 'status'].forEach(id => document.getElementById(id).addEventListener('input', resetPage));
   document.querySelectorAll('[data-tab]').forEach(button => button.onclick = function () { currentTab = button.dataset.tab; document.getElementById('status').disabled = currentTab === 'users'; document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b === button)); render(); });
+  document.getElementById('page-first').onclick = function () { pages[currentTab] = 1; render(); };
+  document.getElementById('page-prev').onclick = function () { pages[currentTab] = Math.max(1, pages[currentTab] - 1); render(); };
+  document.getElementById('page-next').onclick = function () { pages[currentTab] += 1; render(); };
   document.getElementById('status').disabled = true;
   subscribe(); setInterval(render, 1000);
 }());

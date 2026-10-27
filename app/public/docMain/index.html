@@ -10,7 +10,7 @@
   <base href="/eis-docs/docMain/" />
   <title>EIS-DOCS — ระบบสนับสนุนเอกสารและลงนาม</title>
   <link rel="icon" type="image/svg+xml" href="eis-docs-logo.svg" />
-  <link rel="stylesheet" href="style.css?v=20261009-insert-position" />
+  <link rel="stylesheet" href="style.css?v=20261027-document-paging" />
   <link rel="stylesheet" href="mobile-account-menu.css?v=20261007-header-menu" />
   <link rel="stylesheet" href="brand.css?v=20261007-1" />
   <style>
@@ -471,6 +471,16 @@
               <button class="btn btn-subtle" id="docRefreshBtn" type="button">↻ โหลดข้อมูลใหม่</button>
             </div>
 
+            <nav id="docPagination" class="document-pagination" aria-label="แบ่งหน้าเอกสาร">
+              <span id="docPageSummary" role="status" aria-live="polite"></span>
+              <div class="document-page-controls">
+                <button type="button" class="btn btn-subtle" data-doc-page="first" disabled>หน้าแรก</button>
+                <button type="button" class="btn btn-subtle" data-doc-page="prev" disabled>ก่อนหน้า</button>
+                <span id="docPageNumber">หน้า 1 / 1</span>
+                <button type="button" class="btn btn-subtle" data-doc-page="next" disabled>ถัดไป</button>
+                <button type="button" class="btn btn-subtle" data-doc-page="last" disabled>หน้าสุดท้าย</button>
+              </div>
+            </nav>
             <!-- Table -->
             <div class="doc-table-wrap">
               <table class="doc-table">
@@ -635,7 +645,7 @@
   </div>
 
   <script src="ap-select.js?v=20260910-1"></script>
-  <script src="app.js?v=20261013-ws-safe"></script>
+  <script src="app.js?v=20261027-document-paging"></script>
   <script src="profile-email.js?v=20261006-edit"></script>
   <script src="profile-pin.js?v=20261006-confirm-fix"></script>
   {{PRESENCE_TRACKING_SCRIPT}}
