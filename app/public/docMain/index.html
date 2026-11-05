@@ -260,11 +260,6 @@
               <section class="procurement-picker is-disabled" id="procurementPicker" aria-disabled="true">
                 <div class="procurement-heading">
                   <div><h3>การทำเอกสารจัดซื้อ</h3><p>เลือกเอกสารที่ต้องจัดทำสำหรับ PR นี้</p></div>
-                  <div class="procurement-toolbar">
-                    <button type="button" id="procurementUpdatePages" class="btn btn-subtle" disabled>อัปเดตเลขหน้า</button>
-                    <button type="button" id="procurementAddTopic" class="btn btn-subtle" disabled>＋ เพิ่มหัวข้อ</button>
-                    <label class="procurement-select-all"><input type="checkbox" id="procurementSelectAll" disabled /> เลือกทั้งหมด</label>
-                  </div>
                 </div>
                 <div class="procurement-template-library">
                   <div class="procurement-template-field"><label for="procurementTemplateSelect">ชุด Template ของฉัน / หน่วยงาน</label><select id="procurementTemplateSelect"><option value="">— รายการเริ่มต้น / ชุดใหม่ —</option></select></div>
@@ -274,7 +269,7 @@
                   <button type="button" id="procurementTemplateUpdate" class="btn btn-primary" disabled>อัปเดตทับชุดเดิม</button>
                   <small id="procurementTemplateMessage" role="status">ชุด Template ที่บันทึกเห็นเฉพาะตัวเอง</small>
                 </div>
-                <div class="procurement-table-head"><span></span><span>หัวข้อ</span><span>ชุด</span><span>หน้า</span><span>จัดการ</span></div>
+                <div class="procurement-table-head"><span class="procurement-select-all procurement-select-all-head"><input type="checkbox" id="procurementSelectAll" disabled /> <span>เลือกทั้งหมด</span></span><span class="procurement-topic-heading"><span>หัวข้อ</span><span class="procurement-table-actions"><button type="button" id="procurementUpdatePages" class="btn btn-subtle" disabled>อัปเดตเลขหน้า</button><button type="button" id="procurementAddTopic" class="btn btn-subtle" disabled>＋ เพิ่มหัวข้อ</button><button type="button" class="btn btn-primary" id="updateBookmarkBtn" hidden>อัปเดต Bookmark กลับไปแท็บ 3</button></span></span><span>ชุด</span><span>หน้า</span><span>จัดการ</span></div>
                 <div id="procurementDocumentList" class="procurement-list">
                   <div class="procurement-empty">กรุณาเลือกเอกสาร PR ก่อน</div>
                 </div>
@@ -312,7 +307,7 @@
               <div class="pdf-layout-embed">
                 <iframe
                   id="layoutFrame"
-                  src="layout.html?v=20261105-approval-restore"
+                  src="layout.html?v=20261105-group-save"
                   title="จัดวางบล็อกผู้เกี่ยวข้องในเอกสาร"
                   loading="lazy"
                 ></iframe>
@@ -645,7 +640,7 @@
   </div>
 
   <script src="ap-select.js?v=20260910-1"></script>
-  <script src="app.js?v=20261105-action-label-2"></script>
+  <script src="app.js?v=20261105-group-save"></script>
   <script src="profile-email.js?v=20261006-edit"></script>
   <script src="profile-pin.js?v=20261006-confirm-fix"></script>
   {{PRESENCE_TRACKING_SCRIPT}}

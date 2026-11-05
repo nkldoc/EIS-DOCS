@@ -774,6 +774,7 @@ public class PdfManagerServlet extends HttpServlet {
         }
 
         int pageCount = document.getNumberOfPages();
+        List<PDOutlineItem> ancestors = new ArrayList<>();
         for (JsonElement element : bookmarks) {
             if (element == null || !element.isJsonObject()) {
                 continue;
@@ -802,7 +803,17 @@ public class PdfManagerServlet extends HttpServlet {
             PDOutlineItem item = new PDOutlineItem();
             item.setTitle(title.trim());
             item.setDestination(destination);
-            outline.addLast(item);
+            int level = 0;
+            try {
+                if (bookmark.has("level") && !bookmark.get("level").isJsonNull()) level = Math.max(0, bookmark.get("level").getAsInt());
+            } catch (RuntimeException ignored) {
+                // Invalid levels are treated as top-level bookmarks.
+            }
+            level = Math.min(level, ancestors.size());
+            while (ancestors.size() > level) ancestors.remove(ancestors.size() - 1);
+            if (level == 0) outline.addLast(item);
+            else ancestors.get(level - 1).addLast(item);
+            ancestors.add(item);
         }
         outline.openNode();
     }

@@ -443,6 +443,20 @@
                 width:100%;
                 height:100%
             }
+            .view-switch { display:flex; gap:4px; padding:4px; background:#edf3fa; border-radius:9px; }
+            .view-switch button { border:0; background:transparent; padding:7px 11px; color:#435a73; }
+            .view-switch button[aria-pressed="true"] { background:#fff; color:#155fb5; box-shadow:0 1px 4px #1b2a4120; font-weight:700; }
+            .page-grid[hidden], .page[hidden] { display:none !important; }
+            .page-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:16px; align-items:start; }
+            .page-grid-card { display:flex; flex-direction:column; gap:8px; min-width:0; padding:10px; background:#fff; border:1px solid #d8e2ef; border-radius:10px; text-align:left; cursor:pointer; }
+            .page-grid-card:hover, .page-grid-card:focus-visible { border-color:#1e6fcc; box-shadow:0 3px 12px #1e6fcc25; }
+            .page-grid-card[aria-current="page"] { border:2px solid #1e6fcc; }
+            .page-grid-sheet { display:block; position:relative; width:100%; background:#fff; box-shadow:0 2px 8px #1b2a4120; overflow:hidden; }
+            .page-grid-sheet canvas { display:block; width:100%; height:100%; }
+            .page-grid-marker { position:absolute; border:1px solid #1e6fcc; background:#1e6fcc28; pointer-events:none; }
+            .page-grid-caption { display:flex; justify-content:space-between; gap:8px; color:#31465e; font-size:13px; font-weight:700; }
+            .page-grid-caption small { color:#64748b; font-weight:400; }
+            .page-grid-help { grid-column:1/-1; color:#52647a; font-size:13px; margin:0; }
             .block{
                 position:absolute;
                 left:170px;
@@ -650,7 +664,7 @@
             }
             [hidden]{display:none!important}
         </style>
-        <link rel="stylesheet" href="layout-theme.css?v=20261009-auto-height">
+        <link rel="stylesheet" href="layout-theme.css?v=20261105-group-save">
     <script src="reload-sync.js?v=20261008-1"></script>
 </head>
     <!-- test -->
@@ -660,12 +674,11 @@
             <nav class="toolbar">
                 <label class="upload primary">อัปโหลด PDF ก่อนวาง<input id="pdfInput" type="file" accept="application/pdf"></label>
                 <button class="primary" id="exportBtn" hidden>ส่งออก JSON สำหรับ PDFBox</button>
-                <label class="upload">📥 นำเข้า JSON Template<input id="jsonInput" type="file" accept="application/json,.json" aria-label="นำเข้า JSON Template"></label>
                 <input id="docIdInput" type="text" hidden placeholder="Document ID / Path บนเซิร์ฟเวอร์" style="padding:9px 10px;border:1px solid var(--edge);border-radius:8px;font:13px inherit;min-width:200px">
                 <button class="primary" id="generatePdfBtn" hidden>🖨 สร้าง PDF ด้วยข้อมูลที่บันทึกไว้ (ยืนยันแก้ไข)</button>
                 <button id="previewBtn">ดูตัวอย่างจริง</button>
-                <button class="danger" id="clearBtn">ล้างทั้งหมด</button>
                 <div class="pdf-zoom-controls" role="group" aria-label="ขนาดแสดง PDF"><button type="button" id="pdfZoomOut" aria-label="ย่อ PDF">−</button><span id="pdfZoomValue" aria-live="polite">100%</span><button type="button" id="pdfZoomIn" aria-label="ขยาย PDF">+</button><button type="button" id="pdfFitPage">พอดีทั้งหน้า</button><button type="button" id="pdfFitWidth">พอดีความกว้าง</button></div>
+                <div class="view-switch" role="group" aria-label="รูปแบบการดู PDF"><button type="button" id="singleViewBtn" aria-pressed="true">▣ หน้าเดียว</button><button type="button" id="gridViewBtn" aria-pressed="false">▦ หลายหน้า</button></div><button type="button" id="bookmarkOverviewBtn" class="bookmark-overview-button">☷ ดูภาพรวม Bookmark</button>
                 <div class="page-nav"><button id="prevPageBtn" disabled>◀ หน้าก่อน</button><form class="page-counter page-jump" id="pageJumpForm"><label for="pageJumpInput">หน้า</label><input id="pageJumpInput" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="go" autocomplete="off" value="0" disabled aria-label="เลขหน้า PDF"><span id="pageCounter">/ 0</span><button type="submit" id="pageJumpBtn" disabled>ไป</button></form><button id="nextPageBtn" disabled>หน้าถัดไป ▶</button></div>
             </nav>
             <div id="uploadResult" style="display:none;margin:0 0 14px;padding:12px 14px;border:1px solid var(--edge);border-radius:8px;background:var(--panel);font-size:13px;line-height:1.7"></div>
@@ -678,7 +691,7 @@
                     <div class="participant-editor document-type-panel" hidden><h3>ชนิดเอกสาร (Document Type)</h3><div id="layoutDocumentType">ยังไม่ได้เลือกชนิดเอกสาร</div></div><div class="participant-editor"><h3>Template ผัง (บันทึกไว้ใช้ซ้ำ)</h3><label for="templateName">ชื่อ Template</label><input id="templateName" type="text" placeholder="เช่น สัญญา - คณะ ABC"><button id="templateSaveBtn" type="button">💾 บันทึกเป็น Template</button><label for="templateSelect">Template ที่บันทึกไว้</label><div class="template-select-row"><select id="templateSelect"><option value="">— เลือก Template —</option></select></div><div class="template-actions"><button id="templateLoadBtn" type="button">📂 โหลด</button><button id="templateDeleteBtn" type="button" class="danger">🗑 ลบ</button></div><small id="templateInfo">Template เก็บ WF/role/ผู้เกี่ยวข้อง/bookmark/ตำแหน่งบล็อกทั้งหมดไว้ใน browser นี้ (localStorage) เพื่อโหลดมาใช้กับเอกสารชุดใหม่ได้อีก</small></div><div class="participant-editor" hidden><h3>ค่าเริ่มต้นตอนเพิ่มบล็อก</h3><label for="defaultWorkflowSelect">WF</label><select id="defaultWorkflowSelect"></select><label for="defaultRoleSelect">บทบาท (role)</label><select id="defaultRoleSelect"></select><label for="defaultAssigneeSelect">คนที่ทำหน้าที่</label><select id="defaultAssigneeSelect"></select></div><div class="participant-editor" hidden>       <button id="addBtn" disabled>+ เพิ่มบล็อกผู้เกี่ยวข้อง</button><small>ข้อมูล WF และ role จะถูกเก็บใน JSON โดยไม่แสดงบนหน้าจอ</small><h3>แก้บล็อกที่เลือก</h3><label for="selectedWorkflowSelect" hidden>WF</label><select id="selectedWorkflowSelect" disabled hidden></select><label for="selectedRoleSelect" hidden>บทบาท (role)</label><select id="selectedRoleSelect" disabled hidden></select><label for="selectedAssigneeSelect">คนที่ทำหน้าที่</label><select id="selectedAssigneeSelect" disabled></select><label>Action</label><div class="action-options"><label><input id="actionReview" type="checkbox" disabled>ตรวจสอบ</label><label><input id="actionSign" type="checkbox" disabled>ลงนาม</label><label><input id="actionApprove" type="checkbox" disabled>อนุมัติ</label></div><small id="selectedBlockInfo">ยังไม่ได้เลือกบล็อก</small></div><div class="participant-editor"><h3>คัดลอกกลุ่มบล็อกไปหลายหน้า</h3><label for="groupSourcePage">หน้าเทมเพลตกลุ่ม (เช่น กลุ่ม A)</label><input id="groupSourcePage" type="number" min="1" placeholder="ค่าเริ่มต้น = หน้าปัจจุบัน"><label for="groupTargetPages">หน้าที่ต้องการวาง</label><input id="groupTargetPages" type="text" placeholder="เช่น 5-7,11"><button id="groupCopyBtn" type="button">📋 คัดลอกกลุ่มไปยังหน้าที่ระบุ</button>
                         <small id="groupCopyInfo">พิมพ์ช่วงหน้าคั่นด้วยจุลภาค เช่น "5-7,11" = หน้า 5,6,7 และ 11 — ระบบจะคัดลอกทุกบล็อกจากหน้าเทมเพลตไปวางตำแหน่งเดียวกันในแต่ละหน้าที่ระบุ</small></div>
                 </aside>
-                <div class="stage"><div class="page" id="page"><canvas class="pdf-canvas" id="pdfCanvas"></canvas><span class="page-label" id="pageLabel">ยังไม่ได้อัปโหลด PDF</span></div><div class="coords" id="coords">กรุณาอัปโหลด PDF ก่อนเริ่มวางบล็อก</div></div>
+                <div class="stage"><div class="page" id="page"><canvas class="pdf-canvas" id="pdfCanvas"></canvas><span class="page-label" id="pageLabel">ยังไม่ได้อัปโหลด PDF</span></div><div class="page-grid" id="pageGrid" hidden></div><div class="coords" id="coords">กรุณาอัปโหลด PDF ก่อนเริ่มวางบล็อก</div></div>
             </section>
         </main>
         <dialog id="jsonDialog"><h2>JSON สำหรับ Java / PDFBox</h2><textarea id="jsonOutput" readonly></textarea><div class="actions"><button id="downloadBtn">ดาวน์โหลด JSON</button> <button id="closeBtn">ปิด</button></div></dialog>
@@ -763,6 +776,7 @@
                 const bookmarkAddBtn = document.getElementById('bookmarkAddBtn');
                 const bookmarkList = document.getElementById('bookmarkList');
                 const bookmarkCount = document.getElementById('bookmarkCount');
+                const bookmarkPanel = bookmarkList.closest('.bookmark-panel');
                 const templateName = document.getElementById('templateName');
                 const templateSelect = document.getElementById('templateSelect');
                 const templateSaveBtn = document.getElementById('templateSaveBtn');
@@ -1026,28 +1040,62 @@
                         row.append(input,toggle); blockTextEditor.append(label,row);
                     }
                     const saveGroup = document.createElement('button');
-                    saveGroup.type = 'button'; saveGroup.textContent = '💾 อัปเดตทับกลุ่มผู้ลงนาม';
+                    saveGroup.type = 'button'; saveGroup.textContent = '💾 บันทึกข้อความลงกลุ่ม';
                     const status = document.createElement('small'); status.setAttribute('role', 'status');
-                    saveGroup.disabled = !field.user_id || !field.wfGroupName;
+                    saveGroup.disabled = !field.user_id;
                     saveGroup.addEventListener('click', async () => {
-                        const csrf = window.parent.document.querySelector('meta[name="app-csrf"]')?.content || '';
-                        saveGroup.disabled = true; status.textContent = 'กำลังบันทึก...';
+                        const dlg = document.createElement('dialog');
+                        dlg.className = 'group-save-dialog';
+                        dlg.setAttribute('aria-labelledby', 'groupSaveTitle');
+                        dlg.innerHTML = '<form><div class="group-save-head"><div><h2 id="groupSaveTitle">บันทึกข้อความลงกลุ่มผู้ลงนาม</h2><p>ข้อความของผู้ลงนามที่เลือกจะนำไปใช้เมื่อโหลดกลุ่มครั้งถัดไป</p></div><button type="button" class="group-save-close" aria-label="ปิด">×</button></div><div class="group-save-body"><label for="groupSaveMode">วิธีบันทึก</label><select id="groupSaveMode"><option value="update">อัปเดตกลุ่มเดิม</option><option value="copy">บันทึกเป็นกลุ่มใหม่</option></select><label for="groupSaveSource">กลุ่มผู้ลงนาม</label><select id="groupSaveSource" required><option value="">กำลังโหลดกลุ่ม...</option></select><div class="group-save-copy" hidden><label for="groupSaveName">ชื่อกลุ่มใหม่</label><input id="groupSaveName" maxlength="255" placeholder="ระบุชื่อกลุ่มใหม่"><label for="groupSaveVisibility">การมองเห็น</label><select id="groupSaveVisibility"><option value="private">เห็นเฉพาะตัว</option><option value="department">เห็นทั้งหน่วยงาน</option><option value="all">เห็นทั้งหมด</option></select><small>คัดลอกสมาชิก ลำดับ และสิทธิ์จากกลุ่มต้นฉบับ แล้วบันทึกข้อความของผู้ลงนามที่เลือก</small></div><p class="group-save-status" role="status" aria-live="polite"></p></div><div class="group-save-actions"><button type="button" class="group-save-cancel">ยกเลิก</button><button type="submit" class="primary">บันทึก</button></div></form>';
+                        document.body.appendChild(dlg);
+                        const form = dlg.querySelector('form'), mode = dlg.querySelector('#groupSaveMode'), source = dlg.querySelector('#groupSaveSource');
+                        const name = dlg.querySelector('#groupSaveName'), visibility = dlg.querySelector('#groupSaveVisibility'), message = dlg.querySelector('.group-save-status');
+                        const submit = form.querySelector('[type="submit"]');
+                        const close = () => dlg.close();
+                        dlg.querySelector('.group-save-close').addEventListener('click', close);
+                        dlg.querySelector('.group-save-cancel').addEventListener('click', close);
+                        dlg.addEventListener('close', () => { dlg.remove(); if (saveGroup.isConnected) saveGroup.focus(); });
+                        dlg.addEventListener('click', event => { if (event.target === dlg) close(); });
+                        mode.addEventListener('change', () => { const copying = mode.value === 'copy'; dlg.querySelector('.group-save-copy').hidden = !copying; name.required = copying; });
+                        dlg.showModal();
+                        submit.disabled = true;
                         try {
-                            const groupResponse = await fetch(`wf-groups.php?group_id=${encodeURIComponent(field.wfGroupName)}`, {credentials:'same-origin'});
-                            const groupResult = await groupResponse.json().catch(() => ({}));
-                            if (!groupResponse.ok || !groupResult.success) throw new Error(groupResult.message || `โหลดกลุ่มไม่สำเร็จ (HTTP ${groupResponse.status})`);
-                            const matches = (groupResult.group?.members || []).filter(member => String(member.user_id) === String(field.user_id));
-                            if (matches.length !== 1 || !matches[0].dc_emp_id) throw new Error(matches.length > 1 ? 'พบ user_id ซ้ำในกลุ่ม กรุณาตรวจสอบสมาชิกกลุ่ม' : 'ไม่พบ user_id นี้ในกลุ่มผู้ลงนาม กรุณาตรวจสอบกลุ่มและสมาชิก');
-                            const member = matches[0];
-                            const signatureText = {values: Object.fromEntries(wfTextKeys.map(key => [key, String(field[key] || '')])), hiddenRows: (field.hiddenRows || []).filter(key => wfTextKeys.includes(key))};
-                            const response = await fetch('wf-groups.php', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json','X-CSRF-Token':csrf}, body:JSON.stringify({action:'update_signature_text', group_name:field.wfGroupName, user_id:field.user_id, dc_emp_id:member.dc_emp_id, signature_text:signatureText})});
-                            const result = await response.json();
+                            const response = await fetch('wf-groups.php?q=', {credentials:'same-origin'});
+                            const result = await response.json().catch(() => ({}));
                             if (!response.ok || !result.success) throw new Error(result.message || `HTTP ${response.status}`);
-                            const person = participants.find(item => String(item.user_id) === String(field.user_id));
-                            if (person) { person.dcEmpId = String(member.dc_emp_id); person.signatureText = signatureText; }
-                            status.textContent = 'บันทึกลงกลุ่มแล้ว ครั้งถัดไปจะใช้ข้อมูลนี้';
-                        } catch (error) { status.textContent = `บันทึกไม่สำเร็จ: ${error.message}`; }
-                        finally { saveGroup.disabled = false; }
+                            if (!dlg.isConnected) return;
+                            source.replaceChildren(new Option('— เลือกกลุ่ม —', ''));
+                            (result.groups || []).forEach(group => source.add(new Option(group.name, group.id)));
+                            if ([...source.options].some(option => option.value === field.wfGroupName)) source.value = field.wfGroupName;
+                            submit.disabled = false;
+                        } catch (error) { message.textContent = `โหลดกลุ่มไม่สำเร็จ: ${error.message}`; }
+                        form.addEventListener('submit', async event => {
+                            event.preventDefault();
+                            const groupId = source.value, copying = mode.value === 'copy', newName = name.value.trim();
+                            if (!groupId || (copying && !newName)) { message.textContent = 'กรุณาเลือกกลุ่มและระบุข้อมูลให้ครบ'; return; }
+                            submit.disabled = true; message.textContent = 'กำลังบันทึก...';
+                            try {
+                                const groupResponse = await fetch(`wf-groups.php?group_id=${encodeURIComponent(groupId)}`, {credentials:'same-origin'});
+                                const groupResult = await groupResponse.json().catch(() => ({}));
+                                if (!groupResponse.ok || !groupResult.success) throw new Error(groupResult.message || `HTTP ${groupResponse.status}`);
+                                if (!copying && !groupResult.group?.can_edit) throw new Error('คุณไม่มีสิทธิ์แก้ไขกลุ่มนี้ เลือกบันทึกเป็นกลุ่มใหม่ได้');
+                                const matches = (groupResult.group?.members || []).filter(member => String(member.user_id) === String(field.user_id));
+                                if (matches.length !== 1 || !matches[0].dc_emp_id) throw new Error(matches.length > 1 ? 'พบ user_id ซ้ำในกลุ่ม กรุณาตรวจสอบสมาชิกกลุ่ม' : 'ไม่พบผู้ลงนามนี้ในกลุ่มที่เลือก');
+                                const signatureText = {values:Object.fromEntries(wfTextKeys.map(key => [key, String(field[key] || '')])), hiddenRows:(field.hiddenRows || []).filter(key => wfTextKeys.includes(key))};
+                                const payload = {action:copying ? 'copy_group' : 'update_signature_text', group_name:copying ? newName : groupId, user_id:field.user_id, dc_emp_id:matches[0].dc_emp_id, signature_text:signatureText};
+                                if (copying) Object.assign(payload, {source_name:groupId, visibility:visibility.value});
+                                const csrf = window.parent.document.querySelector('meta[name="app-csrf"]')?.content || '';
+                                const response = await fetch('wf-groups.php', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json','X-CSRF-Token':csrf}, body:JSON.stringify(payload)});
+                                const result = await response.json().catch(() => ({}));
+                                if (!response.ok || !result.success) throw new Error(result.message || `HTTP ${response.status}`);
+                                const person = participants.find(item => String(item.user_id) === String(field.user_id));
+                                if (person && groupId === field.wfGroupName && !copying) { person.dcEmpId = String(matches[0].dc_emp_id); person.signatureText = signatureText; }
+                                status.textContent = `บันทึกข้อความลงกลุ่ม “${copying ? newName : groupId}” แล้ว`;
+                                close();
+                            } catch (error) { message.textContent = `บันทึกไม่สำเร็จ: ${error.message}`; }
+                            finally { submit.disabled = false; }
+                        });
                     });
                     blockTextEditor.append(saveGroup, status);
                 }
@@ -1088,10 +1136,55 @@
                 let bookmarkDraftOrder = [];
                 const bookmarkUpdateBtn = document.getElementById('bookmarkUpdateBtn');
                 const bookmarkOrderStatus = document.getElementById('bookmarkOrderStatus');
+                bookmarkUpdateBtn.textContent = 'บันทึกลำดับ Bookmark';
+                const overviewBtn = document.getElementById('bookmarkOverviewBtn');
+                const overviewDialog = document.createElement('dialog');
+                overviewDialog.className = 'bookmark-overview-dialog';
+                overviewDialog.setAttribute('aria-labelledby', 'bookmarkOverviewTitle');
+                overviewDialog.innerHTML = '<div class="bookmark-overview-header"><div><h2 id="bookmarkOverviewTitle">ภาพรวม Bookmark</h2><p>เลือกหัวข้อเพื่อเปิดหน้าของเอกสาร</p></div><button type="button" class="bookmark-overview-close" aria-label="ปิดภาพรวม">×</button></div><div class="bookmark-overview-list"></div>';
+                document.body.appendChild(overviewDialog);
+                overviewDialog.querySelector('.bookmark-overview-close').addEventListener('click', () => overviewDialog.close());
+                overviewDialog.addEventListener('click', event => { if (event.target === overviewDialog) overviewDialog.close(); });
+                overviewBtn.addEventListener('click', () => {
+                    const list = overviewDialog.querySelector('.bookmark-overview-list');
+                    list.replaceChildren();
+                    const ordered = [...bookmarks].sort((a, b) => {
+                        const rank = item => { const index = bookmarkDraftOrder.indexOf(item.id); return index < 0 ? bookmarkDraftOrder.length + bookmarks.indexOf(item) : index; };
+                        return rank(a) - rank(b);
+                    });
+                    if (!ordered.length) {
+                        const empty = document.createElement('p'); empty.textContent = 'ยังไม่มี Bookmark ในเอกสารนี้'; list.appendChild(empty);
+                    }
+                    ordered.forEach(bookmark => {
+                        const item = document.createElement('div'); item.className = 'bookmark-overview-item';
+                        const button = document.createElement('button'); button.type = 'button'; button.className = 'bookmark-overview-link';
+                        const name = document.createElement('span'); name.className = 'bookmark-overview-name';
+                        name.textContent = bookmark.name; name.style.paddingLeft = `${Math.min(3, Math.max(0, Number(bookmark.level) || 0)) * 16}px`;
+                        const pageNumber = document.createElement('span'); pageNumber.className = 'bookmark-overview-page'; pageNumber.textContent = `หน้า ${bookmark.page}`;
+                        button.append(name, pageNumber);
+                        button.addEventListener('click', async () => {
+                            const target = Number(bookmark.page);
+                            if (!documentPdf) { coords.textContent = 'กรุณาอัปโหลด PDF ก่อนดู Bookmark'; overviewDialog.close(); return; }
+                            if (!Number.isInteger(target) || target < 1 || target > totalPages) { coords.textContent = `Bookmark นี้ระบุหน้า ${bookmark.page} ซึ่งอยู่นอกเอกสาร`; overviewDialog.close(); return; }
+                            overviewDialog.close(); await showPage(target); stage.scrollTop = 0; stage.scrollLeft = 0;
+                        });
+                        const editButton = document.createElement('button');
+                        editButton.type = 'button';
+                        editButton.className = 'bookmark-overview-edit';
+                        editButton.textContent = '✎ แก้ไข';
+                        editButton.setAttribute('aria-label', `แก้ไข Bookmark ${bookmark.name}`);
+                        editButton.addEventListener('click', () => {
+                            window.parent.postMessage({type:'EIS_DOCS_EDIT_BOOKMARK', bookmarkId:bookmark.id}, location.origin);
+                        });
+                        item.append(button, editButton);
+                        list.appendChild(item);
+                    });
+                    overviewDialog.showModal();
+                });
                 function markBookmarkOrder() {
                     bookmarkDraftOrder = Array.from(bookmarkList.querySelectorAll('.bookmark-item'), item => item.dataset.bookmarkId);
                     bookmarkUpdateBtn.disabled = bookmarkDraftOrder.every((id, index) => id === bookmarks[index]?.id);
-                    bookmarkOrderStatus.textContent = bookmarkUpdateBtn.disabled ? '' : 'ลำดับเปลี่ยนแล้ว — กดอัปเดต Bookmark';
+                    bookmarkOrderStatus.textContent = bookmarkUpdateBtn.disabled ? '' : 'ลำดับเปลี่ยนแล้ว — กดบันทึกลำดับ Bookmark';
                 }
                 bookmarkUpdateBtn.addEventListener('click', () => {
                     const byId = new Map(bookmarks.map(bookmark => [bookmark.id, bookmark]));
@@ -1199,9 +1292,23 @@
                            label.title = `${bookmark.name} · หน้า ${bookmark.page} — คลิกเพื่อไปยังหน้านี้`;
                            label.tabIndex = 0;
                            label.setAttribute('role', 'link');
-                           label.addEventListener('keydown', event => { if (event.key === 'Enter') showPage(bookmark.page); });
+                           const reviewBookmark = async () => {
+                               const target = Number(bookmark.page);
+                               if (!documentPdf) { coords.textContent = 'กรุณาอัปโหลด PDF ก่อนดู Bookmark'; return; }
+                               if (!Number.isInteger(target) || target < 1 || target > totalPages) { coords.textContent = `Bookmark นี้ระบุหน้า ${bookmark.page} ซึ่งอยู่นอกเอกสาร`; return; }
+                               await showPage(target);
+                               stage.scrollTop = 0;
+                               stage.scrollLeft = 0;
+                           };
+                           label.addEventListener('keydown', event => { if (event.key === 'Enter') reviewBookmark(); });
                            label.style.cursor = 'pointer';
-                           label.addEventListener('click', () => showPage(bookmark.page));
+                           label.addEventListener('click', reviewBookmark);
+                           const reviewBtn = document.createElement('button');
+                           reviewBtn.type = 'button';
+                           reviewBtn.textContent = 'ดูหน้า';
+                           reviewBtn.className = 'bookmark-review-button';
+                           reviewBtn.setAttribute('aria-label', `ดู Bookmark ${bookmark.name} หน้า ${bookmark.page}`);
+                           reviewBtn.addEventListener('click', reviewBookmark);
                            const editBtn = document.createElement('button');
                            editBtn.type = 'button';
                            editBtn.textContent = '✎ แก้ไข';
@@ -1277,7 +1384,7 @@
                            item.appendChild(label);
                            const actions = document.createElement('div');
                            actions.className = 'bookmark-item-actions';
-                           actions.append(editBtn, removeBtn);
+                           actions.append(reviewBtn, editBtn, removeBtn);
                            item.appendChild(actions);
                            bookmarkList.appendChild(item);
                        });
@@ -1690,19 +1797,10 @@
                         editText.addEventListener('pointerdown', event => event.stopPropagation());
                         editText.addEventListener('click', event => {
                             event.stopPropagation(); select(field.id);
+                            blockEditorPanel.querySelector(':scope > details')?.setAttribute('open', '');
                             blockEditorPanel.scrollIntoView({behavior:'smooth',block:'nearest'});
                         });
                         tools.appendChild(editText);
-                        const searchPerson = document.createElement('button');
-                        searchPerson.type = 'button'; searchPerson.textContent = 'ค้นหา';
-                        searchPerson.title = 'ค้นหาและเปลี่ยนผู้รับผิดชอบ WF';
-                        searchPerson.addEventListener('pointerdown', event => event.stopPropagation());
-                        searchPerson.addEventListener('click', event => {
-                            event.stopPropagation(); select(field.id);
-                            blockEditorPanel.scrollIntoView({behavior:'smooth',block:'nearest'});
-                            selectedAssigneeSelect.focus();
-                        });
-                        tools.appendChild(searchPerson);
                         const restore = document.createElement('button');
                         restore.type = 'button';
                         restore.textContent = 'คืนแถว';
@@ -2088,10 +2186,11 @@
                 function renderTemplateSelect(selectName) {
                     const store = loadTemplateStore();
                     const names = Object.keys(store).sort((a, b) => a.localeCompare(b, 'th'));
-                    templateSelect.innerHTML = '<option value="">— เลือก Template —</option>' +
-                       names.map(name => `<option value="${name.replace(/"/g, '&quot;')}">${name}</option>`).join('');
+                    templateSelect.replaceChildren(new Option('— เลือก Template —', ''));
+                    names.forEach(name => templateSelect.add(new Option(name, name)));
                     if (selectName && names.includes(selectName))
                         templateSelect.value = selectName;
+                    updateTemplateActions();
                 }
 
                 function saveCurrentAsTemplate(nameOverride = '', skipConfirm = false) {
@@ -2161,9 +2260,50 @@
                         return;
                     const store = loadTemplateStore();
                     delete store[name];
-                    saveTemplateStore(store);
+                    if (!saveTemplateStore(store)) { templateInfo.textContent = 'ลบ Template ไม่สำเร็จ'; return; }
                     renderTemplateSelect();
+                    if (templateName.value === name) templateName.value = '';
                     templateInfo.textContent = `ลบ Template "${name}" แล้ว`;
+                }
+
+                function renameSelectedTemplate() {
+                    const oldName = templateSelect.value;
+                    if (!oldName) return;
+                    const entered = prompt('ระบุชื่อ Template ใหม่', oldName);
+                    if (entered === null) return;
+                    const newName = entered.trim();
+                    if (!newName) { templateInfo.textContent = 'กรุณาระบุชื่อ Template'; return; }
+                    if (newName === oldName) return;
+                    const store = loadTemplateStore();
+                    if (!Object.hasOwn(store, oldName)) { templateInfo.textContent = 'ไม่พบ Template ที่เลือก'; renderTemplateSelect(); return; }
+                    if (Object.hasOwn(store, newName) || ['__proto__', 'prototype', 'constructor'].includes(newName)) {
+                        templateInfo.textContent = 'ชื่อนี้ใช้ไม่ได้หรือมีอยู่แล้ว กรุณาเลือกชื่ออื่น'; return;
+                    }
+                    store[newName] = store[oldName];
+                    delete store[oldName];
+                    if (!saveTemplateStore(store)) { templateInfo.textContent = 'แก้ชื่อ Template ไม่สำเร็จ'; return; }
+                    templateName.value = newName;
+                    renderTemplateSelect(newName);
+                    templateInfo.textContent = `เปลี่ยนชื่อ Template เป็น "${newName}" แล้ว`;
+                }
+
+                function exportSelectedTemplate() {
+                    const name = templateSelect.value;
+                    if (!name) return;
+                    const store = loadTemplateStore();
+                    if (!Object.hasOwn(store, name)) { templateInfo.textContent = 'ไม่พบ Template ที่เลือก'; renderTemplateSelect(); return; }
+                    const blob = new Blob([JSON.stringify(store[name], null, 2)], {type:'application/json;charset=utf-8'});
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url; link.download = `${name.replace(/[\\/:*?"<>|\x00-\x1f]/g, '_')}.json`;
+                    document.body.appendChild(link); link.click(); link.remove();
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    templateInfo.textContent = `ส่งออก Template "${name}" แล้ว`;
+                }
+
+                function updateTemplateActions() {
+                    const hasSelection = Boolean(templateSelect.value);
+                    [templateLoadBtn, templateDeleteBtn, document.getElementById('templateRenameBtn'), document.getElementById('templateExportBtn')].forEach(button => { if (button) button.disabled = !hasSelection; });
                 }
 
                 function upsertParticipant(person) {
@@ -2315,9 +2455,87 @@
                     coords.textContent = `โหลด JSON PDFBox แล้ว ${fields.length} บล็อก`;
                 }
 
+                const pageGrid = document.getElementById('pageGrid');
+                const singleViewBtn = document.getElementById('singleViewBtn');
+                const gridViewBtn = document.getElementById('gridViewBtn');
+                let gridObserver = null;
+                let gridGeneration = 0;
+
+                function showSingleView() {
+                    gridGeneration++;
+                    if (gridObserver) gridObserver.disconnect();
+                    gridObserver = null;
+                    pageGrid.hidden = true;
+                    page.hidden = false;
+                    singleViewBtn.setAttribute('aria-pressed', 'true');
+                    gridViewBtn.setAttribute('aria-pressed', 'false');
+                    fitPdfToStage();
+                }
+
+                function showGridView() {
+                    if (!documentPdf) { coords.textContent = 'กรุณาอัปโหลด PDF ก่อนดูหลายหน้า'; return; }
+                    const pdf = documentPdf;
+                    const generation = ++gridGeneration;
+                    if (gridObserver) gridObserver.disconnect();
+                    page.hidden = true;
+                    pageGrid.hidden = false;
+                    singleViewBtn.setAttribute('aria-pressed', 'false');
+                    gridViewBtn.setAttribute('aria-pressed', 'true');
+                    pageGrid.replaceChildren();
+                    const help = document.createElement('p');
+                    help.className = 'page-grid-help';
+                    help.textContent = 'เลือกหน้าเพื่อเปิดและแก้ไขตำแหน่งลายเซ็น กรอบสีน้ำเงินแสดงตำแหน่งกล่อง';
+                    pageGrid.appendChild(help);
+                    const drawThumbnail = async card => {
+                        if (card.dataset.rendered) return;
+                        card.dataset.rendered = '1';
+                        try {
+                            const pdfPage = await pdf.getPage(Number(card.dataset.page));
+                            if (generation !== gridGeneration || pdf !== documentPdf) return;
+                            const base = pdfPage.getViewport({scale:1});
+                            const viewport = pdfPage.getViewport({scale:Math.min(2, (card.clientWidth - 20) / base.width * Math.min(window.devicePixelRatio || 1, 2))});
+                            const canvas = card.querySelector('canvas');
+                            canvas.width = Math.ceil(viewport.width); canvas.height = Math.ceil(viewport.height);
+                            await pdfPage.render({canvasContext:canvas.getContext('2d'), viewport}).promise;
+                        } catch (error) {
+                            if (generation === gridGeneration) card.querySelector('small').textContent = 'โหลดหน้าไม่สำเร็จ';
+                        }
+                    };
+                    gridObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+                        if (entry.isIntersecting) { gridObserver?.unobserve(entry.target); drawThumbnail(entry.target); }
+                    }), {root:stage, rootMargin:'300px'});
+                    for (let number = 1; number <= totalPages; number++) {
+                        const card = document.createElement('button');
+                        card.type = 'button'; card.className = 'page-grid-card'; card.dataset.page = String(number);
+                        card.setAttribute('aria-label', `เปิดหน้า ${number} เพื่อแก้ไข`);
+                        if (number === currentPage) card.setAttribute('aria-current', 'page');
+                        const sheet = document.createElement('span'); sheet.className = 'page-grid-sheet';
+                        const size = pageSizes[number] || {displayWidth:595, displayHeight:842};
+                        sheet.style.aspectRatio = `${size.displayWidth} / ${size.displayHeight}`;
+                        sheet.appendChild(document.createElement('canvas'));
+                        const pageFields = fields.filter(field => Number(field.page) === number);
+                        pageFields.forEach(field => {
+                            const marker = document.createElement('span'); marker.className = 'page-grid-marker';
+                            marker.style.cssText = `left:${100*field.x/size.displayWidth}%;top:${100*field.y/size.displayHeight}%;width:${100*field.w/size.displayWidth}%;height:${100*field.h/size.displayHeight}%`;
+                            sheet.appendChild(marker);
+                        });
+                        const caption = document.createElement('span'); caption.className = 'page-grid-caption';
+                        const label = document.createElement('span'); label.textContent = `หน้า ${number}`;
+                        const count = document.createElement('small'); count.textContent = pageFields.length ? `${pageFields.length} กล่อง` : 'ไม่มีกล่อง';
+                        caption.append(label, count); card.append(sheet, caption);
+                        card.addEventListener('click', () => { showSingleView(); showPage(number); stage.scrollTop = 0; });
+                        pageGrid.appendChild(card); gridObserver.observe(card);
+                    }
+                    stage.scrollTop = 0;
+                    coords.textContent = `แสดง ${totalPages} หน้า — เลือกหน้าเพื่อแก้ไข`;
+                }
+                singleViewBtn.addEventListener('click', () => { if (!pageGrid.hidden) { showSingleView(); showPage(currentPage); } });
+                gridViewBtn.addEventListener('click', showGridView);
+
                 async function showPage(pageNumber) {
                     if (!documentPdf || pageNumber < 1 || pageNumber > totalPages)
                         return;
+                    if (!pageGrid.hidden) showSingleView();
                     const requestId = ++renderRequestId;
                     currentPage = pageNumber;
                     const pdfPage = await documentPdf.getPage(currentPage);
@@ -2350,6 +2568,7 @@
                     const file = event.target.files[0];
                     if (!file)
                         return;
+                    if (!pageGrid.hidden) showSingleView();
                     selectedPdfFile = file;
                     const hasTemplateFields = fields.length > 0;
                     if (!pdfJsReady) {
@@ -2416,34 +2635,6 @@
                     }
                 });
 
-                document.getElementById('jsonInput').addEventListener('change', async event => {
-                    const file = event.target.files[0];
-                    if (!file)
-                        return;
-                    try {
-                        if (file.size > 10 * 1024 * 1024) throw new Error('ไฟล์ JSON ต้องไม่เกิน 10 MB');
-                        const text = await file.text();
-                        let data = JSON.parse(text);
-                        if (data?.config_json) data = typeof data.config_json === 'string' ? JSON.parse(data.config_json) : data.config_json;
-                        if (data?.layoutPayload) data = data.layoutPayload;
-                        if (data?.payload && !templateFieldList(data)) data = typeof data.payload === 'string' ? JSON.parse(data.payload) : data.payload;
-                        if (!templateFieldList(data) && Array.isArray(data?.signatureBoxes)) data = {...data, signatureFields:data.signatureBoxes};
-                        const importedFields = templateFieldList(data);
-                        if (!importedFields || importedFields.length > 1000 || importedFields.some(field => !field || typeof field !== 'object' || Array.isArray(field))) {
-                            throw new Error('ไม่พบตำแหน่งลายเซ็นที่ถูกต้องใน JSON Template');
-                        }
-                        if (fields.length && !confirm('นำเข้า JSON Template จะแทนที่ตำแหน่งลายเซ็นปัจจุบัน ต้องการนำเข้าหรือไม่?')) return;
-                        await restoreFromPayload(data);
-                        loadedSavedTemplate = true;
-                        if (window.parent !== window) window.parent.postMessage({type:'EIS_DOCS_LAYOUT_STATE', data:buildPayload(), loadedSavedTemplate:true}, window.location.origin);
-                        coords.textContent = `นำเข้า ${file.name} สำเร็จ (${fields.length} ตำแหน่ง)${documentPdf ? '' : ' — กรุณาอัปโหลด PDF เพื่อแสดงเอกสาร'}`;
-                    } catch (error) {
-                        coords.textContent = `นำเข้า JSON Template ไม่สำเร็จ: ${error.message}`;
-                    } finally {
-                        event.target.value = '';
-                    }
-                });
-
                 addButton.addEventListener('click', addBlock);
 
                 function parsePageRanges(text, maxPage) {
@@ -2506,6 +2697,8 @@
                 signatureSourcePanel.innerHTML = '<h3>กล่องลายเซ็น</h3><label for="signatureSourceMode">โหมดข้อมูล</label><select id="signatureSourceMode"><option value="group">จากกลุ่มผู้ลงนาม</option><option value="template">จาก Template ที่บันทึกไว้</option></select><small>เลือกโหมด แล้วโหลดกลุ่มหรือ Template เพื่อแก้ไขกล่องลายเซ็น ใช้ได้ทั้งเอกสารใหม่และเอกสารเดิม</small>';
                 document.querySelector('.side').prepend(signatureSourcePanel);
                 const signatureSourceSelect = document.getElementById('signatureSourceMode');
+                const pdfUploadControl = document.getElementById('pdfInput').closest('.upload');
+                signatureSourceSelect.before(pdfUploadControl);
                 signatureSourceSelect.hidden = true;
                 signatureSourcePanel.querySelector('label[for="signatureSourceMode"]').hidden = true;
                 const groupPanel = wfGroupSelect.closest('.participant-editor');
@@ -2566,6 +2759,7 @@
                     setSignatureSource('template');
                     if (!templateSelect.value) {
                         coords.textContent = 'กรุณาเลือก Template ที่บันทึกไว้ด้านล่างก่อนโหลด';
+                        templateSelect.closest('.participant-editor').querySelector(':scope > details')?.setAttribute('open', '');
                         templateSelect.focus();
                         return;
                     }
@@ -2580,7 +2774,7 @@
                     signatureSourceMode = mode === 'template' ? 'template' : 'group';
                     signatureSourceSelect.value = signatureSourceMode;
                     wfGroupSelect.closest('.participant-editor').hidden = true;
-                    templateSelect.closest('.participant-editor').hidden = signatureSourceMode !== 'template';
+                    templateSelect.closest('.participant-editor').hidden = false;
                 }
                 signatureSourceSelect.addEventListener('change', () => {
                     setSignatureSource(signatureSourceSelect.value);
@@ -2596,6 +2790,32 @@
                     const message = event.data;
                     if (!message)
                         return;
+                    if (message.type === 'EIS_DOCS_FOCUS_BOOKMARK' && event.source === window.parent) {
+                        const bookmark = bookmarks.find(item => item.id === String(message.bookmarkId || ''));
+                        if (!bookmark) {
+                            coords.textContent = 'ไม่พบ Bookmark ที่ต้องการแก้ไข';
+                            return;
+                        }
+                        const target = Number(bookmark.page);
+                        if (!documentPdf || !Number.isInteger(target) || target < 1 || target > totalPages) {
+                            coords.textContent = 'กรุณาเปิด PDF และตรวจสอบหน้าของ Bookmark ก่อนแก้ไข';
+                            return;
+                        }
+                        await showPage(target);
+                        stage.scrollTop = 0;
+                        stage.scrollLeft = 0;
+                        bookmarkPanel.querySelector(':scope > details')?.setAttribute('open', '');
+                        const bookmarkItem = Array.from(bookmarkList.querySelectorAll('.bookmark-item')).find(item => item.dataset.bookmarkId === bookmark.id);
+                        if (!bookmarkItem) {
+                            coords.textContent = `ไม่พบ Bookmark "${bookmark.name}" ในรายการแก้ไข`;
+                            return;
+                        }
+                        bookmarkItem.scrollIntoView({behavior: 'smooth', block: 'center'});
+                        bookmarkItem.classList.add('is-focused');
+                        bookmarkItem.querySelector('.bookmark-edit-button')?.click();
+                        setTimeout(() => bookmarkItem.classList.remove('is-focused'), 1600);
+                        return;
+                    }
                     if (message.type === 'EIS_DOCS_SIGN_DATE_POLICY' && event.source === window.parent) {
                         signDatePolicy = message.policy || {mode:'none', fixed:''};
                         render();
@@ -2700,7 +2920,7 @@
                         document.getElementById('layoutDocumentType').textContent = String(message.documentType || '').trim() || 'ยังไม่ได้เลือกชนิดเอกสาร';
                         if (layoutIsAuthoritative && message.forceReload !== true) return;
                         const incoming = Array.isArray(message.bookmarks) ? message.bookmarks : [];
-                        const retained = bookmarks.filter(bookmark => bookmark.source !== 'procurement');
+                        const retained = message.forceReload === true ? [] : bookmarks.filter(bookmark => bookmark.source !== 'procurement');
                         const inserted = incoming
                            .filter(bookmark => bookmark && bookmark.name)
                            .map(bookmark => ({
@@ -2722,6 +2942,8 @@
                         coords.textContent = inserted.length
                            ? `แทรก Bookmark จากรายการเอกสารจัดซื้อ ${inserted.length} รายการ${message.prCode ? ` (${message.prCode})` : ''} แล้ว`
                            : 'ลบ Bookmark จากรายการเอกสารจัดซื้อแล้ว';
+                        if (message.openOverview === true)
+                            overviewBtn.click();
                     }
                 });
                 defaultAssigneeSelect.addEventListener('change', () => {
@@ -2754,6 +2976,7 @@
                     if (!name) {
                         coords.textContent = 'กรุณาเลือก Template ที่บันทึกไว้ด้านล่างก่อนเพิ่ม Bookmark';
                         setSignatureSource('template');
+                        templateSelect.closest('.participant-editor').querySelector(':scope > details')?.setAttribute('open', '');
                         templateSelect.focus();
                         return;
                     }
@@ -2909,15 +3132,6 @@
                     document.getElementById('app').classList.toggle('preview');
                     event.currentTarget.textContent = document.getElementById('app').classList.contains('preview') ? 'กลับไปแก้ไข' : 'ดูตัวอย่างจริง';
                 });
-                document.getElementById('clearBtn').addEventListener('click', () => {
-                    if (!fields.length || !confirm('ล้างบล็อกผู้เกี่ยวข้องทั้งหมดหรือไม่?'))
-                        return;
-                    fields.length = 0;
-                    selectedFieldId = null;
-                    render();
-                    renderSelectedBlockEditor();
-                    coords.textContent = 'ล้างบล็อกผู้เกี่ยวข้องทั้งหมดแล้ว';
-                });
                 document.getElementById('exportBtn').addEventListener('click', () => {
                     const missing = missingAssignments();
                     if (missing.length && !confirm(`ยังมี ${missing.length} บล็อกที่ไม่ได้เลือก role หรือผู้ทำหน้าที่ ต้องการบันทึก JSON ต่อหรือไม่?`))
@@ -2938,11 +3152,19 @@
                     setTimeout(() => URL.revokeObjectURL(link.href), 0);
                 });
                 templateSaveBtn.addEventListener('click', () => saveCurrentAsTemplate());
+                const templateRenameBtn = document.createElement('button');
+                templateRenameBtn.type = 'button'; templateRenameBtn.id = 'templateRenameBtn'; templateRenameBtn.textContent = '✏️ แก้ชื่อ';
+                const templateExportBtn = document.createElement('button');
+                templateExportBtn.type = 'button'; templateExportBtn.id = 'templateExportBtn'; templateExportBtn.textContent = '⬇ ส่งออก JSON';
+                templateDeleteBtn.before(templateRenameBtn, templateExportBtn);
+                templateRenameBtn.addEventListener('click', renameSelectedTemplate);
+                templateExportBtn.addEventListener('click', exportSelectedTemplate);
                 templateLoadBtn.addEventListener('click', () => loadSelectedTemplate());
                 templateDeleteBtn.addEventListener('click', deleteSelectedTemplate);
                 templateSelect.addEventListener('change', () => {
                     if (templateSelect.value)
                         templateName.value = templateSelect.value;
+                    updateTemplateActions();
                 });
                 templateName.addEventListener('keydown', event => {
                     if (event.key === 'Enter') {
@@ -2951,6 +3173,33 @@
                     }
                 });
 
+                document.querySelectorAll('.side > .participant-editor').forEach(panel => {
+                    const heading = panel.querySelector(':scope > .bookmark-heading, :scope > h3');
+                    if (!heading) return;
+                    const details = document.createElement('details');
+                    details.open = panel === signatureSourcePanel;
+                    const summary = document.createElement('summary');
+                    const icons = {
+                        signature: '<path d="M4 20h16M5 16l9-9 3 3-9 9-4 1zM13 8l2-2a2 2 0 0 1 3 3l-2 2"/>',
+                        bookmark: '<path d="M6 4h12v16l-6-4-6 4z"/>',
+                        edit: '<path d="M5 5h9M5 9h7M5 13h5M14 16l5-5 2 2-5 5-3 1z"/>',
+                        template: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M10 9v11"/>',
+                        copy: '<rect x="8" y="7" width="11" height="13" rx="2"/><path d="M16 7V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2"/>',
+                        default: '<circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/>'
+                    };
+                    const iconKind = panel === signatureSourcePanel ? 'signature' : panel.classList.contains('bookmark-panel') ? 'bookmark' : panel === blockEditorPanel ? 'edit' : panel.contains(templateSelect) ? 'template' : panel.querySelector('#groupSourcePage') ? 'copy' : 'default';
+                    const icon = document.createElement('span');
+                    icon.className = 'tool-group-icon'; icon.setAttribute('aria-hidden', 'true');
+                    icon.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${icons[iconKind]}</svg>`;
+                    summary.appendChild(icon);
+                    summary.appendChild(heading);
+                    const content = document.createElement('div');
+                    content.className = 'tool-group-content';
+                    while (panel.firstChild) content.appendChild(panel.firstChild);
+                    details.append(summary, content);
+                    panel.classList.add('tool-group');
+                    panel.appendChild(details);
+                });
                 renderDocumentRoleList();
                 renderParticipantList();
                 renderBookmarkList();

@@ -250,9 +250,11 @@
 
     const setCollapsed = collapsed => {
       document.body.classList.toggle("sidebar-collapsed", collapsed);
+      document.body.classList.toggle("compact-menu", collapsed);
       collapseToggle?.setAttribute("aria-expanded", String(!collapsed));
       collapseToggle?.setAttribute("aria-label", collapsed ? "ขยายเมนู" : "ย่อเมนู");
       localStorage.setItem("eis-docs-sidebar-collapsed", collapsed ? "1" : "0");
+      localStorage.setItem("eis-docs-compact-menu", collapsed ? "1" : "0");
     };
     const setMobileOpen = open => {
       document.body.classList.toggle("mobile-menu-open", open);
@@ -377,6 +379,13 @@
       initCanvasIfNeeded();
       syncSelectedGroupToLayout();
     }
+
+    function focusBookmarkInLayout(bookmarkId) {
+      $('#layoutFrame')?.contentWindow?.postMessage({
+        type: 'EIS_DOCS_FOCUS_BOOKMARK',
+        bookmarkId: String(bookmarkId || ''),
+      }, location.origin);
+    }
     if (i === 3) {
       renderPreview();
       $('#layoutFrame')?.contentWindow?.postMessage({type:'EIS_DOCS_REQUEST_LAYOUT_STATE'},location.origin);
@@ -401,7 +410,7 @@
     syncProcurementBookmarksToLayout();
   }
 
-  function syncProcurementBookmarksToLayout(forceReload = false) {
+  function syncProcurementBookmarksToLayout(forceReload = false, openOverview = false) {
     // Once the layout has been captured, its edited bookmarks are authoritative.
     if (state.layoutPayload && !forceReload) return;
     const frame = $("#layoutFrame");
@@ -416,6 +425,7 @@
     frame.contentWindow.postMessage({
       type: "EIS_DOCS_SYNC_PROCUREMENT_BOOKMARKS",
       forceReload,
+      openOverview,
       prCode: state.config.prCode || "",
       docsId: state.config.docsId || null,
       documentPath: state.config.filePath || state.config.pdfDocId || "",
@@ -730,7 +740,7 @@
       fallbackPayload: {signatureFields:saved.signatureBoxes || []}
     };
     state.selectedGroupId = state.groups[0]?.id || null;
-    $('#layoutFrame').src = 'layout.html?v=20261105-approval-restore';
+    $('#layoutFrame').src = 'layout.html?v=20261105-group-save';
     $("#docType").value = state.config.docType;
     $("#prId").value = state.config.prId;
     $("#prSearch").value = state.config.prCode;
@@ -760,7 +770,7 @@
   function resetDocumentForm() {
     state.layoutPayload = null;
     state.restoreLayout = null;
-    $('#layoutFrame').src = 'layout.html?v=20261105-approval-restore';
+    $('#layoutFrame').src = 'layout.html?v=20261105-group-save';
     document.getElementById('revisionFeedback')?.remove();
     state.config = {docsId:null, docType:"PR - ใบขอซื้อ/ขอจ้าง", prId:"", prCode:"", prName:"", templateName:"", description:"", status:"Draft", amount:0, department:"", docDate:"", filePath:"", pdfDocId:"", signDateMode:"none", signDateFixed:""};
     $("#savedDocumentSelect").value = ""; $("#docType").value = state.config.docType; $("#prId").value = "";
@@ -849,29 +859,106 @@
     });
   }
 
+  const PROCUREMENT_TOPIC_HISTORY_KEY = "eis-docs-procurement-topic-history-v1";
+
+  function procurementTopicHistory() {
+    try {
+      const value = JSON.parse(localStorage.getItem(PROCUREMENT_TOPIC_HISTORY_KEY) || "[]");
+      return Array.isArray(value) ? value.filter(item => typeof item === "string" && item.trim()).slice(0, 10) : [];
+    } catch (error) {
+      console.warn("อ่านประวัติการคีย์หัวข้อไม่สำเร็จ", error);
+      return [];
+    }
+  }
+
+  function rememberProcurementTopic(title) {
+    const value = title.trim();
+    if (!value) return;
+    const history = [value, ...procurementTopicHistory().filter(item => item !== value)].slice(0, 10);
+    try { localStorage.setItem(PROCUREMENT_TOPIC_HISTORY_KEY, JSON.stringify(history)); }
+    catch (error) { console.warn("บันทึกประวัติการคีย์หัวข้อไม่สำเร็จ", error); }
+  }
+
+  function promptProcurementItem(item, parentGroup) {
+    const isNew = !item;
+    const defaultGroup = item?.group ?? parentGroup?.group ?? Math.max(0, ...state.procurementCatalog.map(row => Number(row.group) || 0)) + 1;
+    const defaultPage = item?.page ?? (parentGroup ? (parentGroup.children || []).length + 2 : 1);
+    const history = procurementTopicHistory();
+    return new Promise(resolve => {
+      const dialog = document.createElement("dialog");
+      dialog.className = "procurement-topic-dialog";
+      dialog.innerHTML = `<form method="dialog" class="procurement-topic-form">
+        <div class="procurement-topic-dialog-head">
+          <div class="procurement-topic-icon" aria-hidden="true">＋</div>
+          <div><h3>${isNew ? "เพิ่มหัวข้อเอกสาร" : "แก้ไขหัวข้อเอกสาร"}</h3><p>${isNew ? "กรอกข้อมูลหัวข้อใหม่ให้ครบถ้วน" : "ปรับปรุงข้อมูลหัวข้อเอกสาร"}</p></div>
+        </div>
+        <div class="procurement-topic-fields">
+          <label class="procurement-topic-title-field">ชื่อหัวข้อเอกสาร
+            <input name="title" type="text" maxlength="255" value="${escapeHtml(item?.title || "")}" placeholder="เช่น รายงานผลการพิจารณา" required autocomplete="off">
+          </label>
+          <div class="procurement-topic-number-fields">
+            <label>หมายเลขชุด<input name="group" type="number" min="1" step="1" value="${defaultGroup}" required></label>
+            <label>หมายเลขหน้า<input name="page" type="number" min="1" step="1" value="${defaultPage}" required></label>
+          </div>
+        </div>
+        <section class="procurement-topic-history" aria-labelledby="procurementTopicHistoryTitle">
+          <div class="procurement-topic-history-head"><strong id="procurementTopicHistoryTitle">ประวัติการคีย์ข้อมูล</strong><span>ล่าสุด ${history.length}/10 รายการ</span></div>
+          ${history.length ? `<div class="procurement-topic-history-list">${history.map(title => `<button type="button" class="procurement-topic-history-item" data-topic-title="${escapeHtml(title)}"><span aria-hidden="true">↻</span><span>${escapeHtml(title)}</span></button>`).join("")}</div>` : '<p class="procurement-topic-history-empty">ยังไม่มีประวัติการคีย์ชื่อหัวข้อ</p>'}
+        </section>
+        <div class="actions"><button type="button" class="btn btn-subtle" data-cancel>ยกเลิก</button><button type="submit" class="btn btn-primary">${isNew ? "เพิ่มหัวข้อ" : "บันทึกการแก้ไข"}</button></div>
+      </form>`;
+      const form = dialog.querySelector("form");
+      const titleInput = form.querySelector('[name="title"]');
+      dialog.querySelectorAll("[data-topic-title]").forEach(button => button.addEventListener("click", () => {
+        titleInput.value = button.dataset.topicTitle || "";
+        titleInput.focus();
+      }));
+      dialog.querySelector("[data-cancel]").addEventListener("click", () => { dialog.close("cancel"); });
+      const readTopicInput = () => ({
+        title: titleInput.value.trim(),
+        group: Number(form.querySelector('[name="group"]').value),
+        page: Number(form.querySelector('[name="page"]').value)
+      });
+      const validateTopicInput = () => {
+        const input = readTopicInput();
+        const valid = Boolean(input.title) && Number.isInteger(input.group) && input.group >= 1 && Number.isInteger(input.page) && input.page >= 1;
+        titleInput.setCustomValidity(valid ? "" : (!input.title ? "กรุณาระบุชื่อหัวข้อเอกสาร" : "กรุณาระบุหมายเลขชุดและหน้าเป็นจำนวนเต็มตั้งแต่ 1 ขึ้นไป"));
+        if (!valid) titleInput.reportValidity();
+        return valid;
+      };
+      form.querySelectorAll("input").forEach(input => input.addEventListener("input", () => titleInput.setCustomValidity("")));
+      dialog.addEventListener("close", () => {
+        if (dialog.returnValue !== "submit") { resolve(null); dialog.remove(); return; }
+        const {title, group, page} = readTopicInput();
+        rememberProcurementTopic(title);
+        resolve({title, group, page});
+        dialog.remove();
+      });
+      form.addEventListener("submit", event => {
+        event.preventDefault();
+        if (!validateTopicInput()) return;
+        dialog.close("submit");
+      });
+      document.body.append(dialog);
+      dialog.showModal();
+      titleInput.focus();
+      titleInput.select();
+    });
+  }
+
   async function editProcurementItem(item, parentGroup, reference = null) {
     const isNew = !item;
     const rows = parentGroup ? (parentGroup.children || []) : state.procurementCatalog;
     const insertionIndex = isNew ? await chooseProcurementInsertion(rows, Boolean(parentGroup), reference) : null;
     if (isNew && insertionIndex === null) return;
-    const title = prompt(isNew ? "ชื่อหัวข้อเอกสาร" : "แก้ไขชื่อหัวข้อ", item?.title || "");
-    if (title === null || !title.trim()) return;
-    const defaultGroup = item?.group ?? parentGroup?.group ?? Math.max(0, ...state.procurementCatalog.map(row => Number(row.group) || 0)) + 1;
-    const groupValue = prompt("หมายเลขชุด", String(defaultGroup));
-    if (groupValue === null || !/^\d+$/.test(groupValue) || Number(groupValue) < 1) {
-      alert("กรุณาระบุหมายเลขชุดเป็นตัวเลขตั้งแต่ 1 ขึ้นไป");
-      return;
-    }
-    const pageValue = prompt("หมายเลขหน้า", String(item?.page ?? (parentGroup ? (parentGroup.children || []).length + 2 : 1)));
-    if (pageValue === null || !/^\d+$/.test(pageValue) || Number(pageValue) < 1) {
-      alert("กรุณาระบุหมายเลขหน้าเป็นตัวเลขตั้งแต่ 1 ขึ้นไป");
-      return;
-    }
+    const input = await promptProcurementItem(item, parentGroup);
+    if (!input) return;
+    const {title, group: groupValue, page: pageValue} = input;
     if (item) {
       const previousGroup = item.group;
       item.title = title.trim();
-      item.group = Number(groupValue);
-      item.page = Number(pageValue);
+      item.group = groupValue;
+      item.page = pageValue;
       if (!parentGroup && Array.isArray(item.children) && Number(previousGroup) !== item.group) {
         item.children.forEach(child => child.group = item.group);
       }
@@ -880,7 +967,7 @@
         if (selected) Object.assign(selected, changedItem);
       });
     } else {
-      const newItem = {id:`custom-${Date.now()}-${uid()}`,title:title.trim(),group:Number(groupValue),page:Number(pageValue),status:1,sigLayout:1};
+      const newItem = {id:`custom-${Date.now()}-${uid()}`,title:title.trim(),group:groupValue,page:pageValue,status:1,sigLayout:1};
       if (parentGroup) {
         parentGroup.children ||= [];
         parentGroup.children.splice(insertionIndex, 0, newItem);
@@ -2740,7 +2827,7 @@
       docId: String(documents[0].pdfDocId), user_id: currentLoginUserId, name: documents[0].current,
       csrf: wfCsrf, view: 'sign', v: '20261006-signature-theme',
     });
-    $('#signaturePadFrame').src = `signature-pad.html?v=20261008-bulk-fragment#${params}`;
+    $('#signaturePadFrame').src = `signature-pad.html?v=20261105-review-grid#${params}`;
     $('#activeSigningTitle').textContent = `ลงนาม ${documents.length} รายการด้วยลายเซ็นเดียว`;
     $('#reviewPadFrame').src = 'about:blank';
     $('#pendingReviewTab').disabled = true;
@@ -2812,8 +2899,8 @@
     const baseParams = {docs_id:String(doc.id), docId:doc.pdfDocId, user_id:currentLoginUserId, name:doc.current, csrf:wfCsrf, v:'20261006-signature-theme'};
     const reviewParams = new URLSearchParams({...baseParams, view:'review'});
     const signParams = new URLSearchParams({...baseParams, view:'sign'});
-    $("#reviewPadFrame").src = `signature-pad.html?v=20261008-review-first&${reviewParams}`;
-    $("#signaturePadFrame").src = `signature-pad.html?v=20261007-bookmark-navigation&${signParams}`;
+    $("#reviewPadFrame").src = `signature-pad.html?v=20261105-review-grid&${reviewParams}`;
+    $("#signaturePadFrame").src = `signature-pad.html?v=20261105-review-grid&${signParams}`;
     $("#activeReviewTitle").textContent = `${doc.no} — ${doc.current}`;
     $("#activeSigningTitle").textContent = `${doc.no} — ${doc.current}`;
     $("#pendingSignTab").disabled = false;
@@ -2889,6 +2976,14 @@
   // INIT
   // ═══════════════════════════════════════════════════════════
   document.addEventListener("DOMContentLoaded", () => {
+    let pendingBookmarkFocus = '';
+    const updateBookmarkBtn = $('#updateBookmarkBtn');
+    updateBookmarkBtn?.addEventListener('click', () => {
+      pendingBookmarkFocus = '';
+      if (updateBookmarkBtn) updateBookmarkBtn.hidden = true;
+      goToStep(2);
+      syncProcurementBookmarksToLayout(true, true);
+    });
     window.addEventListener("message", event => {
       if (event.origin === location.origin && event.source === $("#layoutFrame")?.contentWindow && event.data?.type === 'EIS_DOCS_REQUEST_SELECTED_SIGNER_GROUP') {
         const selected = state.groups.find(group => group.id === state.selectedGroupId);
@@ -2897,6 +2992,12 @@
             c_name:member.empName, wf_order:member.wfOrder || member.order, review_action:member.reviewAction,
             sign_action:member.signAction, approve_action:member.approveAction, signature_text:member.signatureText || null}))} : null;
         event.source.postMessage({type:'EIS_DOCS_SELECTED_SIGNER_GROUP', group}, location.origin);
+      }
+      if (event.origin === location.origin && event.source === $("#layoutFrame")?.contentWindow && event.data?.type === 'EIS_DOCS_EDIT_BOOKMARK') {
+        pendingBookmarkFocus = String(event.data.bookmarkId || '');
+        if (updateBookmarkBtn) updateBookmarkBtn.hidden = false;
+        goToStep(0);
+        return;
       }
       if (event.origin === location.origin && event.source === $("#layoutFrame")?.contentWindow && event.data?.type === "EIS_DOCS_REQUEST_PROCUREMENT_BOOKMARKS") {
         syncProcurementBookmarksToLayout(true);

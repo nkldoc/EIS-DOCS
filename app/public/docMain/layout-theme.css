@@ -20,6 +20,43 @@ body{background:#f7f8fa;color:#1a1d23;font-family:'Segoe UI','Noto Sans Thai','L
 .participant-editor input:focus,.participant-editor select:focus{outline:none;background:#fff;border-color:#1e6fcc;box-shadow:0 0 0 3px #1e6fcc12}
 .participant-editor input::placeholder{color:#758399}.participant-editor small,.side small{color:#627086;font-size:12px;line-height:1.7;overflow-wrap:anywhere}
 .participant-editor button{width:100%;margin-top:10px}.template-actions button{width:auto}
+.side .template-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+.side .template-actions button{width:100%;margin:0;padding:9px 5px;white-space:normal;line-height:1.4}
+.side .participant-editor.tool-group{padding:0!important;overflow:hidden}
+.tool-group summary{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;list-style:none;color:#263b55;font-weight:700;line-height:1.45}
+.tool-group summary::-webkit-details-marker{display:none}
+.tool-group summary::after{content:'+';display:grid;place-items:center;flex:0 0 26px;height:26px;margin-left:auto;border:1px solid #dbe7f4;border-radius:8px;background:#f5f9ff;color:#1e6fcc;font-size:19px;line-height:1;font-weight:400}
+.tool-group details[open]>summary::after{content:'−';background:#eaf3ff;border-color:#bfd7f5}
+.tool-group-icon{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:10px;background:#ebf3ff;color:#1e6fcc}
+.tool-group-icon svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tool-group summary:hover{background:#f5f9ff}
+.tool-group summary:focus-visible{outline:3px solid #a7c9f1;outline-offset:-3px}
+.tool-group summary h3,.tool-group summary .bookmark-heading{margin:0;flex:1;min-width:0}
+.tool-group .tool-group-content{padding:0 16px 16px;border-top:1px solid #edf1f6}
+.tool-group .tool-group-content>:first-child{margin-top:12px}
+.side .tool-group-content .upload{display:block;width:100%;margin:12px 0 0;padding:10px 13px;border:1px solid #1e6fcc;border-radius:9px;background:#1e6fcc;color:#fff;font-family:inherit;font-size:13px;font-weight:600;line-height:1.5;text-align:center;cursor:pointer}
+.side .tool-group-content .upload:hover{background:#154e91;border-color:#154e91}
+.side .tool-group-content .upload:focus-within{outline:3px solid #a7c9f1;outline-offset:2px}
+.side .bookmark-overview-button{background:#eaf3ff;border-color:#bdd5f3;color:#1555a0}
+.side .bookmark-overview-button:hover{background:#dcecff;border-color:#9fc4ef}
+.bookmark-overview-dialog{width:min(660px,calc(100vw - 32px));max-height:min(75vh,760px);padding:0;overflow:hidden}
+.bookmark-overview-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px 20px;border-bottom:1px solid #e2e8f0}
+.bookmark-overview-header h2{margin:0;color:#263b55;font-size:18px}.bookmark-overview-header p{margin:4px 0 0;color:#64748b;font-size:13px}
+.bookmark-overview-close{width:34px;height:34px;padding:0;border:1px solid #dce4ef;border-radius:8px;background:#f7f9fc;color:#536071;font-size:22px;cursor:pointer}
+.bookmark-overview-list{max-height:calc(min(75vh,760px) - 90px);overflow:auto;padding:8px 14px 16px}
+.bookmark-overview-list>p{padding:12px;color:#64748b}.bookmark-overview-item{display:flex;align-items:center;gap:8px;width:100%;padding:0 10px;border-bottom:1px solid #edf1f6;background:#fff;color:#263b55}
+.bookmark-overview-link{display:flex;align-items:center;gap:16px;flex:1;min-width:0;padding:12px 0;border:0;background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer}
+.bookmark-overview-link:hover,.bookmark-overview-link:focus-visible{color:#1555a0;outline-color:#1e6fcc}.bookmark-overview-name{flex:1;min-width:0;overflow-wrap:anywhere}.bookmark-overview-page{flex:none;color:#1e6fcc;font-size:12px;font-weight:700}
+.bookmark-overview-edit{flex:none;padding:6px 9px;border:1px solid #dce4ef;border-radius:7px;background:#f7f9fc;color:#1555a0;font:600 12px inherit;cursor:pointer}.bookmark-overview-edit:hover,.bookmark-overview-edit:focus-visible{background:#eaf3ff;border-color:#bdd5f3;outline-color:#1e6fcc}
+.group-save-dialog{width:min(520px,calc(100vw - 32px));max-height:85vh;padding:0;overflow:auto}
+.group-save-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:20px;border-bottom:1px solid #e2e8f0}
+.group-save-head h2{margin:0;font-size:18px;color:#263b55}.group-save-head p{margin:5px 0 0;font-size:13px;line-height:1.5;color:#64748b}
+.group-save-close{flex:none;width:34px;height:34px;padding:0;border:1px solid #dce4ef;border-radius:8px;background:#f7f9fc;color:#536071;font-size:22px;cursor:pointer}
+.group-save-body{padding:18px 20px}.group-save-body label{display:block;margin:0 0 6px;color:#40556d;font-size:13px;font-weight:700}
+.group-save-body input,.group-save-body select{display:block;width:100%;min-height:42px;margin:0 0 14px;padding:9px 10px;border:1px solid #dce4ef;border-radius:8px;background:#fbfcfe;color:#263b55;font:inherit}
+.group-save-body small{display:block;color:#64748b;line-height:1.5}.group-save-status{margin:10px 0 0;color:#a32b2b;font-size:13px}
+.group-save-actions{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid #edf1f6}.group-save-actions button{min-width:88px;padding:9px 14px;border:1px solid #dce4ef;border-radius:8px;background:#f7f9fc;color:#33465e;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}.group-save-actions button.primary{background:#1e6fcc;border-color:#1e6fcc;color:#fff}.group-save-actions button:disabled{opacity:.6;cursor:wait}
+.tool-group details:not([open])>summary{border-radius:14px}
 .participant-item{border-color:#dfe7f1;border-radius:9px;padding:10px;background:#f8fbff;gap:8px}.participant-list{color:#33465e;line-height:1.7}
 .bookmark-count{background:#ebf3ff;color:#154e91;border-color:#dbe7f7}.bookmark-item{border-color:#e2e6ea;background:#f8fbff;border-radius:8px}
 .stage{min-width:0;border:1px solid #dfe6ef;border-radius:14px;padding:16px;background:#edf1f6;overflow:auto}
@@ -36,6 +73,8 @@ dialog{border:1px solid #e2e6ea;border-radius:16px;box-shadow:0 20px 60px #17243
 .bookmark-item-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 .side .bookmark-item button{width:auto;min-height:34px;height:auto;flex:0 0 auto;margin:0;padding:7px 12px;font:600 12px/1.4 'Segoe UI','Noto Sans Thai',sans-serif;border-radius:8px;white-space:nowrap}
 .side .bookmark-item .bookmark-edit-button{background:#ebf3ff;border:1px solid #c8dcf7;color:#154e91}
+.side .bookmark-item .bookmark-review-button{background:#1e6fcc;border:1px solid #1e6fcc;color:#fff}
+.side .bookmark-item .bookmark-review-button:hover{background:#154e91;border-color:#154e91;color:#fff}
 .side .bookmark-item .bookmark-edit-button:hover{background:#dceaff;border-color:#a8c8ef}
 .side .bookmark-item .bookmark-delete-button{background:#fff2f2;border:1px solid #f1cdcd;color:#a32b2b}
 .side .bookmark-item .bookmark-delete-button:hover{background:#ffe4e4;border-color:#eaa9a9}
@@ -43,6 +82,7 @@ dialog{border:1px solid #e2e6ea;border-radius:16px;box-shadow:0 20px 60px #17243
 .bookmark-edit-form label{grid-column:1/-1;margin:0}
 .side .bookmark-item .bookmark-save-button{background:#1e6fcc;border:1px solid #1e6fcc;color:#fff}
 .side .bookmark-item .bookmark-save-button:hover{background:#154e91}
+.side .bookmark-item.is-focused{border-color:#1e6fcc;box-shadow:0 0 0 3px #1e6fcc2b;background:#eef6ff}
 #bookmarkList{max-height:320px;scrollbar-color:#b9cce5 transparent;padding-right:4px}
 .bookmark-link:focus-visible{outline:2px solid #1e6fcc;outline-offset:3px;border-radius:4px}
 :root { --layout-control-font: 'Segoe UI','Noto Sans Thai','Leelawadee UI',Tahoma,sans-serif; }

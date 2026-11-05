@@ -4,7 +4,7 @@
   const pages = document.getElementById('pages');
   const number = document.getElementById('number');
   const status = document.getElementById('status');
-  let pdf, current = 1, zoom = 1, generation = 0, ticking = false;
+  let pdf, current = 1, zoom = 1, generation = 0, ticking = false, gridMode = false;
   let sheets = [];
   const rendered = new Set();
   function select(page) {
@@ -16,6 +16,7 @@
   function navigate(page) {
     if (!pdf) return;
     page = Math.max(1, Math.min(pdf.numPages, Number(page) || 1));
+    if (gridMode) { setView(false, page); return; }
     select(page);
     pages.scrollTop = sheets[page - 1].offsetTop - pages.offsetTop - 12;
     update();
@@ -47,7 +48,7 @@
       if (visible > largest && visible > 0) { largest = visible; best = index + 1; }
       if (rect.bottom >= bounds.top - bounds.height && rect.top <= bounds.bottom + bounds.height) render(index);
     });
-    if (best !== current) select(best);
+    if (!gridMode && best !== current) select(best);
   }
   function schedule() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
   async function layout(target = current) {
@@ -62,13 +63,38 @@
       const sheet = document.createElement('div');
       sheet.className = 'page'; sheet.dataset.page = i;
       sheet.style.width = `${width}px`; sheet.style.height = `${width * viewport.height / viewport.width}px`;
+      if (gridMode) {
+        sheet.style.aspectRatio = `${viewport.width} / ${viewport.height}`;
+        sheet.tabIndex = 0; sheet.setAttribute('role','button'); sheet.setAttribute('aria-label',`เปิดหน้า ${i} เพื่อตรวจสอบ`);
+        if (i === target) sheet.setAttribute('aria-current','page');
+      }
       elements.push(sheet);
     }
-    sheets = elements; pages.replaceChildren(...sheets); navigate(target);
+    sheets = elements; pages.replaceChildren(...sheets);
+    if (gridMode) { pages.scrollTop = 0; update(); } else navigate(target);
   }
+  function setView(grid, target = current) {
+    if (!pdf) return;
+    gridMode = grid;
+    pages.classList.toggle('grid', grid);
+    document.getElementById('singleView').setAttribute('aria-pressed', String(!grid));
+    document.getElementById('gridView').setAttribute('aria-pressed', String(grid));
+    document.getElementById('gridHelp').hidden = !grid;
+    document.getElementById('out').disabled = grid;
+    document.getElementById('in').disabled = grid;
+    layout(target);
+  }
+  document.getElementById('singleView').onclick = () => { if (gridMode) setView(false); };
+  document.getElementById('gridView').onclick = () => { if (!gridMode) setView(true); };
   pages.addEventListener('scroll', schedule, {passive:true});
   pages.addEventListener('click', event => {
-    const sheet = event.target.closest('.page'); if (sheet) select(Number(sheet.dataset.page));
+    const sheet = event.target.closest('.page'); if (sheet) { if (gridMode) setView(false, Number(sheet.dataset.page)); else select(Number(sheet.dataset.page)); }
+  });
+  pages.addEventListener('keydown', event => {
+    if (gridMode && (event.key === 'Enter' || event.key === ' ')) {
+      const sheet = event.target.closest('.page');
+      if (sheet) { event.preventDefault(); setView(false, Number(sheet.dataset.page)); }
+    }
   });
   number.addEventListener('change', () => navigate(Number(number.value)));
   document.getElementById('prev').onclick = () => navigate(current - 1);

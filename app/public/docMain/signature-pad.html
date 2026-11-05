@@ -607,6 +607,7 @@
                 if (reviewDocumentUrl !== file) {
                     reviewDocumentUrl = file;
                     const url = new URL('review-pdf-viewer.html', location.href);
+                    url.searchParams.set('v', '20261105-grid');
                     url.searchParams.set('file', file);
                     url.searchParams.set('page', pageNumber);
                     frame.src = url.href;

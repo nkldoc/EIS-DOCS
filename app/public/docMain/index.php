@@ -49,7 +49,7 @@ $impersonationMenu = '';
 if (Auth::impersonating()) {
     $impersonationMenu = '<div style="padding:14px;background:#fff3cd;color:#664d03">กำลังสวมสิทธิ์: ' . htmlspecialchars((string)$user['username'], ENT_QUOTES, 'UTF-8') . '<form method="post" action="impersonate.php"><input type="hidden" name="action" value="restore"><input type="hidden" name="csrf" value="' . htmlspecialchars($_SESSION['app_csrf'], ENT_QUOTES, 'UTF-8') . '"><button type="submit" class="btn btn-subtle">กลับสู่บัญชี admin</button></form></div>';
 } elseif (DocumentAccess::isAdministrator()) {
-    $impersonationMenu = '<a href="impersonate.php" style="display:block;padding:14px;color:inherit;text-decoration:none">👤 สวมสิทธิ์ผู้ใช้</a><a href="admin-documents.php" style="display:block;padding:14px;color:inherit;text-decoration:none">🗂️ จัดการรายการเอกสาร</a>';
+    $impersonationMenu = '<a class="menu-item" href="impersonate.php" title="สวมสิทธิ์ผู้ใช้"><span class="menu-item-icon">👤</span><span class="menu-item-text"><span class="menu-item-title">สวมสิทธิ์ผู้ใช้</span></span></a><a class="menu-item" href="admin-documents.php" title="จัดการรายการเอกสาร"><span class="menu-item-icon">🗂️</span><span class="menu-item-text"><span class="menu-item-title">จัดการรายการเอกสาร</span></span></a>';
     $pendingPinRequests = 0;
     $pinRequestsDb = null;
     try {
@@ -58,7 +58,7 @@ if (Auth::impersonating()) {
         if ($pinRequestsStmt) { $pendingPinRequests = (int)sqlsrv_fetch_array($pinRequestsStmt,SQLSRV_FETCH_ASSOC)['n']; sqlsrv_free_stmt($pinRequestsStmt); }
     } catch (Throwable $e) {error_log('PIN reset menu: '.$e->getMessage());}
     finally {if($pinRequestsDb!==null) sqlsrv_close($pinRequestsDb);}
-    $impersonationMenu .= '<a href="admin-pin-requests.php" style="display:block;padding:14px;color:inherit;text-decoration:none">🔔 คำขอปลดล็อก PIN' . ($pendingPinRequests ? ' <strong>('.$pendingPinRequests.')</strong>' : '') . '</a>';
+    $impersonationMenu .= '<a class="menu-item" href="admin-pin-requests.php" title="คำขอปลดล็อก PIN"><span class="menu-item-icon">🔔</span><span class="menu-item-text"><span class="menu-item-title">คำขอปลดล็อก PIN' . ($pendingPinRequests ? ' <strong>('.$pendingPinRequests.')</strong>' : '') . '</span></span></a>';
 }
 $template = str_replace('{{DEPARTMENT_CONFIG_MENU}}', $impersonationMenu . '{{DEPARTMENT_CONFIG_MENU}}', $template);
 
@@ -68,7 +68,7 @@ echo strtr($template, [
     '{{ADMIN_USER_ONLINE_MENU}}' => Presence::enabled() && DocumentAccess::isAdministrator() && !Auth::impersonating()
         ? '<a class="menu-item" href="user-online.php" target="_blank" rel="noopener" title="ตรวจสอบผู้ใช้ออนไลน์ EIS-DOCS และ Supplies"><span class="menu-item-icon" aria-hidden="true">🟢</span><span class="menu-item-text"><span class="menu-item-title">ผู้ใช้งานออนไลน์ (Admin)</span><span class="menu-item-desc">EIS-DOCS / Supplies · เวลาเข้า–ออก ↗</span></span></a>'
         : '',
-    '{{DEPARTMENT_CONFIG_MENU}}' => DocumentAccess::isAdministrator() ? '<a href="department-config.php" style="display:block;padding:14px;color:inherit;text-decoration:none">⚙️ กำหนดสิทธิ์หน่วยงาน</a>' : '',
+    '{{DEPARTMENT_CONFIG_MENU}}' => DocumentAccess::isAdministrator() ? '<a class="menu-item" href="department-config.php" title="กำหนดสิทธิ์หน่วยงาน"><span class="menu-item-icon">⚙️</span><span class="menu-item-text"><span class="menu-item-title">กำหนดสิทธิ์หน่วยงาน</span></span></a>' : '',
     '{{USER_INITIAL}}' => htmlspecialchars($initial, ENT_QUOTES, 'UTF-8'),
     '{{USER_ID}}' => htmlspecialchars((string) ($user['user_id'] ?? ''), ENT_QUOTES, 'UTF-8'),
     '{{USER_FULL_NAME}}' => htmlspecialchars($fullName, ENT_QUOTES, 'UTF-8'),

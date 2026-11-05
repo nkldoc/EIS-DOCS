@@ -42,8 +42,8 @@ try {
     $loginCostId = max(0, (int) ($loginUser['cost_id'] ?? 0));
     // dc_user: 2 = Administrator; 3 = department user, not Administrator.
     $isGroupAdministrator = (int) ($loginUser['user_type'] ?? 0) === 2;
-    $visibilitySql = "(?=1 OR h.owner_user_id=? OR h.visibility='all')";
-    $visibilityParams = [$isGroupAdministrator ? 1 : 0, $loginUserId];
+    $visibilitySql = "(?=1 OR h.owner_user_id=? OR h.visibility='all' OR (h.visibility='department' AND h.owner_cost_id=? AND ?>0))";
+    $visibilityParams = [$isGroupAdministrator ? 1 : 0, $loginUserId, $loginCostId, $loginCostId];
     $requireVisibleGroup = static function (string $name, bool $editing = false) use ($connection, $visibilitySql, $visibilityParams, $isGroupAdministrator, $loginUserId): array {
         $stmt = sqlsrv_query($connection, 'SELECT h.visibility,h.owner_user_id,h.owner_cost_id FROM dbo.WF_USER_HDR h WHERE h.c_name=? AND ' . $visibilitySql, [$name, ...$visibilityParams]);
         if (!$stmt) throw new RuntimeException('ตรวจสอบสิทธิ์กลุ่มไม่สำเร็จ');
@@ -164,6 +164,23 @@ try {
                     $stmt = sqlsrv_query($connection, 'UPDATE dbo.WF_USER_DTL SET signature_text_json=CASE WHEN user_id=? AND dc_emp_id=? THEN signature_text_json ELSE NULL END, user_id=?, dc_emp_id=?, wf_order=?, review_action=?, sign_action=?, approve_action=? WHERE c_name=? AND user_id=? AND dc_emp_id=?', [$newUser, (int) $newEmployee, $newUser, (int) $newEmployee, $order, ...$actions, $groupName, $oldUser, (int) $oldEmployee]);
                     if (!$stmt || sqlsrv_rows_affected($stmt) !== 1) throw new RuntimeException('สมาชิกเดิมเปลี่ยนแปลงแล้ว กรุณาโหลดกลุ่มใหม่');
                     if (array_key_exists('wf_order', $replacement) && $order !== (int) $existing['wf_order']) $reorderMembers($groupName, $newUser, $order);
+                }
+                if ($action === 'copy_group' && array_key_exists('signature_text', $payload)) {
+                    $userId = trim((string) ($payload['user_id'] ?? ''));
+                    $employeeId = (string) ($payload['dc_emp_id'] ?? '');
+                    $data = $payload['signature_text'];
+                    $keys = ['approval','signText','committee','signerName','position','faculty','actingForPresident','organization','signedDate'];
+                    if ($userId === '' || !ctype_digit($employeeId) || !is_array($data) || !is_array($data['values'] ?? null) || !is_array($data['hiddenRows'] ?? null)) throw new InvalidArgumentException('ข้อมูลกล่องลงนามไม่ถูกต้อง');
+                    $values = [];
+                    foreach ($keys as $key) {
+                        $value = $data['values'][$key] ?? '';
+                        if (!is_string($value) || mb_strlen($value, 'UTF-8') > 1000) throw new InvalidArgumentException('ข้อความกล่องลงนามไม่ถูกต้อง');
+                        $values[$key] = $value;
+                    }
+                    $json = json_encode(['values'=>$values, 'hiddenRows'=>array_values(array_intersect($keys, $data['hiddenRows']))], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    $stmt = sqlsrv_query($connection, 'UPDATE dbo.WF_USER_DTL SET signature_text_json=? WHERE c_name=? AND user_id=? AND dc_emp_id=?', [$json, $groupName, $userId, (int) $employeeId]);
+                    if (!$stmt || sqlsrv_rows_affected($stmt) !== 1) throw new RuntimeException('ไม่พบสมาชิกที่เลือกในกลุ่มต้นฉบับ');
+                    sqlsrv_free_stmt($stmt);
                 }
                 $reorderMembers($groupName);
                 if (!sqlsrv_commit($connection)) throw new RuntimeException('ยืนยันบันทึกไม่สำเร็จ');
