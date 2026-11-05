@@ -954,6 +954,18 @@
                     return fields.find(field => field.id === selectedFieldId) || null;
                 }
 
+                const wfTextKeys = ['approval', 'signText', 'committee', 'signerName', 'position', 'faculty', 'actingForPresident', 'organization', 'signedDate'];
+                window.getWfSignatureFields = userId => fields.filter(field => String(field.user_id || field.assigneeId || '') === String(userId)).map(field => ({id: field.id, page: field.page, hiddenRows: [...(field.hiddenRows || [])], values: Object.fromEntries(wfTextKeys.map(key => [key, field[key] || '']))}));
+                window.updateWfSignatureField = (id, values, hiddenRows) => {
+                    const field = fields.find(item => item.id === id);
+                    if (!field) return false;
+                    wfTextKeys.forEach(key => { if (Object.prototype.hasOwnProperty.call(values, key)) field[key] = String(values[key]); });
+                    field.hiddenRows = [...new Set([...(field.hiddenRows || []).filter(key => !wfTextKeys.includes(key)), ...hiddenRows.filter(key => wfTextKeys.includes(key))])];
+                    layoutIsAuthoritative = true;
+                    render(); renderSelectedBlockEditor();
+                    return true;
+                };
+
                 function renderSelectedBlockEditor() {
                     const field = selectedField();
                     renderBlockTextEditor(field);
@@ -1011,6 +1023,26 @@
                         });
                         row.append(input,toggle); blockTextEditor.append(label,row);
                     }
+                    const saveGroup = document.createElement('button');
+                    saveGroup.type = 'button'; saveGroup.textContent = '💾 อัปเดตทับกลุ่มผู้ลงนาม';
+                    const status = document.createElement('small'); status.setAttribute('role', 'status');
+                    saveGroup.disabled = !field.user_id || !field.wfGroupName;
+                    saveGroup.addEventListener('click', async () => {
+                        const person = participants.find(item => String(item.user_id) === String(field.user_id));
+                        const csrf = window.parent.document.querySelector('meta[name="app-csrf"]')?.content || '';
+                        if (!person?.dcEmpId) { status.textContent = 'ไม่พบสมาชิกในกลุ่ม กรุณาโหลดกลุ่มใหม่'; return; }
+                        saveGroup.disabled = true; status.textContent = 'กำลังบันทึก...';
+                        try {
+                            const signatureText = {values: Object.fromEntries(wfTextKeys.map(key => [key, String(field[key] || '')])), hiddenRows: (field.hiddenRows || []).filter(key => wfTextKeys.includes(key))};
+                            const response = await fetch('wf-groups.php', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json','X-CSRF-Token':csrf}, body:JSON.stringify({action:'update_signature_text', group_name:field.wfGroupName, user_id:field.user_id, dc_emp_id:person.dcEmpId, signature_text:signatureText})});
+                            const result = await response.json();
+                            if (!response.ok || !result.success) throw new Error(result.message || `HTTP ${response.status}`);
+                            person.signatureText = signatureText;
+                            status.textContent = 'บันทึกลงกลุ่มแล้ว ครั้งถัดไปจะใช้ข้อมูลนี้';
+                        } catch (error) { status.textContent = `บันทึกไม่สำเร็จ: ${error.message}`; }
+                        finally { saveGroup.disabled = false; }
+                    });
+                    blockTextEditor.append(saveGroup, status);
                 }
 
                 function renderParticipantList() {
@@ -1378,6 +1410,10 @@
                         field.wfOrder = selectedPerson.wfOrder;
                         field.wfGroupName = loadedWfGroupName;
                         applyGroupSignatureDefaults(field, selectedRole);
+                        if (selectedPerson.signatureText && typeof selectedPerson.signatureText.values === 'object') {
+                            wfTextKeys.forEach(key => { if (typeof selectedPerson.signatureText.values[key] === 'string') field[key] = selectedPerson.signatureText.values[key]; });
+                            if (Array.isArray(selectedPerson.signatureText.hiddenRows)) field.hiddenRows = [...new Set([...field.hiddenRows.filter(key => !wfTextKeys.includes(key)), ...selectedPerson.signatureText.hiddenRows.filter(key => wfTextKeys.includes(key))])];
+                        }
                     }
                     if (placementIndex >= 0)
                         applyWorkflowGridPlacement(field, placementIndex, orderedParticipants, selectedPerson);
@@ -1409,7 +1445,7 @@
                         const name = String(field.assigneeName || field.signerName || '').replace(/[\s()]/g,'');
                         let personDefaults = null;
                         if ((name.includes('เกียรติดำรงค์') || name.includes('เกียรตีดำรงค์')) && name.includes('จันทร์พิพัฒน์กุล')) {
-                            personDefaults = {signerName:'(ผู้ช่วยศาสตราจารย์เกียรตีดำรงค์ จันทร์พิพัฒน์กุล)',position:'รองคณบดี'+faculty,faculty:'',actingForPresident:'',organization:'มหาวิทยาลัยนวมินทราธิราช',approval:'อนุมัติตามข้อ ๑ และ ๒ / ลงนามแล้ว ตามข้อ ๓'};
+                            personDefaults = {signerName:'(ผู้ช่วยศาสตราจารย์เกียรติดำรงค์ จันทร์พิพัฒน์กุล)',position:'รองคณบดี'+faculty,faculty:'',actingForPresident:'',organization:'มหาวิทยาลัยนวมินทราธิราช',approval:'อนุมัติตามข้อ ๑ และ ๒ / ลงนามแล้ว ตามข้อ ๓'};
                         } else if (name.includes('จักราวุธ') && name.includes('มณีฤทธิ์')) {
                             personDefaults = {signerName:'(ผู้ช่วยศาสตราจารย์จักราวุธ มณีฤทธิ์)',position:'คณบดี'+faculty,faculty:'',actingForPresident:'ปฏิบัติการแทนอธิการบดี',organization:'มหาวิทยาลัยนวมินทราธิราช',approval:'อนุมัติ'};
                         } else if (name.includes('ภูริวัชร์') && name.includes('เชาว์โรจนนนท์')) {
@@ -1417,7 +1453,6 @@
                         }
                         if (personDefaults) {
                             Object.assign(field, personDefaults);
-                            field.assigneeName = personDefaults.signerName.replace(/^\(|\)$/g,'');
                             if (personDefaults.approval) field.hiddenRows = field.hiddenRows.filter(key => key !== 'approval');
                         }
                     }
@@ -1556,7 +1591,7 @@
                     wfGroupInfo.textContent = 'กำลังโหลดสมาชิกและเส้นทาง WF...';
                     try {
                         let group = selectedGroup;
-                        if (!group) {
+                        if (!group || groupId !== 'layout-current') {
                             const response = await fetch(`wf-groups.php?group_id=${encodeURIComponent(groupId)}`, {credentials: 'same-origin'});
                             const result = await response.json().catch(() => ({}));
                             if (!response.ok || !result.success)
@@ -1573,7 +1608,8 @@
                                 wfOrder: Number(member.wf_order || index + 1),
                                 reviewAction: Boolean(member.review_action),
                                 signAction: Boolean(member.sign_action),
-                                approveAction: Boolean(member.approve_action)
+                                approveAction: Boolean(member.approve_action),
+                                signatureText: member.signature_text || null
                             });
                         });
                         participants.sort((a, b) => a.wfOrder - b.wfOrder);
@@ -1650,6 +1686,16 @@
                             blockEditorPanel.scrollIntoView({behavior:'smooth',block:'nearest'});
                         });
                         tools.appendChild(editText);
+                        const searchPerson = document.createElement('button');
+                        searchPerson.type = 'button'; searchPerson.textContent = 'ค้นหา';
+                        searchPerson.title = 'ค้นหาและเปลี่ยนผู้รับผิดชอบ WF';
+                        searchPerson.addEventListener('pointerdown', event => event.stopPropagation());
+                        searchPerson.addEventListener('click', event => {
+                            event.stopPropagation(); select(field.id);
+                            blockEditorPanel.scrollIntoView({behavior:'smooth',block:'nearest'});
+                            selectedAssigneeSelect.focus();
+                        });
+                        tools.appendChild(searchPerson);
                         const restore = document.createElement('button');
                         restore.type = 'button';
                         restore.textContent = 'คืนแถว';
@@ -2579,12 +2625,13 @@
                             if (message.docsId) {
                                 const query = `?docId=${encodeURIComponent(message.docId)}`;
                                 if (!payload && message.docId) {
-                                    const response = await fetch('../pdf/fields' + query, {credentials:'same-origin'});
+                                    const response = await fetch('../api/pdf/fields' + query, {credentials:'same-origin'});
                                     if (response.ok) payload = await response.json();
+                                    else if (response.status !== 404) throw new Error(`โหลดตำแหน่งที่บันทึกไว้ไม่สำเร็จ (HTTP ${response.status})`);
                                 }
                                 let response = await fetch('document-source.php?id=' + encodeURIComponent(message.docsId), {credentials:'same-origin'});
                                 const hasOriginal = response.ok;
-                                if (response.status === 404) response = await fetch('../pdf/view' + query, {credentials:'same-origin'});
+                                if (response.status === 404) response = await fetch('../api/pdf/view' + query, {credentials:'same-origin'});
                                 if (!response.ok) throw new Error(`โหลด PDF ไม่สำเร็จ (HTTP ${response.status})`);
                                 payload = payload || message.fallbackPayload;
                                 const blob = await response.blob();
@@ -2609,9 +2656,10 @@
                                 ? `โหลด PDF ต้นฉบับและค่าที่บันทึกไว้แล้ว (${fields.length} บล็อก)`
                                 : 'แสดง PDF ที่สร้างไว้และตำแหน่งเดิม — ยังไม่มีต้นฉบับ กรุณาอัปโหลด PDF ต้นฉบับก่อนสร้าง PDF ใหม่เพื่อป้องกันข้อความซ้อน';
                             window.parent.postMessage({type:'EIS_DOCS_LAYOUT_STATE', data:buildPayload()}, location.origin);
-                            window.parent.postMessage({type:'EIS_DOCS_DOCUMENT_RESTORED'}, location.origin);
+                            window.parent.postMessage({type:'EIS_DOCS_DOCUMENT_RESTORED', success:true}, location.origin);
                         } catch (error) {
                             coords.textContent = `เปิดเอกสารเดิมไม่สำเร็จ: ${error.message}`;
+                            window.parent.postMessage({type:'EIS_DOCS_DOCUMENT_RESTORED', success:false, message:error.message}, location.origin);
                         } finally {
                             restoringDocument = false;
                         }

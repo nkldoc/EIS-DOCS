@@ -75,6 +75,26 @@ try {
             if ($newVisibility === 'department' && $loginCostId === 0) throw new RuntimeException('ข้อมูล Login ไม่มีหน่วยงาน กรุณาเลือกเฉพาะตัวหรือทั้งหมด');
         }
         if (!in_array($action, ['create_group', 'copy_group', 'rename_group'], true)) $requireVisibleGroup($groupName, true);
+        if ($action === 'update_signature_text') {
+            $userId = trim((string) ($payload['user_id'] ?? ''));
+            $employeeId = (string) ($payload['dc_emp_id'] ?? '');
+            $data = $payload['signature_text'] ?? null;
+            $keys = ['approval','signText','committee','signerName','position','faculty','actingForPresident','organization','signedDate'];
+            if ($userId === '' || !ctype_digit($employeeId) || !is_array($data) || !is_array($data['values'] ?? null) || !is_array($data['hiddenRows'] ?? null)) throw new InvalidArgumentException('ข้อมูลกล่องลงนามไม่ถูกต้อง');
+            $values = [];
+            foreach ($keys as $key) {
+                $value = $data['values'][$key] ?? '';
+                if (!is_string($value) || mb_strlen($value, 'UTF-8') > 1000) throw new InvalidArgumentException('ข้อความกล่องลงนามไม่ถูกต้อง');
+                $values[$key] = $value;
+            }
+            $hidden = array_values(array_intersect($keys, $data['hiddenRows']));
+            $json = json_encode(['values'=>$values, 'hiddenRows'=>$hidden], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $stmt = sqlsrv_query($connection, 'UPDATE dbo.WF_USER_DTL SET signature_text_json=? WHERE c_name=? AND user_id=? AND dc_emp_id=?', [$json, $groupName, $userId, (int)$employeeId]);
+            if ($stmt === false) throw new RuntimeException('บันทึกไม่สำเร็จ กรุณาตรวจว่ารัน database/EIS_DOCS/020_wf_signature_text.sql แล้ว');
+            if (sqlsrv_rows_affected($stmt) !== 1) throw new RuntimeException('ไม่พบสมาชิกกลุ่ม กรุณาโหลดกลุ่มใหม่');
+            sqlsrv_free_stmt($stmt);
+            echo json_encode(['success'=>true, 'message'=>'บันทึกข้อความลงในกลุ่มแล้ว'], JSON_UNESCAPED_UNICODE); exit;
+        }
         if (in_array($action, ['add_member', 'remove_member', 'update_order'], true)) {
             if (!sqlsrv_begin_transaction($connection)) throw new RuntimeException('เริ่มบันทึกลำดับไม่สำเร็จ');
             $memberTransaction = true;
@@ -108,7 +128,7 @@ try {
                     if (sqlsrv_fetch_array($stmt,SQLSRV_FETCH_ASSOC)) throw new RuntimeException('มีชื่อกลุ่มนี้แล้ว กรุณาใช้ชื่อใหม่');
                     if ($action === 'copy_group') {
                         if (!sqlsrv_query($connection,'INSERT dbo.WF_USER_HDR(c_name,visibility,owner_user_id,owner_cost_id) VALUES (?,?,?,?)',[$groupName,$newVisibility,$loginUserId,$loginCostId ?: null])) throw new RuntimeException('สร้างกลุ่มไม่สำเร็จ');
-                        if (!sqlsrv_query($connection,'INSERT dbo.WF_USER_DTL(user_id,c_name,dc_emp_id,wf_order,review_action,sign_action,approve_action) SELECT user_id,?,dc_emp_id,wf_order,review_action,sign_action,approve_action FROM dbo.WF_USER_DTL WHERE c_name=?',[$groupName,$source])) throw new RuntimeException('คัดลอกสมาชิกไม่สำเร็จ');
+                        if (!sqlsrv_query($connection,'INSERT dbo.WF_USER_DTL(user_id,c_name,dc_emp_id,wf_order,review_action,sign_action,approve_action,signature_text_json) SELECT user_id,?,dc_emp_id,wf_order,review_action,sign_action,approve_action,signature_text_json FROM dbo.WF_USER_DTL WHERE c_name=?',[$groupName,$source])) throw new RuntimeException('คัดลอกสมาชิกไม่สำเร็จ กรุณาตรวจ migration 020');
                     } else {
                         if (!sqlsrv_query($connection,'INSERT dbo.WF_USER_HDR(c_name,visibility,owner_user_id,owner_cost_id) SELECT ?,visibility,owner_user_id,owner_cost_id FROM dbo.WF_USER_HDR WHERE c_name=?',[$groupName,$source])) throw new RuntimeException('แก้ไขชื่อกลุ่มไม่สำเร็จ');
                         if (!sqlsrv_query($connection,'UPDATE dbo.WF_USER_DTL SET c_name=? WHERE c_name=?',[$groupName,$source])) throw new RuntimeException('แก้ไขกลุ่มสมาชิกไม่สำเร็จ');
@@ -141,7 +161,7 @@ try {
                         $actions[] = (int) $value;
                     }
                     if (array_sum($actions) === 0) throw new RuntimeException('กรุณาเลือกสิทธิ์อย่างน้อย 1 รายการ');
-                    $stmt = sqlsrv_query($connection, 'UPDATE dbo.WF_USER_DTL SET user_id=?, dc_emp_id=?, wf_order=?, review_action=?, sign_action=?, approve_action=? WHERE c_name=? AND user_id=? AND dc_emp_id=?', [$newUser, (int) $newEmployee, $order, ...$actions, $groupName, $oldUser, (int) $oldEmployee]);
+                    $stmt = sqlsrv_query($connection, 'UPDATE dbo.WF_USER_DTL SET signature_text_json=CASE WHEN user_id=? AND dc_emp_id=? THEN signature_text_json ELSE NULL END, user_id=?, dc_emp_id=?, wf_order=?, review_action=?, sign_action=?, approve_action=? WHERE c_name=? AND user_id=? AND dc_emp_id=?', [$newUser, (int) $newEmployee, $newUser, (int) $newEmployee, $order, ...$actions, $groupName, $oldUser, (int) $oldEmployee]);
                     if (!$stmt || sqlsrv_rows_affected($stmt) !== 1) throw new RuntimeException('สมาชิกเดิมเปลี่ยนแปลงแล้ว กรุณาโหลดกลุ่มใหม่');
                     if (array_key_exists('wf_order', $replacement) && $order !== (int) $existing['wf_order']) $reorderMembers($groupName, $newUser, $order);
                 }
@@ -353,7 +373,8 @@ SELECT
     d.wf_order,
     d.review_action,
     d.sign_action,
-    d.approve_action
+    d.approve_action,
+    d.signature_text_json
 FROM dbo.WF_USER_HDR AS h
 LEFT JOIN dbo.WF_USER_DTL AS d ON CAST(d.c_name AS nvarchar(255)) = CAST(h.c_name AS nvarchar(255))
 LEFT JOIN NMU_DATACENTER.dbo.dc_emp AS e ON TRY_CAST(e.dc_emp_id AS nvarchar(50)) = TRY_CAST(d.dc_emp_id AS nvarchar(50))
@@ -384,7 +405,8 @@ SELECT
     d.wf_order,
     d.review_action,
     d.sign_action,
-    d.approve_action
+    d.approve_action,
+    d.signature_text_json
 FROM dbo.WF_USER_HDR AS h
 LEFT JOIN dbo.WF_USER_DTL AS d ON CAST(d.c_name AS nvarchar(255)) = CAST(h.c_name AS nvarchar(255))
 WHERE CAST(h.c_name AS nvarchar(255)) = ?
@@ -412,6 +434,7 @@ SQL;
                 'review_action' => (bool) $row['review_action'],
                 'sign_action' => (bool) $row['sign_action'],
                 'approve_action' => (bool) $row['approve_action'],
+                'signature_text' => !empty($row['signature_text_json']) ? json_decode((string)$row['signature_text_json'], true) : null,
             ];
         }
         sqlsrv_free_stmt($statement);

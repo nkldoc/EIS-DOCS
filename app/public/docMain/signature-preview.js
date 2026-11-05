@@ -81,7 +81,8 @@
       const page = await pdf.getPage(chosen);
       const base = page.getViewport({scale:1});
       const scale = Math.min(1.6, Math.max(0.5,(panel.clientWidth-34)/base.width));
-      const viewport = page.getViewport({scale});
+      const renderScale = scale * Math.min(window.devicePixelRatio || 1, 2);
+      const viewport = page.getViewport({scale:renderScale});
       const preview = document.createElement('canvas');
       preview.width = Math.ceil(viewport.width); preview.height = Math.ceil(viewport.height);
       preview.style.cssText = 'display:block;width:100%;height:auto;background:white';
@@ -124,14 +125,14 @@
         // Redraw the whole field just as the signing service does, so the
         // original un-signed text cannot overlap the new signature row.
         context.save();
-        context.fillStyle = '#fff'; context.fillRect(x*scale,y*scale,width*scale,height*scale);
+        context.fillStyle = '#fff'; context.fillRect(x*renderScale,y*renderScale,width*renderScale,height*renderScale);
         const fontSize = Math.max(8,Math.min(72,Number(field.fontSize || 12)));
         const text = (value,left,area,baseline,bold=false) => {
           if (!value) return;
-          context.font = `${bold ? '700' : '400'} ${fontSize*scale}px SignaturePreviewSarabun`;
+          context.font = `${bold ? '700' : '400'} ${fontSize*renderScale}px SignaturePreviewSarabun`;
           context.fillStyle = '#000'; context.textBaseline = 'alphabetic';
-          const measured = context.measureText(value).width/scale;
-          context.fillText(value,(left+Math.max(2,(area-measured)/2))*scale,baseline*scale);
+          const measured = context.measureText(value).width/renderScale;
+          context.fillText(value,(left+Math.max(2,(area-measured)/2))*renderScale,baseline*renderScale);
         };
         text(visible('approval'),x+7,innerWidth,y+5+fontSize,true);
         if (hasSignatureRow) {
@@ -148,16 +149,16 @@
         const settings = placement();
         const imageScale = Math.min(areaWidth/image.width,38/image.height)*settings.scale;
         const drawWidth = image.width*imageScale, drawHeight = image.height*imageScale;
-        if (hasSignatureRow) context.drawImage(image,(x+7+prefix+(areaWidth-drawWidth)*settings.x)*scale,
-          (rowBottom-2-38+(38-drawHeight)*settings.y)*scale,drawWidth*scale,drawHeight*scale);
+        if (hasSignatureRow) context.drawImage(image,(x+7+prefix+(areaWidth-drawWidth)*settings.x)*renderScale,
+          (rowBottom-2-38+(38-drawHeight)*settings.y)*renderScale,drawWidth*renderScale,drawHeight*renderScale);
         context.save(); context.strokeStyle = '#1e6fcc'; context.lineWidth = 1; context.setLineDash([5,4]);
-        context.strokeRect(x*scale,y*scale,width*scale,height*scale); context.restore();
+        context.strokeRect(x*renderScale,y*renderScale,width*renderScale,height*renderScale); context.restore();
       }
       const boxes = fields.filter(item => Number(item.page || 1) === chosen).map(field => {
-        const left = Math.max(0, Math.round(Number(field.xRatio || 0)*base.width*scale));
-        const top = Math.max(0, Math.round(Number(field.yRatio || 0)*base.height*scale));
-        const width = Math.max(1,Math.min(preview.width-left,Math.round(Math.max(20,Number(field.widthRatio || .4)*base.width)*scale)));
-        const height = Math.max(1,Math.min(preview.height-top,Math.round((renderedHeights.get(field) || Math.max(20,Number(field.heightRatio || .15)*base.height))*scale)));
+        const left = Math.max(0, Math.round(Number(field.xRatio || 0)*base.width*renderScale));
+        const top = Math.max(0, Math.round(Number(field.yRatio || 0)*base.height*renderScale));
+        const width = Math.max(1,Math.min(preview.width-left,Math.round(Math.max(20,Number(field.widthRatio || .4)*base.width)*renderScale)));
+        const height = Math.max(1,Math.min(preview.height-top,Math.round((renderedHeights.get(field) || Math.max(20,Number(field.heightRatio || .15)*base.height))*renderScale)));
         const cropped = document.createElement('canvas'); cropped.width=width; cropped.height=height;
         cropped.getContext('2d').drawImage(preview,left,top,width,height,0,0,width,height);
         const box = document.createElement('div'); box.className='signature-box-preview';
