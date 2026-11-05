@@ -242,12 +242,13 @@ SELECT h.docs_id, h.doc_no, h.doc_type, h.doc_type_name, h.department,
        current_signer.signer_name AS current_signer,
        current_signer.wf_order AS current_wf_order,
        current_signer.review_action AS current_review_action,
-       current_signer.sign_action AS current_sign_action
+       current_signer.sign_action AS current_sign_action,
+       current_signer.approve_action AS current_approve_action
 FROM dbo.DOCS_HDR h
 OUTER APPLY (SELECT TOP (1) s.f_total_amt FROM NMU_ERP.dbo.sp_tor s WHERE s.tor_id=h.pr_tor_id OR LTRIM(RTRIM(s.c_code))=LTRIM(RTRIM(h.doc_no)) ORDER BY CASE WHEN s.tor_id=h.pr_tor_id THEN 0 ELSE 1 END) t
 LEFT JOIN dbo.DOCS_DTL d ON d.docs_id = h.docs_id
 OUTER APPLY (
-    SELECT TOP (1) x.user_id, x.signer_name, x.wf_order, x.review_action, x.sign_action
+    SELECT TOP (1) x.user_id, x.signer_name, x.wf_order, x.review_action, x.sign_action, x.approve_action
     FROM dbo.DOCS_DTL x
     WHERE x.docs_id = h.docs_id AND x.sign_status = 'PENDING'
     ORDER BY x.wf_order, x.docs_dtl_id
@@ -255,7 +256,7 @@ OUTER APPLY (
 WHERE h.is_enabled=1 AND (? = 1 OR EXISTS (SELECT 1 FROM dbo.DOCS_DTL access_dtl WHERE access_dtl.docs_id = h.docs_id AND access_dtl.user_id = ?))
 GROUP BY h.docs_id, h.doc_no, h.doc_type, h.doc_type_name, h.department,
          h.requester_name, h.doc_date, t.f_total_amt, h.amount, h.pdf_doc_id, h.file_path, h.template_name, h.description,
-         h.status, current_signer.user_id, current_signer.signer_name, current_signer.wf_order, current_signer.review_action, current_signer.sign_action
+         h.status, current_signer.user_id, current_signer.signer_name, current_signer.wf_order, current_signer.review_action, current_signer.sign_action, current_signer.approve_action
 ORDER BY h.doc_date DESC, h.docs_id DESC
 SQL;
     $statement = sqlsrv_query($connection, $sql, [$isAdmin ? 1 : 0, $loginUserId]);
@@ -269,6 +270,7 @@ SQL;
         $row['current_wf_order'] = $row['current_wf_order'] === null ? null : (int) $row['current_wf_order'];
         $row['current_review_action'] = (bool) ($row['current_review_action'] ?? false);
         $row['current_sign_action'] = (bool) ($row['current_sign_action'] ?? false);
+        $row['current_approve_action'] = (bool) ($row['current_approve_action'] ?? false);
         $documents[] = $row;
     }
     sqlsrv_free_stmt($statement);

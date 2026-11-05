@@ -657,23 +657,29 @@ body.sidebar-collapsed .user-quick-actions span:last-child { display: none; }
 .doc-table .item-name:hover { overflow: visible; position: relative; z-index: 2; background: var(--surface); white-space: normal; overflow-wrap: anywhere; box-shadow: 0 4px 12px rgba(15, 23, 42, .12); }
 .doc-table th:first-child, .doc-table td:first-child { width: 42px; }
 .doc-table .doc-no { width: 130px; }
-#view-pending .doc-table th:nth-child(4),
-#view-pending .doc-table td:nth-child(4) { width: 24%; }
-#view-pending .doc-table th:nth-child(5),
-#view-pending .doc-table td:nth-child(5) { width: 105px; }
-#view-pending .doc-table th:nth-child(6),
-#view-pending .doc-table td:nth-child(6) { width: 78px; }
-#view-pending .doc-table th:nth-child(7),
-#view-pending .doc-table td:nth-child(7) { width: 125px; }
-#view-pending .doc-table th:nth-child(8),
-#view-pending .doc-table td:nth-child(8) { width: 92px; }
-#view-pending .doc-table th:nth-child(9),
-#view-pending .doc-table td:nth-child(9) { width: 88px; }
-#view-pending .doc-table th:nth-child(10),
-#view-pending .doc-table td:nth-child(10) { width: 92px; }
-#view-pending .doc-table th:nth-child(11),
-#view-pending .doc-table td:nth-child(11) { width: 190px; overflow: visible; }
-#view-pending .doc-row-actions { flex-wrap: wrap; }
+#view-pending .doc-table-wrap { border: 1px solid #e2e8f0; border-radius: 10px; }
+#view-pending .doc-table { min-width: 1480px; }
+#view-pending .doc-table th { padding: 12px 10px; background: #f5f8fc; color: #52647a; font-size: 12px; letter-spacing: 0; }
+#view-pending .doc-table td { padding: 13px 10px; border-bottom: 1px solid #edf1f5; }
+#view-pending .doc-table tbody tr:last-child td { border-bottom: 0; }
+#view-pending .doc-table tbody tr:hover { background: #f6f9fd; }
+#view-pending .doc-table th:nth-child(1) { width: 42px; }
+#view-pending .doc-table th:nth-child(2) { width: 145px; }
+#view-pending .doc-table th:nth-child(3) { width: 155px; }
+#view-pending .doc-table th:nth-child(4) { width: auto; }
+#view-pending .doc-table th:nth-child(5) { width: 115px; }
+#view-pending .doc-table th:nth-child(6) { width: 95px; }
+#view-pending .doc-table th:nth-child(7) { width: 145px; }
+#view-pending .doc-table th:nth-child(8) { width: 125px; }
+#view-pending .doc-table th:nth-child(9) { width: 105px; }
+#view-pending .doc-table th:nth-child(10) { width: 115px; }
+#view-pending .doc-table th:nth-child(11) { width: 205px; }
+#view-pending .doc-table .item-name { width: auto; }
+#view-pending .signer-cell { min-width: 0; }
+#view-pending .signer-cell span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+#view-pending .progress-cell { min-width: 0; gap: 6px; }
+#view-pending .doc-row-actions { flex-wrap: wrap; gap: 6px; }
+#view-pending .doc-row-actions .row-action { white-space: nowrap; }
 .doc-table tbody tr:hover { background: var(--bg); }
 .doc-row-actions { display: flex; gap: 6px; align-items: center; }
 .row-action.sign-now { background: var(--accent); color: #fff; border-color: var(--accent); text-decoration: none; }

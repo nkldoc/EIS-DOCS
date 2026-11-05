@@ -2521,7 +2521,7 @@
         amount: Number(row.amount || 0), status: ({COMPLETED: "done", REJECTED: "rejected"})[String(row.status).toUpperCase()] || "pending",
         signers: Number(row.signer_count || 0), signed: Number(row.signed_count || 0),
         current: row.current_signer || "-", currentUserId: row.current_user_id || "",
-        currentWfOrder: row.current_wf_order, currentReviewAction: Boolean(row.current_review_action), currentSignAction: Boolean(row.current_sign_action),
+        currentWfOrder: row.current_wf_order, currentReviewAction: Boolean(row.current_review_action), currentSignAction: Boolean(row.current_sign_action), currentApproveAction: Boolean(row.current_approve_action),
         pdfDocId: row.pdf_doc_id || row.file_path || "", description: row.description || "",
       }));
     } catch (error) {
@@ -2683,16 +2683,14 @@
         : '<span class="status-chip pending">⏳ รอเซ็น</span>';
       const actionButton = isRevision
         ? `<button class="row-action sign-now js-edit-revision" data-id="${doc.id}">แก้ไขเอกสาร</button>`
-        : doc.currentReviewAction && !doc.currentSignAction
-          ? `<button class="row-action sign-now js-open-sign" data-id="${doc.id}">ตรวจสอบ</button>`
-          : doc.currentSignAction
-            ? `<button class="row-action sign-now js-open-sign" data-id="${doc.id}">ลงนาม</button>`
-            : '';
+        : (doc.currentReviewAction || doc.currentSignAction || doc.currentApproveAction)
+          ? `<button class="row-action sign-now js-open-sign" data-id="${doc.id}">${pendingActionLabel(doc)}</button>`
+          : '';
       return `<tr>
         <td><input class="js-pending-select" type="checkbox" data-id="${doc.id}" aria-label="เลือก ${escapeHtml(doc.no)}" ${canBulkSign(doc) ? '' : 'disabled'} ${selectedPendingDocuments.has(String(doc.id)) ? 'checked' : ''}></td>
         <td class="doc-no">${escapeHtml(doc.no)}</td><td><span class="doc-type-chip">${escapeHtml(doc.typeName || doc.type)}</span></td>
-        <td class="item-name" title="${escapeHtml(doc.itemName)}">${escapeHtml(doc.itemName)}</td><td>${escapeHtml(doc.requester)}</td><td>${formatThaiDate(doc.date)}</td>
-        <td><div class="signer-cell"><span class="signer-avatar">${initials(doc.current)}</span><span>${escapeHtml(doc.current)}</span></div></td>
+        <td class="item-name" title="${escapeHtml(doc.itemName)}">${escapeHtml(doc.itemName)}</td><td title="${escapeHtml(doc.requester || '')}">${escapeHtml(doc.requester)}</td><td>${formatThaiDate(doc.date)}</td>
+        <td title="${escapeHtml(doc.current || '')}"><div class="signer-cell"><span class="signer-avatar">${initials(doc.current)}</span><span>${escapeHtml(doc.current)}</span></div></td>
         <td><div class="progress-cell"><div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%"></div></div><span class="progress-label">${doc.signed}/${doc.signers}</span></div></td>
         <td>฿${doc.amount.toLocaleString("th-TH")}</td><td>${statusHtml}</td>
         <td><div class="doc-row-actions"><button class="row-action js-pending-detail" data-id="${doc.id}">ดูรายละเอียด</button>${canEditBeforeSigning && !isRevision ? `<button class="row-action js-edit-revision" data-id="${doc.id}">แก้ไขรายการลงนาม</button>` : ''}${actionButton}</div></td></tr>`;
@@ -2705,13 +2703,9 @@
         reviewButton.type = "button";
         reviewButton.className = "row-action sign-now js-open-sign";
         reviewButton.dataset.id = button.dataset.id;
-        reviewButton.textContent = "ดูรีวิว";
+        reviewButton.textContent = pendingActionLabel(rowDoc);
         button.before(reviewButton);
       }
-    });
-    $$(".js-open-sign", tbody).forEach(button => {
-      const rowDoc = DOCS.find(item => String(item.id) === String(button.dataset.id));
-      if (rowDoc?.currentReviewAction && !rowDoc?.currentSignAction) button.textContent = "ดูรีวิว";
     });
     $$(".js-open-sign", tbody).forEach(button => button.addEventListener("click", () => {
       const doc = DOCS.find(item => String(item.id) === String(button.dataset.id));
@@ -2724,6 +2718,13 @@
     }));
     $$(".js-edit-revision", tbody).forEach(button => button.addEventListener("click", () => openRevisionEditor(button.dataset.id)));
     $$(".js-pending-detail", tbody).forEach(button => button.addEventListener("click", () => openDocumentDetail(button.dataset.id)));
+  }
+
+  function pendingActionLabel(doc) {
+    if (doc.currentApproveAction) return 'อนุมัติและลงนาม';
+    if (doc.currentSignAction && doc.currentReviewAction) return 'ตรวจสอบและลงนาม';
+    if (doc.currentSignAction) return 'ลงนาม';
+    return 'ตรวจสอบ';
   }
 
   function canBulkSign(doc) {
@@ -2807,7 +2808,7 @@
   }
 
   function openSignaturePad(doc) {
-    if (!doc.pdfDocId || String(doc.currentUserId).trim() !== currentLoginUserId || (!doc.currentReviewAction && !doc.currentSignAction)) return;
+    if (!doc.pdfDocId || String(doc.currentUserId).trim() !== currentLoginUserId || (!doc.currentReviewAction && !doc.currentSignAction && !doc.currentApproveAction)) return;
     const baseParams = {docs_id:String(doc.id), docId:doc.pdfDocId, user_id:currentLoginUserId, name:doc.current, csrf:wfCsrf, v:'20261006-signature-theme'};
     const reviewParams = new URLSearchParams({...baseParams, view:'review'});
     const signParams = new URLSearchParams({...baseParams, view:'sign'});
