@@ -54,7 +54,7 @@ try {
         if ($editing && !$group['can_edit']) { http_response_code(403); throw new RuntimeException('คุณดูหรือคัดลอกกลุ่มนี้ได้ แต่ไม่มีสิทธิ์แก้ไขหรือลบกลุ่มต้นฉบับ'); }
         return $group;
     };
-
+    //
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $csrf = (string) ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
         if (!isset($_SESSION['app_csrf']) || !safeCmp((string) $_SESSION['app_csrf'], $csrf)) {
