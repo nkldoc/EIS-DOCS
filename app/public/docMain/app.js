@@ -730,7 +730,7 @@
       fallbackPayload: {signatureFields:saved.signatureBoxes || []}
     };
     state.selectedGroupId = state.groups[0]?.id || null;
-    $('#layoutFrame').src = 'layout.html?v=20261105-wf-user-id';
+    $('#layoutFrame').src = 'layout.html?v=20261105-wf-member-lookup';
     $("#docType").value = state.config.docType;
     $("#prId").value = state.config.prId;
     $("#prSearch").value = state.config.prCode;
@@ -760,7 +760,7 @@
   function resetDocumentForm() {
     state.layoutPayload = null;
     state.restoreLayout = null;
-    $('#layoutFrame').src = 'layout.html?v=20261105-wf-user-id';
+    $('#layoutFrame').src = 'layout.html?v=20261105-wf-member-lookup';
     document.getElementById('revisionFeedback')?.remove();
     state.config = {docsId:null, docType:"PR - ใบขอซื้อ/ขอจ้าง", prId:"", prCode:"", prName:"", templateName:"", description:"", status:"Draft", amount:0, department:"", docDate:"", filePath:"", pdfDocId:"", signDateMode:"none", signDateFixed:""};
     $("#savedDocumentSelect").value = ""; $("#docType").value = state.config.docType; $("#prId").value = "";
