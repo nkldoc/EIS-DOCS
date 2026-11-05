@@ -1030,16 +1030,21 @@
                     const status = document.createElement('small'); status.setAttribute('role', 'status');
                     saveGroup.disabled = !field.user_id || !field.wfGroupName;
                     saveGroup.addEventListener('click', async () => {
-                        const person = participants.find(item => String(item.user_id) === String(field.user_id));
                         const csrf = window.parent.document.querySelector('meta[name="app-csrf"]')?.content || '';
-                        if (!person?.dcEmpId) { status.textContent = 'ไม่พบสมาชิกในกลุ่ม กรุณาโหลดกลุ่มใหม่'; return; }
                         saveGroup.disabled = true; status.textContent = 'กำลังบันทึก...';
                         try {
+                            const groupResponse = await fetch(`wf-groups.php?group_id=${encodeURIComponent(field.wfGroupName)}`, {credentials:'same-origin'});
+                            const groupResult = await groupResponse.json().catch(() => ({}));
+                            if (!groupResponse.ok || !groupResult.success) throw new Error(groupResult.message || `โหลดกลุ่มไม่สำเร็จ (HTTP ${groupResponse.status})`);
+                            const matches = (groupResult.group?.members || []).filter(member => String(member.user_id) === String(field.user_id));
+                            if (matches.length !== 1 || !matches[0].dc_emp_id) throw new Error(matches.length > 1 ? 'พบ user_id ซ้ำในกลุ่ม กรุณาตรวจสอบสมาชิกกลุ่ม' : 'ไม่พบ user_id นี้ในกลุ่มผู้ลงนาม กรุณาตรวจสอบกลุ่มและสมาชิก');
+                            const member = matches[0];
                             const signatureText = {values: Object.fromEntries(wfTextKeys.map(key => [key, String(field[key] || '')])), hiddenRows: (field.hiddenRows || []).filter(key => wfTextKeys.includes(key))};
-                            const response = await fetch('wf-groups.php', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json','X-CSRF-Token':csrf}, body:JSON.stringify({action:'update_signature_text', group_name:field.wfGroupName, user_id:field.user_id, dc_emp_id:person.dcEmpId, signature_text:signatureText})});
+                            const response = await fetch('wf-groups.php', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json','X-CSRF-Token':csrf}, body:JSON.stringify({action:'update_signature_text', group_name:field.wfGroupName, user_id:field.user_id, dc_emp_id:member.dc_emp_id, signature_text:signatureText})});
                             const result = await response.json();
                             if (!response.ok || !result.success) throw new Error(result.message || `HTTP ${response.status}`);
-                            person.signatureText = signatureText;
+                            const person = participants.find(item => String(item.user_id) === String(field.user_id));
+                            if (person) { person.dcEmpId = String(member.dc_emp_id); person.signatureText = signatureText; }
                             status.textContent = 'บันทึกลงกลุ่มแล้ว ครั้งถัดไปจะใช้ข้อมูลนี้';
                         } catch (error) { status.textContent = `บันทึกไม่สำเร็จ: ${error.message}`; }
                         finally { saveGroup.disabled = false; }
@@ -1829,7 +1834,7 @@
                         roles: roles.map(role => ({id: role.id, order: role.order, name: role.name})),
                         documentRoles: activeRoles().map(role => ({id: role.id, order: role.order, name: role.name})),
                         wfGroupName: loadedWfGroupName,
-                        participants: participants.map(person => ({id: person.id, user_id: person.user_id, name: person.name, wfOrder: person.wfOrder, reviewAction: person.reviewAction, signAction: person.signAction, approveAction: person.approveAction})),
+                        participants: participants.map(person => ({id: person.id, user_id: person.user_id, dc_emp_id: person.dcEmpId || '', name: person.name, wfOrder: person.wfOrder, reviewAction: person.reviewAction, signAction: person.signAction, approveAction: person.approveAction})),
                         bookmarks: bookmarks
                            .slice()
                            .map(bookmark => ({name: bookmark.name, page: bookmark.page, level: bookmark.level || 0, source: bookmark.source || 'manual', documentId: bookmark.documentId || null, group: bookmark.group || null})),
@@ -2164,12 +2169,13 @@
                     if (!person || !person.name)
                         return null;
                     const userId = String(person.user_id != null ? person.user_id : (person.id || '')).trim();
-                    const existing = participants.find(item => item.user_id === userId || item.name === person.name);
+                    const existing = participants.find(item => userId && item.user_id === userId);
                     if (existing)
                         return existing;
                     const next = {
                         id: userId || `person-${participants.length + 1}`,
                         user_id: userId || `person-${participants.length + 1}`,
+                        dcEmpId: String(person.dc_emp_id || person.dcEmpId || ''),
                         name: person.name,
                         wfOrder: Number(person.wfOrder || person.wf_order || participants.length + 1),
                         reviewAction: person.reviewAction !== false,
