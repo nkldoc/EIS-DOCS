@@ -1507,7 +1507,7 @@
                     const node = document.createElement(multiline ? 'textarea' : 'input');
                     if (multiline) node.rows = 1;
                     node.className = className;
-                    node.value = field[key];
+                    node.value = field[key] ?? '';
                     node.setAttribute('aria-label', label);
                     node.addEventListener('pointerdown', event => event.stopPropagation());
                     node.addEventListener('input', () => {
@@ -1888,6 +1888,7 @@
                                 signAction: field.signAction !== false,
                                 approveAction: field.approveAction !== false,
                                 approval: reviewOnly || !actionEnabled(field.approveAction) || field.hiddenRows.includes('approval') ? null : field.approval,
+                                approvalText: field.approval ?? '',
                                 signText: reviewOnly || !actionEnabled(field.signAction) || field.hiddenRows.includes('signatureLine') || field.hiddenRows.includes('signText') ? null : field.signText,
                                 signatureImage: reviewOnly || !actionEnabled(field.signAction) || field.hiddenRows.includes('signatureLine') || field.hiddenRows.includes('signatureImage') ? null : field.signatureImage,
                                 committee: reviewOnly || !actionEnabled(field.signAction) || field.hiddenRows.includes('signatureLine') || field.hiddenRows.includes('committee') ? null : field.committee,
@@ -2265,6 +2266,7 @@
                             reviewAction: item.reviewAction == null ? actionEnabled(itemActions.review) : actionEnabled(item.reviewAction),
                             signAction: item.signAction == null ? actionEnabled(itemActions.sign) : actionEnabled(item.signAction),
                             approveAction: item.approveAction == null ? actionEnabled(itemActions.approve) : actionEnabled(item.approveAction),
+                            approval: item.approvalText ?? item.approval ?? 'อนุมัติ',
                             signText: item.signText ?? 'ลงชื่อ',
                             signatureImage: item.signatureImage || null,
                             committee: normalizedRoleName(item.committee || item.roleName || (role && role.name) || ''),
@@ -2286,7 +2288,6 @@
                         };
                         if (role && role.id === 'DEAN') {
                             if (actionEnabled(restoredField.approveAction)) {
-                                restoredField.approval = item.approval ?? 'อนุมัติ';
                                 restoredField.actingForPresident = item.actingForPresident ?? 'ปฏิบัติหน้าที่แทนอธิการบดี';
                                 restoredField.h = Math.max(restoredField.h, 222);
                             }
