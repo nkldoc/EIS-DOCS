@@ -730,7 +730,7 @@
       fallbackPayload: {signatureFields:saved.signatureBoxes || []}
     };
     state.selectedGroupId = state.groups[0]?.id || null;
-    $('#layoutFrame').src = 'layout.html?v=20261009-auto-height';
+    $('#layoutFrame').src = 'layout.html?v=20261105-wf-user-id';
     $("#docType").value = state.config.docType;
     $("#prId").value = state.config.prId;
     $("#prSearch").value = state.config.prCode;
@@ -760,7 +760,7 @@
   function resetDocumentForm() {
     state.layoutPayload = null;
     state.restoreLayout = null;
-    $('#layoutFrame').src = 'layout.html?v=20261009-auto-height';
+    $('#layoutFrame').src = 'layout.html?v=20261105-wf-user-id';
     document.getElementById('revisionFeedback')?.remove();
     state.config = {docsId:null, docType:"PR - ใบขอซื้อ/ขอจ้าง", prId:"", prCode:"", prName:"", templateName:"", description:"", status:"Draft", amount:0, department:"", docDate:"", filePath:"", pdfDocId:"", signDateMode:"none", signDateFixed:""};
     $("#savedDocumentSelect").value = ""; $("#docType").value = state.config.docType; $("#prId").value = "";
@@ -1146,6 +1146,10 @@
 
   const wfCsrf = document.querySelector('meta[name="app-csrf"]')?.content || "";
   const currentLoginUserId = document.querySelector('meta[name="app-user-id"]')?.content?.trim() || "";
+  const wfSearchHistoryKey = "eis-docs-wf-user-search-history";
+  function wfSearchHistory() { try { const rows = JSON.parse(localStorage.getItem(wfSearchHistoryKey) || "[]"); return Array.isArray(rows) ? rows.filter(Boolean).slice(0, 10) : []; } catch (_) { return []; } }
+  function rememberWfSearch(query) { const value = String(query || "").trim(); if (!value) return; const rows = [value, ...wfSearchHistory().filter(item => item.toLowerCase() !== value.toLowerCase())].slice(0, 10); try { localStorage.setItem(wfSearchHistoryKey, JSON.stringify(rows)); } catch (_) {} }
+  function renderWfSearchHistory(card) { const list = $("#wf-user-search-history", card); if (list) list.innerHTML = wfSearchHistory().map(value => `<option value="${escapeHtml(value)}"></option>`).join(""); }
 
   async function wfApiPost(payload) {
     const response = await fetch("wf-groups.php", {
@@ -1197,23 +1201,27 @@
             ${state.editingGroupId === g.id ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px"><input class="js-group-name list-search" aria-label="ชื่อกลุ่มผู้ลงนาม" maxlength="255" value="${escapeHtml(g.draftName ?? g.name)}"><button class="btn btn-primary btn-sm js-rename-group">Save Update - บันทึกทับกลุ่มเดิม</button><button class="btn btn-subtle btn-sm js-copy-group">Save As - บันทึกเป็นกลุ่มใหม่</button><button class="btn btn-subtle btn-sm js-set-login-wf1">👤 ตั้งผู้ใช้ปัจจุบันเป็น WF1</button></div>` : ''}
             ${g.members.length === 0 ? `<p class="empty-msg" style="padding:0;font-style:italic">ยังไม่มีสมาชิก</p>` : ""}
             ${g.members.map((m, memberIndex) => `
+              <details class="wf-stage" open data-wf-order="${g.memberReplacements?.[m.id]?.wf_order ?? m.wfOrder ?? m.order}">
+                <summary class="wf-stage-summary"><span class="member-order">WF ${g.memberReplacements?.[m.id]?.wf_order ?? m.wfOrder ?? m.order}</span><span>${escapeHtml(g.memberReplacements?.[m.id]?.name || m.empName)}</span><span class="wf-stage-action">${escapeHtml(memberActionLabel(g.memberReplacements?.[m.id] ? {reviewAction:g.memberReplacements[m.id].review_action,signAction:g.memberReplacements[m.id].sign_action,approveAction:g.memberReplacements[m.id].approve_action} : m))}</span></summary>
               <div class="member-row" data-mid="${escapeHtml(m.id)}">
                 <span class="member-order" title="ลำดับเส้นทาง Workflow" style="background:${m.roleColor}22;color:${m.roleColor}">WF ${g.memberReplacements?.[m.id]?.wf_order ?? m.wfOrder ?? m.order}</span>
                 <span class="member-name">${escapeHtml(g.memberReplacements?.[m.id]?.name || m.empName)}${g.memberReplacements?.[m.id] ? ' <small>(รอบันทึก)</small>' : ''}${memberIndex === 0 ? ' <small>(เจ้าหน้าที่ผู้จัดทำ)</small>' : ''}</span>
-                ${state.editingGroupId === g.id ? '<button class="btn btn-subtle btn-sm js-edit-member">แก้ไข</button>' : ''}
+                ${state.editingGroupId === g.id ? '<button class="btn btn-subtle btn-sm js-review-member">รีวิว</button><button class="btn btn-subtle btn-sm js-edit-member">แก้ไข</button>' : ''}
                 <span class="badge" style="background:${m.roleColor}22;color:${m.roleColor};border:1px solid ${m.roleColor}44">${escapeHtml(memberActionLabel(g.memberReplacements?.[m.id] ? {reviewAction:g.memberReplacements[m.id].review_action,signAction:g.memberReplacements[m.id].sign_action,approveAction:g.memberReplacements[m.id].approve_action} : m))}</span>
                 ${state.editingGroupId === g.id ? '<button class="remove-x js-remove-db-member" title="ลบผู้ใช้ออกจากกลุ่ม">✕</button>' : ''}
               </div>
+              </details>
             `).join("")}
             ${state.editingGroupId === g.id ? `
               <div class="wf-member-editor">
                 <p class="js-member-edit-hint" role="status">ค้นหาผู้ใช้เพื่อเพิ่มสมาชิก หรือกดแก้ไขในแถวที่ต้องการเปลี่ยน</p>
                 <button class="btn btn-subtle btn-sm js-cancel-member-edit" hidden>ยกเลิกการแก้ไขแถว</button>
                 ${Object.keys(g.memberReplacements || {}).length ? '<button class="btn btn-subtle btn-sm js-discard-member-changes">ยกเลิกการแก้ไขทั้งหมด</button>' : ''}
-                <div class="wf-user-search-row">
+                  <div class="wf-user-search-row">
                   <input class="js-wf-user-search" type="search" placeholder="ค้นหาชื่อหรือ Username" autocomplete="off" />
                   <button class="btn btn-subtle btn-sm js-search-wf-user">ค้นหา</button>
-                </div>
+                  </div>
+                  <datalist id="wf-user-search-history"></datalist>
                 <select class="js-wf-user-select" disabled><option value="">— ค้นหาผู้ใช้ก่อน —</option></select>
                 <div class="wf-action-options">
                   <label><input type="checkbox" class="js-action-review" checked /> ตรวจสอบ</label>
@@ -1231,6 +1239,8 @@
 
     // Replacements are drafts until Save Update or Save As succeeds.
     $$(".group-card", listEl).forEach(card => {
+      const searchInput = $(".js-wf-user-search", card);
+      if (searchInput) { searchInput.setAttribute("list", "wf-user-search-history"); renderWfSearchHistory(card); }
       const group = state.groups.find(g => String(g.id) === card.dataset.gid);
       if (group.canEdit === false) {
         $$('.js-rename-group, .js-delete-group, .js-set-login-wf1, .js-edit-member, .js-remove-db-member, .js-save-order, .wf-member-editor', card).forEach(control => {
@@ -1273,6 +1283,66 @@
       apply.textContent = "ใช้การแก้ไข — รอบันทึก";
       apply.disabled = false;
       $(".js-action-review", card).focus();
+    }));
+    $$(".js-review-member", listEl).forEach(button => button.addEventListener("click", () => {
+      const card = button.closest(".group-card");
+      const row = button.closest(".member-row");
+      const group = state.groups.find(item => item.id === card.dataset.gid);
+      const member = group?.members.find(item => item.id === row?.dataset.mid);
+      if (!member) return;
+      const stage = row.closest('.wf-stage');
+      const existing = $('.wf-signature-review', stage);
+      if (existing) { existing.remove(); return; }
+      const panel = document.createElement('div'); panel.className = 'wf-signature-review';
+      stage.appendChild(panel);
+      const frame = $('#layoutFrame')?.contentWindow;
+      const userId = group.memberReplacements?.[member.id]?.user_id || member.userId;
+      const blocks = frame?.getWfSignatureFields?.(userId) || [];
+      if (!blocks.length) { panel.textContent = 'ยังไม่มีกล่องลงนามของผู้ใช้นี้ กรุณาเปิดหน้าวางตำแหน่งและสร้างกล่องก่อน'; return; }
+      const labels = {approval:'หัวข้ออนุมัติ (Header 1)', signText:'ข้อความลงนาม', committee:'คณบดี / กรรมการ', signerName:'ชื่อผู้ลงนาม', position:'ตำแหน่ง', faculty:'คณะ / ส่วนงาน', actingForPresident:'ปฏิบัติหน้าที่แทน', organization:'หน่วยงาน', signedDate:'วันที่'};
+      blocks.forEach(block => {
+        const section = document.createElement('section');
+        const heading = document.createElement('strong'); heading.textContent = `กล่อง ${block.id} · หน้า ${block.page}`; section.appendChild(heading);
+        const inputs = {};
+        Object.entries(labels).forEach(([key, labelText]) => {
+          const label = document.createElement('label'); label.textContent = labelText;
+          const controls = document.createElement('div'); controls.className = 'wf-signature-review-row';
+          const input = document.createElement('input'); input.type = 'text'; input.value = block.values[key]; input.disabled = block.hiddenRows.includes(key); input.setAttribute('aria-label', labelText); inputs[key] = input;
+          const toggle = document.createElement('button'); toggle.type = 'button'; toggle.className = 'btn btn-subtle btn-sm';
+          toggle.textContent = input.disabled ? 'คืนค่า' : 'ลบ';
+          toggle.addEventListener('click', () => { input.disabled = !input.disabled; toggle.textContent = input.disabled ? 'คืนค่า' : 'ลบ'; });
+          controls.append(input, toggle); section.append(label, controls);
+        });
+        const save = document.createElement('button'); save.type = 'button'; save.className = 'btn btn-primary btn-sm'; save.textContent = 'อัปเดตกล่องลงนาม';
+        save.addEventListener('click', () => {
+          const values = Object.fromEntries(Object.entries(inputs).map(([key, input]) => [key, input.value]));
+          const hidden = Object.entries(inputs).filter(([, input]) => input.disabled).map(([key]) => key);
+          if (!frame.updateWfSignatureField(block.id, values, hidden)) { setWfGroupHint('ไม่พบกล่องลงนาม กรุณาเปิดรีวิวใหม่', true); return; }
+          setWfGroupHint('อัปเดตกล่องลงนามแล้ว กรุณาบันทึกเอกสารหรือ Template เพื่อเก็บการเปลี่ยนแปลง');
+        });
+        section.appendChild(save); panel.appendChild(section);
+      });
+    }));
+    $$(".js-edit-selected-user", listEl).forEach(button => button.addEventListener("click", () => {
+      const card = button.closest(".group-card");
+      const fields = card.querySelector(".wf-edit-fields");
+      if (fields) fields.hidden = false;
+      card.querySelector(".js-edit-user-name")?.focus();
+    }));
+    $$(".js-update-selected-user", listEl).forEach(button => button.addEventListener("click", () => {
+      const card = button.closest(".group-card");
+      const group = state.groups.find(item => item.id === card.dataset.gid);
+      const member = group?.members.find(item => item.id === card.dataset.editMemberId);
+      if (!group || !member) return;
+      const name = card.querySelector(".js-edit-user-name")?.value.trim();
+      const order = Number(card.querySelector(".js-edit-user-position")?.value);
+      if (!name || !Number.isInteger(order) || order < 1 || order > 999) { setWfGroupHint("กรุณาระบุชื่อและตำแหน่ง WF ให้ถูกต้อง", true); return; }
+      const draft = group.memberReplacements?.[member.id] || { old_user_id: member.userId, old_dc_emp_id: member.dcEmpId, user_id: member.userId, dc_emp_id: member.dcEmpId, review_action: member.reviewAction, sign_action: member.signAction, approve_action: member.approveAction };
+      group.memberReplacements ||= {};
+      group.memberReplacements[member.id] = { ...draft, name, wf_order: order };
+      group.draftName = $(".js-group-name", card)?.value || group.name;
+      renderGroups();
+      setWfGroupHint("อัปเดตชื่อและตำแหน่ง WF แล้ว กด Save Update เพื่อบันทึก", false);
     }));
     // wire events
     $$('.js-copy-visibility', listEl).forEach(select => select.addEventListener('change', () => {
@@ -1353,6 +1423,8 @@
         const input = $(".js-wf-user-search", card);
         const select = $(".js-wf-user-select", card);
         btn.disabled = true;
+        rememberWfSearch(input.value);
+        renderWfSearchHistory(card);
         select.disabled = true;
         $(".js-add-db-member", card).disabled = true;
         select.innerHTML = '<option value="">— กำลังค้นหา —</option>';
@@ -1367,11 +1439,13 @@
             const option = new Option(`${employee.c_name}${username} (user_id: ${employee.user_id})`, employee.user_id);
             option.dataset.empId = employee.dc_emp_id;
             option.dataset.empName = employee.c_name;
+            option.dataset.username = employee.c_user_name || employee.user_id;
             select.add(option);
           });
           select.disabled = employees.length === 0;
           select.onchange = () => {
             const group = state.groups.find(g => String(g.id) === card.dataset.gid);
+            const option = select.selectedOptions[0];
             $(".js-add-db-member", card).disabled = !select.value || (!card.dataset.editMemberId && Object.keys(group.memberReplacements || {}).length > 0);
           };
         } catch (error) {
@@ -1478,6 +1552,7 @@
       reviewAction: Boolean(member.review_action),
       signAction: Boolean(member.sign_action),
       approveAction: Boolean(member.approve_action),
+      signatureText: member.signature_text || null,
       wfOrder: Number(member.wf_order || index + 1),
       roleName: "ผู้ลงนาม", roleColor: ROLES[0].color, order: Number(member.wf_order || index + 1),
     })).sort((a, b) => a.wfOrder - b.wfOrder);
@@ -1500,8 +1575,14 @@
 
   window.addEventListener('message', event => {
     if (event.origin === location.origin && event.source === $('#layoutFrame')?.contentWindow && event.data?.type === 'EIS_DOCS_DOCUMENT_RESTORED') {
+      if (event.data.success === false) {
+        const detail = event.data.message ? `: ${event.data.message}` : '';
+        setCrudMessage(`โหลดเอกสารเดิมและตำแหน่งไม่สำเร็จ${detail}`, 'err');
+        return;
+      }
       state.restoreLayout = null;
       syncSelectedGroupToLayout();
+      setCrudMessage('โหลดเอกสารเดิมและตำแหน่งที่บันทึกไว้แล้ว', 'ok');
       return;
     }
     if(event.origin!==location.origin || event.source!==$('#layoutFrame')?.contentWindow || event.data?.type!=='EIS_DOCS_LAYOUT_STATE')return;
@@ -1630,7 +1711,11 @@
 
   function renderFakePDF() {
     const canvas = $("#pdfCanvas");
+    // The live layout editor now renders inside #layoutFrame. Keep this legacy
+    // preview path harmless when the old canvas is not present in the page.
+    if (!canvas) return;
     const ctx = canvas.getContext("2d");
+    if (!ctx) return;
     ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     ctx.fillStyle = "#f0f4f8"; ctx.fillRect(40, 40, CANVAS_W - 80, 80);
     ctx.fillStyle = "#1E6FCC"; ctx.font = "bold 18px sans-serif";
@@ -1659,6 +1744,12 @@
   }
 
   function initCanvasIfNeeded() {
+    // Signature placement is handled by layout.html in the iframe. Older
+    // canvas controls may be absent from newer document layouts.
+    if (!$("#pdfCanvas")) {
+      syncSelectedGroupToLayout();
+      return;
+    }
     if (canvasInited) { renderGroupSelector(); renderBoxOverlay(); return; }
     canvasInited = true;
     renderFakePDF();
@@ -2340,7 +2431,7 @@
       result.sets.forEach(set=>{const details=document.createElement('details');details.style.cssText='padding:12px;border:1px solid #ddd;border-radius:8px;margin:8px 0';const summary=document.createElement('summary');summary.textContent=`${set.set_name} (${set.ids.length} เอกสาร) — ${set.created_at}`;details.append(summary);
         if(set.ap_code){const ap=document.createElement('p');ap.textContent=`ตรวจรับ ${set.ap_code} | ${set.ap_name||'ไม่ระบุชื่อ'} | สัญญา ${set.contract_code||'—'} | ${set.ap_amount==null?'ไม่ระบุยอด':Number(set.ap_amount).toLocaleString('th-TH',{minimumFractionDigits:2})} บาท`;details.append(ap);}
         set.ids.forEach((id,index)=>{const doc=DOCS.find(d=>String(d.id)===String(id));const p=document.createElement('p');p.textContent=`${index+1}. ${doc?doc.no+' — '+doc.itemName:'เอกสารถูกลบหรือไม่พบ #'+id} `;
-          if(doc?.pdfDocId){const a=document.createElement('a');const url=new URL('../pdf/view',location.href);url.searchParams.set('docId',doc.pdfDocId);a.href=url.href;a.target='_blank';a.rel='noopener';a.textContent='เปิด PDF';p.append(a);}details.append(p);});target.append(details);});
+          if(doc?.pdfDocId){const a=document.createElement('a');const url=new URL('../api/pdf/view',location.href);url.searchParams.set('docId',doc.pdfDocId);a.href=url.href;a.target='_blank';a.rel='noopener';a.textContent='เปิด PDF';p.append(a);}details.append(p);});target.append(details);});
       if(!result.sets.length)target.textContent='ยังไม่มีชุดเอกสาร';
     }catch(error){target.textContent=`โหลดชุดเอกสารไม่สำเร็จ: ${error.message}`;}
   }
@@ -2496,7 +2587,7 @@
         <tr>
           <td class="doc-no">${d.no}</td>
           <td><span class="doc-type-chip">${escapeHtml(d.typeName || DOC_TYPE_LABEL[d.type] || d.type)}</span></td>
-          <td>${escapeHtml(d.itemName)}</td>
+          <td class="item-name" title="${escapeHtml(d.itemName)}">${escapeHtml(d.itemName)}</td>
           <td>${escapeHtml(d.requester)}</td>
           <td>${formatThaiDate(d.date)}</td>
           <td>
@@ -2529,7 +2620,7 @@
 
   function openSignedPdf(doc) {
     if (!doc.pdfDocId) return;
-    const url = new URL('../pdf/view', location.href);
+    const url = new URL('../api/pdf/view', location.href);
     url.searchParams.set('docId', doc.pdfDocId);
     $('#signedPdfFrame').src = url.href;
     $('#signedPdfTitle').textContent = `${doc.no} — PDF ที่ลงนาม`;
@@ -2600,12 +2691,28 @@
       return `<tr>
         <td><input class="js-pending-select" type="checkbox" data-id="${doc.id}" aria-label="เลือก ${escapeHtml(doc.no)}" ${canBulkSign(doc) ? '' : 'disabled'} ${selectedPendingDocuments.has(String(doc.id)) ? 'checked' : ''}></td>
         <td class="doc-no">${escapeHtml(doc.no)}</td><td><span class="doc-type-chip">${escapeHtml(doc.typeName || doc.type)}</span></td>
-        <td>${escapeHtml(doc.itemName)}</td><td>${escapeHtml(doc.requester)}</td><td>${formatThaiDate(doc.date)}</td>
+        <td class="item-name" title="${escapeHtml(doc.itemName)}">${escapeHtml(doc.itemName)}</td><td>${escapeHtml(doc.requester)}</td><td>${formatThaiDate(doc.date)}</td>
         <td><div class="signer-cell"><span class="signer-avatar">${initials(doc.current)}</span><span>${escapeHtml(doc.current)}</span></div></td>
         <td><div class="progress-cell"><div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%"></div></div><span class="progress-label">${doc.signed}/${doc.signers}</span></div></td>
         <td>฿${doc.amount.toLocaleString("th-TH")}</td><td>${statusHtml}</td>
         <td><div class="doc-row-actions"><button class="row-action js-pending-detail" data-id="${doc.id}">ดูรายละเอียด</button>${canEditBeforeSigning && !isRevision ? `<button class="row-action js-edit-revision" data-id="${doc.id}">แก้ไขรายการลงนาม</button>` : ''}${actionButton}</div></td></tr>`;
     }).join("");
+    $$(".js-edit-revision", tbody).forEach(button => { button.textContent = "แก้ไขบันทึก"; });
+    $$(".js-edit-revision", tbody).forEach(button => {
+      const rowDoc = DOCS.find(item => String(item.id) === String(button.dataset.id));
+      if (rowDoc?.status === "rejected" && rowDoc?.pdfDocId) {
+        const reviewButton = document.createElement("button");
+        reviewButton.type = "button";
+        reviewButton.className = "row-action sign-now js-open-sign";
+        reviewButton.dataset.id = button.dataset.id;
+        reviewButton.textContent = "ดูรีวิว";
+        button.before(reviewButton);
+      }
+    });
+    $$(".js-open-sign", tbody).forEach(button => {
+      const rowDoc = DOCS.find(item => String(item.id) === String(button.dataset.id));
+      if (rowDoc?.currentReviewAction && !rowDoc?.currentSignAction) button.textContent = "ดูรีวิว";
+    });
     $$(".js-open-sign", tbody).forEach(button => button.addEventListener("click", () => {
       const doc = DOCS.find(item => String(item.id) === String(button.dataset.id));
       if (doc) openSignaturePad(doc);
@@ -2670,7 +2777,7 @@
           const description=document.createElement('p');description.textContent=mark.description;
           card.append(title,description);
           if (doc.pdf_doc_id && Number.isInteger(Number(mark.page)) && Number(mark.page)>0) {
-            const link=document.createElement('a');const url=new URL('../pdf/view',location.href);url.searchParams.set('docId',doc.pdf_doc_id);url.hash=`page=${Number(mark.page)}`;
+            const link=document.createElement('a');const url=new URL('../api/pdf/view',location.href);url.searchParams.set('docId',doc.pdf_doc_id);url.hash=`page=${Number(mark.page)}`;
             link.href=url.href;link.target='_blank';link.rel='noopener';link.textContent='เปิด PDF หน้านี้';card.append(link);
           }
           if (typeof mark.image==='string' && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(mark.image)) {
@@ -2787,7 +2894,7 @@
         const group = selected ? {id:selected.sourceId || selected.id, name:selected.name, useSignatureDefaults:$("#useWorkflowSignatureDefaults").checked,
           members:(selected.members || []).map(member => ({user_id:member.userId, dc_emp_id:member.dcEmpId,
             c_name:member.empName, wf_order:member.wfOrder || member.order, review_action:member.reviewAction,
-            sign_action:member.signAction, approve_action:member.approveAction}))} : null;
+            sign_action:member.signAction, approve_action:member.approveAction, signature_text:member.signatureText || null}))} : null;
         event.source.postMessage({type:'EIS_DOCS_SELECTED_SIGNER_GROUP', group}, location.origin);
       }
       if (event.origin === location.origin && event.source === $("#layoutFrame")?.contentWindow && event.data?.type === "EIS_DOCS_REQUEST_PROCUREMENT_BOOKMARKS") {
