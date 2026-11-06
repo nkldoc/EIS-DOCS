@@ -1174,6 +1174,7 @@
                         editButton.textContent = '✎ แก้ไข';
                         editButton.setAttribute('aria-label', `แก้ไข Bookmark ${bookmark.name}`);
                         editButton.addEventListener('click', () => {
+                            overviewDialog.close();
                             window.parent.postMessage({type:'EIS_DOCS_EDIT_BOOKMARK', bookmarkId:bookmark.id}, location.origin);
                         });
                         item.append(button, editButton);
@@ -1801,6 +1802,23 @@
                             blockEditorPanel.scrollIntoView({behavior:'smooth',block:'nearest'});
                         });
                         tools.appendChild(editText);
+                        if (!reviewOnly) {
+                            const reviewOnlyButton = document.createElement('button');
+                            reviewOnlyButton.type = 'button';
+                            reviewOnlyButton.textContent = '✓ ตรวจสอบ';
+                            reviewOnlyButton.title = 'กำหนดกล่องนี้ให้ตรวจสอบโดยไม่ลงนามหรืออนุมัติ';
+                            reviewOnlyButton.setAttribute('aria-label', 'กำหนดเป็นตรวจสอบอย่างเดียว');
+                            reviewOnlyButton.addEventListener('pointerdown', event => event.stopPropagation());
+                            reviewOnlyButton.addEventListener('click', event => {
+                                event.stopPropagation();
+                                field.reviewAction = true;
+                                field.signAction = false;
+                                field.approveAction = false;
+                                render();
+                                renderSelectedBlockEditor();
+                            });
+                            tools.appendChild(reviewOnlyButton);
+                        }
                         const restore = document.createElement('button');
                         restore.type = 'button';
                         restore.textContent = 'คืนแถว';

@@ -795,11 +795,13 @@ body.sidebar-collapsed .user-quick-actions span:last-child { display: none; }
 .procurement-select-all input, .procurement-row input { width: 15px; height: 15px; accent-color: var(--primary); }
 .procurement-table-head, .procurement-row { display: grid; grid-template-columns: 28px minmax(0, 1fr) 54px 54px 84px; align-items: center; }
 .procurement-table-head { padding: 7px 12px; background: #eef4fb; color: var(--text-muted); font-size: 11px; font-weight: 700; }
+.procurement-table-head { grid-template-columns: 112px minmax(0, 1fr) 54px 54px 84px; }
 .procurement-select-all-head { justify-content: flex-start; gap: 5px; }
 .procurement-topic-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; }
 .procurement-table-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; flex-wrap: wrap; }
 .procurement-table-actions .btn { padding: 5px 9px; font-size: 11px; line-height: 1.35; white-space: nowrap; }
 .procurement-table-actions #updateBookmarkBtn { padding: 6px 12px; font-size: 12px; }
+.procurement-table-actions #updateBookmarkBtn[hidden] { display: none; }
 .procurement-row { min-height: 36px; padding: 5px 12px; border-top: 1px solid #edf0f4; font-size: 12px; }
 .procurement-row.parent { background: #fff; }
 .procurement-row.child { padding-left: 30px; color: #174ea6; cursor: pointer; }
@@ -817,6 +819,7 @@ body.sidebar-collapsed .user-quick-actions span:last-child { display: none; }
   .procurement-topic-heading { align-items: flex-start; flex-direction: column; gap: 6px; }
   .procurement-table-actions { justify-content: flex-start; width: 100%; }
   .procurement-table-head, .procurement-row { grid-template-columns: 26px minmax(0, 1fr) 34px 34px 58px; }
+  .procurement-table-head { grid-template-columns: 112px minmax(0, 1fr) 34px 34px 58px; }
   .procurement-row.child { padding-left: 20px; }
 }
 

@@ -1685,14 +1685,16 @@
       if (state.step === 3) renderPreview();
       return;
     }
-    const groupId='layout-current';const members=new Map();
-    fields.forEach((field,index)=>{
-      const id=String(field.user_id||field.assigneeId||'');if(!id)return;
-      const review=Boolean(field.reviewAction??field.actions?.review),sign=Boolean(field.signAction??field.actions?.sign),approve=Boolean(field.approveAction??field.actions?.approve);
-      if(members.has(id)){const m=members.get(id);m.reviewAction ||= review;m.signAction ||= sign;m.approveAction ||= approve;return;}
-      members.set(id,{id:`layout-${id}`,userId:id,dcEmpId:'',empName:field.assigneeName||field.signerName||id,reviewAction:review,signAction:sign,approveAction:approve,wfOrder:Number(field.wfOrder)||index+1,roleColor:ROLES[0].color});
-    });
-    const ordered=Array.from(members.values()).sort((a,b)=>a.wfOrder-b.wfOrder).map((m,index)=>({...m,wfOrder:index+1,order:index+1,roleName:[m.reviewAction&&'ตรวจสอบ',m.signAction&&'ลงนาม',m.approveAction&&'อนุมัติ'].filter(Boolean).join(' / ')}));
+    const groupId='layout-current';
+    const ordered=fields.map((field,index)=>{
+      const review=Boolean(field.reviewAction??field.actions?.review);
+      const sign=Boolean(field.signAction??field.actions?.sign);
+      const approve=Boolean(field.approveAction??field.actions?.approve);
+      return {id:`layout-${field.id || index}`,userId:String(field.user_id||field.assigneeId||''),dcEmpId:'',
+        empName:field.assigneeName||field.signerName||'ยังไม่เลือกผู้ลงนาม',reviewAction:review,signAction:sign,approveAction:approve,
+        wfOrder:Number(field.wfOrder)||index+1,roleColor:ROLES[0].color,
+        roleName:[review&&'ตรวจสอบ',sign&&'ลงนาม',approve&&'อนุมัติ'].filter(Boolean).join(' / ')||'ไม่ระบุ Action'};
+    }).sort((a,b)=>a.wfOrder-b.wfOrder);
     state.groups=[{id:groupId,name:event.data.name||fields[0]?.wfGroupName||'กลุ่มจากผังปัจจุบัน',fromLayout:true,members:ordered}];
     state.selectedGroupId=groupId;
     state.signatureBoxes=fields.map(f=>({...f,id:f.id,groupId,page:f.page,x:Math.round(f.xRatio*(data.pageSize?.width||595)),y:Math.round(f.yRatio*(data.pageSize?.height||842)),w:Math.round(f.widthRatio*(data.pageSize?.width||595)),h:Math.round(f.heightRatio*(data.pageSize?.height||842))}));
@@ -2057,7 +2059,7 @@
         ${g.members.map(m => `
           <div class="preview-member-row">
             <span style="flex:1;color:var(--text)">${escapeHtml(m.empName)}</span>
-            <span class="badge" style="background:${m.roleColor}22;color:${m.roleColor};border:1px solid ${m.roleColor}44">${m.roleName}</span>
+            <span class="badge" style="background:${m.roleColor}22;color:${m.roleColor};border:1px solid ${m.roleColor}44">${escapeHtml(m.roleName)}</span>
           </div>`).join("")}
       </div>
     `).join("");
@@ -2976,10 +2978,8 @@
   // INIT
   // ═══════════════════════════════════════════════════════════
   document.addEventListener("DOMContentLoaded", () => {
-    let pendingBookmarkFocus = '';
     const updateBookmarkBtn = $('#updateBookmarkBtn');
     updateBookmarkBtn?.addEventListener('click', () => {
-      pendingBookmarkFocus = '';
       if (updateBookmarkBtn) updateBookmarkBtn.hidden = true;
       goToStep(2);
       syncProcurementBookmarksToLayout(true, true);
@@ -2994,9 +2994,12 @@
         event.source.postMessage({type:'EIS_DOCS_SELECTED_SIGNER_GROUP', group}, location.origin);
       }
       if (event.origin === location.origin && event.source === $("#layoutFrame")?.contentWindow && event.data?.type === 'EIS_DOCS_EDIT_BOOKMARK') {
-        pendingBookmarkFocus = String(event.data.bookmarkId || '');
         if (updateBookmarkBtn) updateBookmarkBtn.hidden = false;
         goToStep(0);
+        requestAnimationFrame(() => {
+          updateBookmarkBtn?.scrollIntoView({behavior:'smooth', block:'center', inline:'nearest'});
+          updateBookmarkBtn?.focus({preventScroll:true});
+        });
         return;
       }
       if (event.origin === location.origin && event.source === $("#layoutFrame")?.contentWindow && event.data?.type === "EIS_DOCS_REQUEST_PROCUREMENT_BOOKMARKS") {
