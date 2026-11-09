@@ -14,7 +14,7 @@
     const count = boxes.filter(box => box.checked).length;
     if (!count) { event.preventDefault(); alert('กรุณาเลือกอย่างน้อย 1 รายการ'); return; }
     const action = event.submitter?.value;
-    const text = action === 'delete' ? `ลบ ${count} รายการและประวัติ Workflow ถาวร?` : `${action === 'disable' ? 'ยกเลิกการใช้งาน' : 'เปิดใช้งาน'} ${count} รายการ?`;
+    const text = action === 'delete' ? `ลบ ${count} รายการ ประวัติ Workflow และไฟล์ PDF/JSON ถาวร?` : `${action === 'disable' ? 'ยกเลิกการใช้งาน' : 'เปิดใช้งาน'} ${count} รายการ?`;
     if (!confirm(text)) event.preventDefault();
   });
 })();

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="222" viewBox="0 0 760 222" role="img" aria-labelledby="title desc">
+<title id="title">แถบขั้นตอนจัดทำเอกสาร EIS-DOCS</title>
+<desc id="desc">หมายเลข 1 ข้อมูลหลัก หมายเลข 2 กลุ่มผู้ลงนาม หมายเลข 3 วางตำแหน่ง และขั้นบันทึก</desc>
+<rect width="760" height="222" fill="#fff"/>
+<rect y="0" width="760" height="72" fill="#fff"/>
+<rect x="14" y="20" width="31" height="31" rx="7" fill="#2373ce"/>
+<text x="20" y="43" font-size="22" fill="#fff">▤</text>
+<text x="56" y="45" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#2373ce">EIS-DOCS</text>
+<text x="151" y="43" font-family="Tahoma,Arial,sans-serif" font-size="11" fill="#6b7280">ระบบสนับสนุนเอกสารและลงนาม</text>
+<rect y="72" width="760" height="59" fill="#206ac3"/>
+<text x="20" y="106" font-size="21" fill="#fff">▤</text>
+<text x="53" y="99" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#fff">PR Document — Signature Template Setup</text>
+<text x="53" y="116" font-family="Tahoma,Arial,sans-serif" font-size="10" fill="#fff">ระบบกำหนด Template ลายเซ็น สำหรับเอกสารจัดซื้อ</text>
+<rect y="131" width="760" height="91" fill="#fff"/>
+<g font-family="Tahoma,Arial,sans-serif" font-size="14">
+<circle cx="43" cy="164" r="13" fill="#2373ce"/><text x="39" y="169" fill="#fff" font-weight="700">1</text><text x="66" y="169" fill="#2373ce" font-weight="700">ข้อมูลหลัก</text>
+<text x="163" y="169" fill="#d6dce4">›</text>
+<circle cx="195" cy="164" r="13" fill="#e3e8ee"/><text x="191" y="169" fill="#68778b">2</text><text x="219" y="169" fill="#68778b">กลุ่มผู้ลงนาม</text>
+<text x="351" y="169" fill="#d6dce4">›</text>
+<circle cx="382" cy="164" r="13" fill="#e3e8ee"/><text x="378" y="169" fill="#68778b">3</text><text x="407" y="169" fill="#68778b">วางตำแหน่ง</text>
+<text x="520" y="169" fill="#d6dce4">›</text>
+<circle cx="551" cy="164" r="13" fill="#e3e8ee"/><text x="547" y="169" fill="#68778b">4</text><text x="576" y="169" fill="#68778b">บันทึก</text>
+</g>
+<rect x="13" y="188" width="133" height="3" fill="#2373ce"/>
+</svg>
