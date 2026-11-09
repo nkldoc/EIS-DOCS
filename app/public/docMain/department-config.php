@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require_once dirname(__DIR__, 2) . '/src/bootstrap.php';
 Auth::requireLogin();
-if (!DocumentAccess::isAdministrator()) { http_response_code(403); exit('เฉพาะผู้ดูแลระบบเท่านั้น'); }
+if (!DocumentAccess::isAdministrator() || Auth::impersonating()) { http_response_code(403); exit('เฉพาะผู้ดูแลระบบเท่านั้น'); }
 $_SESSION['app_csrf'] ??= bin2hex(random_bytes(32));
 header('Content-Type: text/html; charset=utf-8');
 header('Cache-Control: no-store, private');

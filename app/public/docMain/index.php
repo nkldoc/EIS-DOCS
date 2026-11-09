@@ -68,7 +68,7 @@ echo strtr($template, [
     '{{ADMIN_USER_ONLINE_MENU}}' => Presence::enabled() && DocumentAccess::isAdministrator() && !Auth::impersonating()
         ? '<a class="menu-item" href="user-online.php" target="_blank" rel="noopener" title="ตรวจสอบผู้ใช้ออนไลน์ EIS-DOCS และ Supplies"><span class="menu-item-icon" aria-hidden="true">🟢</span><span class="menu-item-text"><span class="menu-item-title">ผู้ใช้งานออนไลน์ (Admin)</span><span class="menu-item-desc">EIS-DOCS / Supplies · เวลาเข้า–ออก ↗</span></span></a>'
         : '',
-    '{{DEPARTMENT_CONFIG_MENU}}' => DocumentAccess::isAdministrator() ? '<a class="menu-item" href="department-config.php" title="กำหนดสิทธิ์หน่วยงาน"><span class="menu-item-icon">⚙️</span><span class="menu-item-text"><span class="menu-item-title">กำหนดสิทธิ์หน่วยงาน</span></span></a>' : '',
+    '{{DEPARTMENT_CONFIG_MENU}}' => DocumentAccess::isAdministrator() && !Auth::impersonating() ? '<a class="menu-item" href="department-config.php" title="กำหนดสิทธิ์หน่วยงาน"><span class="menu-item-icon">⚙️</span><span class="menu-item-text"><span class="menu-item-title">กำหนดสิทธิ์หน่วยงาน</span></span></a>' : '',
     '{{USER_INITIAL}}' => htmlspecialchars($initial, ENT_QUOTES, 'UTF-8'),
     '{{USER_ID}}' => htmlspecialchars((string) ($user['user_id'] ?? ''), ENT_QUOTES, 'UTF-8'),
     '{{USER_FULL_NAME}}' => htmlspecialchars($fullName, ENT_QUOTES, 'UTF-8'),
